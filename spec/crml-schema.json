@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CRML 1.0",
+  "type": "object",
+  "required": [
+    "crml",
+    "meta",
+    "model"
+  ],
+  "properties": {
+    "crml": {
+      "type": "string"
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "sources": {
+          "type": "object"
+        },
+        "feature_mapping": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "model": {
+      "type": "object",
+      "required": [
+        "frequency",
+        "severity"
+      ],
+      "properties": {
+        "assets": {
+          "type": "object"
+        },
+        "frequency": {
+          "type": "object"
+        },
+        "severity": {
+          "type": "object"
+        },
+        "dependency": {
+          "type": "object"
+        },
+        "temporal": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "pipeline": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "output": {
+      "type": "object",
+      "properties": {
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "distributions": {
+          "type": "object"
+        },
+        "diagnostics": {
+          "type": "object"
+        },
+        "export": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

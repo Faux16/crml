@@ -1,0 +1,29 @@
+crml: '1.0'
+meta:
+  name: fair-baseline
+  version: '1.0'
+  description: Simple FAIR-like Poisson + Lognormal model
+model:
+  frequency:
+    model: poisson
+    scope: portfolio
+    parameters:
+      lambda: 1.2
+  severity:
+    model: lognormal
+    parameters:
+      mu: 9.0
+      sigma: 1.0
+pipeline:
+  simulation:
+    monte_carlo:
+      enabled: true
+      runs: 50000
+      random_seed: 7
+output:
+  metrics:
+  - EAL
+  - VaR_95
+  - VaR_99
+  distributions:
+    annual_loss: true

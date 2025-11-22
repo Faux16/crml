@@ -1,0 +1,60 @@
+site_name: "CRML Documentation"
+site_url: ""
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: index.md
+
+  - Getting Started:
+    - Introduction: getting-started.md
+    - Specification: specification.md
+    - Schema: schema/crml_schema.md
+
+  - Mathematical Foundations:
+    - Deep Mathematics: math/deep_math.md
+    - Frequency Models (Gamma–Poisson): runtime/frequency.md
+    - Severity Models: runtime/severity.md
+    - Entropy & Information Theory: runtime/entropy.md
+    - Copula Models: runtime/copula.md
+    - MCMC (QBER Engine): runtime/mcmc.md
+
+  - Runtime:
+    - Attack Graphs: runtime/attack-graphs.md
+    - CLI Commands: cli/cli-commands.md
+    - Python API: api/python-api.md
+
+  - CRML Models:
+    - Best Practices: models/best-practices.md
+    - FAIR Baseline Model: models/example-fair-baseline.md
+    - QBER Enterprise Model: models/example-qber-enterprise.md
+    - Full Model Examples: examples/full_examples.md
+
+  - FAIR vs QBER:
+    - Comparison & Evaluation: fair-qber-comparison.md
+
+  - Diagrams:
+    - Mermaid Diagrams: diagrams/mermaid.md
+
+  - Roadmap:
+    - CRML Roadmap: roadmap.md
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - attr_list
+  - def_list
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.arithmatex
+
+extra:
+  generator: false
+

@@ -1,5 +1,5 @@
 site_name: "CRML Documentation"
-site_url: ""
+site_url: "https://Faux16.github.io/crml/"
 theme:
   name: material
   features:

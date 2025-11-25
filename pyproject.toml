@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crml-lang"
+version = "1.0.0"
+description = "Cyber Risk Modeling Language (CRML) tools and validator"
+readme = "README.md"
+requires-python = ">=3.7"
+authors = [
+  {name = "Zeron Research Labs"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pyyaml",
+    "jsonschema",
+]
+license-files = ["LICENSE"]
+
+[project.scripts]
+crml = "crml.cli:main"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+crml = ["schema/*.json"]
+

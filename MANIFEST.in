@@ -1,0 +1,3 @@
+include src/crml/schema/*.json
+include README.md
+include LICENSE

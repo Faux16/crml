@@ -1,0 +1,34 @@
+crml: "1.0"
+meta:
+  name: "ransomware-scenario"
+  version: "1.0"
+  description: "Real-world ransomware risk model based on industry statistics"
+  tags:
+    - ransomware
+    - extortion
+    - enterprise
+model:
+  assets:
+    cardinality: 500  # 500 critical systems
+  frequency:
+    model: poisson
+    parameters:
+      lambda: 0.08  # ~8% annual probability per asset (industry average)
+  severity:
+    model: lognormal
+    parameters:
+      mu: 13.5  # ~$700K median loss
+      sigma: 1.8  # High variability in ransomware losses
+pipeline:
+  simulation:
+    monte_carlo:
+      enabled: true
+      runs: 10000
+      random_seed: 123
+output:
+  metrics:
+    - EAL
+    - VaR_95
+    - VaR_99
+  distributions:
+    annual_loss: true

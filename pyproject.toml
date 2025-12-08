@@ -19,8 +19,12 @@ classifiers = [
 dependencies = [
     "pyyaml",
     "jsonschema",
+    "numpy",
 ]
 license-files = ["LICENSE"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
 
 [project.scripts]
 crml = "crml.cli:main"

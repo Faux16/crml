@@ -1,0 +1,16 @@
+crml: "1.0"
+meta:
+  name: "manual-test-model"
+  description: "Simple model for manual verification"
+model:
+  assets:
+    cardinality: 100
+  frequency:
+    model: poisson
+    parameters:
+      lambda: 0.1
+  severity:
+    model: lognormal
+    parameters:
+      mu: 10.0
+      sigma: 1.0

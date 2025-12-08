@@ -1,0 +1,113 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { spawn } from 'child_process';
+import path from 'path';
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { yaml, runs = 10000, seed } = body;
+
+        if (!yaml) {
+            return NextResponse.json(
+                { success: false, errors: ['YAML content is required'] },
+                { status: 400 }
+            );
+        }
+
+        // Validate runs parameter
+        const numRuns = parseInt(runs as string);
+        if (isNaN(numRuns) || numRuns < 100 || numRuns > 100000) {
+            return NextResponse.json(
+                { success: false, errors: ['Runs must be between 100 and 100,000'] },
+                { status: 400 }
+            );
+        }
+
+        // Run Python simulation
+        const result = await runSimulation(yaml, numRuns, seed);
+
+        return NextResponse.json(result);
+    } catch (error) {
+        console.error('Simulation error:', error);
+        return NextResponse.json(
+            {
+                success: false,
+                errors: [`Server error: ${error instanceof Error ? error.message : 'Unknown error'}`]
+            },
+            { status: 500 }
+        );
+    }
+}
+
+async function runSimulation(yamlContent: string, runs: number, seed?: number): Promise<any> {
+    return new Promise((resolve, reject) => {
+        // Find the Python executable and crml module
+        const pythonCode = `
+import sys
+import json
+sys.path.insert(0, '${path.join(process.cwd(), '..', 'src')}')
+
+from crml.runtime import run_simulation
+
+yaml_content = """${yamlContent.replace(/"/g, '\\"')}"""
+
+result = run_simulation(yaml_content, n_runs=${runs}${seed ? `, seed=${seed}` : ''})
+print(json.dumps(result))
+`;
+
+        const python = spawn('python3', ['-c', pythonCode]);
+
+        let stdout = '';
+        let stderr = '';
+
+        python.stdout.on('data', (data) => {
+            stdout += data.toString();
+        });
+
+        python.stderr.on('data', (data) => {
+            stderr += data.toString();
+        });
+
+        // Set timeout for 30 seconds
+        const timeout = setTimeout(() => {
+            python.kill();
+            reject(new Error('Simulation timeout (30s exceeded)'));
+        }, 30000);
+
+        python.on('close', (code) => {
+            clearTimeout(timeout);
+
+            if (code !== 0) {
+                console.error('Python stderr:', stderr);
+                resolve({
+                    success: false,
+                    errors: [`Simulation failed: ${stderr || 'Unknown error'}`],
+                    metrics: {},
+                    distribution: {},
+                    metadata: {}
+                });
+                return;
+            }
+
+            try {
+                // Parse the JSON output from Python
+                const result = JSON.parse(stdout);
+                resolve(result);
+            } catch (error) {
+                console.error('Failed to parse Python output:', stdout);
+                resolve({
+                    success: false,
+                    errors: ['Failed to parse simulation results'],
+                    metrics: {},
+                    distribution: {},
+                    metadata: {}
+                });
+            }
+        });
+
+        python.on('error', (error) => {
+            clearTimeout(timeout);
+            reject(error);
+        });
+    });
+}

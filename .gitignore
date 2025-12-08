@@ -18,3 +18,9 @@ build/
 *.swp
 *.swo
 *~
+
+# Web platform
+web/node_modules/
+web/.next/
+web/out/
+web/.turbo/

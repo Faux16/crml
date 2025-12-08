@@ -1,0 +1,33 @@
+crml: "1.0"
+meta:
+  name: "data-breach-simple"
+  version: "1.0"
+  description: "Simple data breach risk model for beginners"
+  tags:
+    - data-breach
+    - beginner
+    - pii
+model:
+  assets:
+    cardinality: 50  # 50 databases with PII
+  frequency:
+    model: poisson
+    parameters:
+      lambda: 0.05  # 5% annual probability per database
+  severity:
+    model: lognormal
+    parameters:
+      mu: 11.5  # ~$100K median breach cost
+      sigma: 1.2  # Moderate variability
+pipeline:
+  simulation:
+    monte_carlo:
+      enabled: true
+      runs: 10000
+output:
+  metrics:
+    - EAL
+    - VaR_95
+    - VaR_99
+  distributions:
+    annual_loss: true

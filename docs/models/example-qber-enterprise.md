@@ -3,7 +3,7 @@
 This example captures a QBER-like enterprise cyber risk model in CRML form.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 
 meta:
   name: "qber-enterprise"

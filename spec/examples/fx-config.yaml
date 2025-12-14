@@ -1,0 +1,37 @@
+# FX Configuration File
+# ---------------------
+# This file defines currency exchange rates and output preferences.
+# Use with: crml simulate model.yaml --fx-config fx-config.yaml
+#
+# The base_currency is used for internal calculations (normalization).
+# The output_currency determines how results are displayed.
+# Rates express how much 1 unit of each currency is worth in the base_currency.
+
+# Base currency for internal calculations
+base_currency: USD
+
+# Currency for displaying output results
+# Results will be converted to this currency
+output_currency: USD
+
+# Date when these rates were captured (informational)
+as_of: "2025-01-15"
+
+# Exchange rates (value of 1 unit in base_currency)
+# Override or add currencies as needed
+rates:
+  USD: 1.0       # US Dollar (base)
+  EUR: 1.08      # Euro
+  GBP: 1.26      # British Pound
+  CHF: 1.12      # Swiss Franc
+  JPY: 0.0066    # Japanese Yen
+  CNY: 0.14      # Chinese Yuan
+  CAD: 0.72      # Canadian Dollar
+  AUD: 0.64      # Australian Dollar
+  INR: 0.012     # Indian Rupee
+  BRL: 0.17      # Brazilian Real
+  PKR: 0.0036    # Pakistani Rupee
+  MXN: 0.058     # Mexican Peso
+  KRW: 0.00072   # South Korean Won
+  SGD: 0.74      # Singapore Dollar
+  HKD: 0.13      # Hong Kong Dollar

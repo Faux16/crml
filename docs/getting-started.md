@@ -25,7 +25,7 @@ pip install -e .
 Create `model.yaml`:
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 
 meta:
   name: "toy-model"

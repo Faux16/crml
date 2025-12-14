@@ -16,7 +16,7 @@ This guide will teach you how to write CRML models from scratch, step by step.
 Every CRML model has three main sections:
 
 ```yaml
-crml: "1.0"              # Version (required)
+crml: "1.1"              # Version (required)
 meta:                    # Metadata (optional but recommended)
   name: "my-model"
   description: "What this models"
@@ -33,11 +33,11 @@ model:                   # The actual risk model (required)
 Always start by describing what you're modeling:
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "phishing-risk"
   description: "Phishing attack risk for email users"
-  version: "1.0"
+  version: "1.1"
   author: "Security Team"
   tags:
     - phishing
@@ -122,15 +122,16 @@ Use when most losses are small, but some are huge:
   severity:
     model: lognormal
     parameters:
-      mu: 11.5    # e^11.5 ≈ $100K median loss
-      sigma: 1.2  # Moderate variability
+      median: "100 000"  # $100K median loss
+      currency: USD      # Explicit currency
+      sigma: 1.2         # Moderate variability
 ```
 
-**Choosing mu (median loss):**
-- mu = 9.0  → ~$8K (minor incidents)
-- mu = 11.5 → ~$100K (data breaches)
-- mu = 13.5 → ~$700K (ransomware)
-- mu = 16.0 → ~$9M (major breaches)
+**Choosing median (typical loss):**
+- median: "8 000"     → ~$8K (minor incidents)
+- median: "100 000"   → ~$100K (data breaches)
+- median: "700 000"   → ~$700K (ransomware)
+- median: "9 000 000" → ~$9M (major breaches)
 
 **Choosing sigma (variability):**
 - 0.5 = Low variability (predictable losses)
@@ -138,7 +139,7 @@ Use when most losses are small, but some are huge:
 - 1.5 = High variability
 - 2.0+ = Extreme variability (some losses 100x others)
 
-**Quick formula:** `median_loss = e^mu`
+**Note:** You can also use `mu` (log-space mean) for advanced use, but `median` is recommended as it's more intuitive and directly corresponds to real-world data.
 
 #### **Option B: Gamma**
 
@@ -159,7 +160,7 @@ Use for more symmetric loss distributions:
 Here's a complete phishing model:
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "phishing-risk"
   description: "Annual phishing risk for 500 employees"
@@ -176,8 +177,9 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 10.0    # e^10 ≈ $22K median loss
-      sigma: 1.5  # High variability
+      median: "22 000"  # $22K median loss
+      currency: USD
+      sigma: 1.5        # High variability
 ```
 
 **What this means:**
@@ -205,7 +207,8 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 12.0
+      median: "162 755"  # ~$163K median loss
+      currency: USD
       sigma: 1.0
 ```
 
@@ -225,8 +228,9 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 14.0   # ~$1.2M median
-      sigma: 2.0  # High variability
+      median: "1 200 000"  # ~$1.2M median
+      currency: USD
+      sigma: 2.0           # High variability
 ```
 
 **When to use:**
@@ -247,11 +251,13 @@ model:
     components:
       - lognormal:  # 80% are small losses
           weight: 0.8
-          mu: 10.0
+          median: "22 026"    # ~$22K
+          currency: USD
           sigma: 0.8
       - lognormal:  # 20% are catastrophic
           weight: 0.2
-          mu: 15.0
+          median: "3 269 017"  # ~$3.3M
+          currency: USD
           sigma: 1.5
 ```
 
@@ -281,7 +287,7 @@ model:
 ### Example 1: Data Breach
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "data-breach-simple"
   description: "Customer database breach risk"
@@ -296,20 +302,21 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 11.5   # IBM: $100K median
+      median: "100 000"  # IBM: $100K median
+      currency: USD
       sigma: 1.2
 ```
 
 **Data sources:**
 - Lambda: Verizon DBIR 2023
-- Mu: IBM Cost of Data Breach Report 2023
+- Median: IBM Cost of Data Breach Report 2023
 
 ---
 
 ### Example 2: Ransomware
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "ransomware-scenario"
   description: "Enterprise ransomware risk"
@@ -324,20 +331,21 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 13.5   # ~$700K (ransom + downtime)
-      sigma: 1.8  # High variability
+      median: "700 000"  # ~$700K (ransom + downtime)
+      currency: USD
+      sigma: 1.8         # High variability
 ```
 
 **Data sources:**
 - Lambda: Sophos State of Ransomware 2023
-- Mu: Coveware Ransomware Reports
+- Median: Coveware Ransomware Reports
 
 ---
 
 ### Example 3: Cloud Outage
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "cloud-outage"
   description: "SaaS provider outage impact"
@@ -351,8 +359,9 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 12.0   # ~$160K per outage
-      sigma: 1.0  # Moderate variability
+      median: "162 755"  # ~$163K per outage
+      currency: USD
+      sigma: 1.0         # Moderate variability
 ```
 
 ---
@@ -369,18 +378,18 @@ model:
 | Phishing success | 0.08 - 0.15 | KnowBe4 |
 | Insider threat | 0.02 - 0.05 | Ponemon |
 
-### Severity (Mu for Lognormal)
+### Severity (Median for Lognormal)
 
-| Loss Amount | Mu Value | Use Case |
-|-------------|----------|----------|
-| ~$5K | 8.5 | Minor incidents |
-| ~$20K | 10.0 | Phishing, small breaches |
-| ~$100K | 11.5 | Data breaches |
-| ~$500K | 13.1 | Ransomware |
-| ~$2M | 14.5 | Major breaches |
-| ~$10M | 16.1 | Catastrophic events |
+| Loss Amount | Median Value | Use Case |
+|-------------|--------------|----------|
+| ~$5K | 5000 | Minor incidents |
+| ~$20K | 20000 | Phishing, small breaches |
+| ~$100K | 100000 | Data breaches |
+| ~$500K | 500000 | Ransomware |
+| ~$2M | 2000000 | Major breaches |
+| ~$10M | 10000000 | Catastrophic events |
 
-**Formula:** `mu = ln(median_loss_in_dollars)`
+**Note:** Use `median` for the median loss directly - no calculation needed! For advanced users, `mu = ln(median)`.
 
 ---
 
@@ -408,7 +417,7 @@ model:
 
 ```yaml
 # Minimal CRML model
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "my-model"
 model:
@@ -421,13 +430,15 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: Y      # ln(median_loss)
-      sigma: Z   # Variability
+      median: Y    # Median loss in dollars (intuitive!)
+      currency: USD
+      sigma: Z     # Variability
 ```
 
 **Remember:**
 - Lambda = probability per asset per year
-- Mu = natural log of median loss
+- Median = typical loss amount (directly in currency)
 - Sigma = how variable losses are
+- Currency = explicit currency declaration
 
 Happy modeling! 🚀

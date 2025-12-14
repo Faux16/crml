@@ -116,7 +116,7 @@ sigma = np.std([math.log(c) for c in costs])
 
 # Generate CRML model
 model = {
-    'crml': '1.0',
+    'crml': '1.1',
     'meta': {
         'name': 'splunk-calibrated',
         'source': 'Splunk SIEM',

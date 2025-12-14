@@ -1,4 +1,4 @@
-crml: '1.0'
+crml: '1.1'
 meta:
   name: qber-enterprise-v1
   version: '2025.1'
@@ -89,12 +89,13 @@ model:
     components:
     - lognormal:
         weight: 0.7
-        mu: 12
+        median: "162 755"  # ~$163K median loss (ISO 80000-1 format)
+        currency: USD
         sigma: 1.2
     - gamma:
         weight: 0.3
         shape: 2.5
-        scale: 10000
+        scale: "10 000"
   dependency:
     copula:
       type: gaussian

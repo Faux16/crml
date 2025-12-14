@@ -393,7 +393,7 @@ crml validate model.yaml
 
 ### Can I model correlated risks?
 
-Not yet in CRML 1.0, but it's on the roadmap!
+Not yet in CRML 1.1, but it's on the roadmap!
 
 **Current workaround:**
 ```python

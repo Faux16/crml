@@ -32,14 +32,14 @@ def validate_crml(path: str) -> bool:
 
     try:
         validate(instance=data, schema=schema)
-        print(f"[OK] {path} is a valid CRML 1.0 document.")
+        print(f"[OK] {path} is a valid CRML 1.1 document.")
         return True
     except SchemaError as e:
         print("[SCHEMA ERROR] Invalid CRML schema definition.")
         print(e)
         return False
     except ValidationError as e:
-        print(f"[ERROR] {path} failed CRML 1.0 validation.")
+        print(f"[ERROR] {path} failed CRML 1.1 validation.")
         print("Message:", e.message)
         print("Path:   ", " -> ".join(map(str, e.path)))
         return False

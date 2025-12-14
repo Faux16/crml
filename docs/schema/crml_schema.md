@@ -20,7 +20,7 @@ Example (truncated):
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CRML 1.0",
+  "title": "CRML 1.1",
   "type": "object",
   "required": ["crml", "meta", "model"],
   "properties": {

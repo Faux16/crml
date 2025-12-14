@@ -1,4 +1,4 @@
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "data-breach-simple"
   version: "1.0"
@@ -17,7 +17,8 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 11.5  # ~$100K median breach cost
+      median: "100 000"  # $100K median breach cost (ISO 80000-1 format)
+      currency: USD
       sigma: 1.2  # Moderate variability
 pipeline:
   simulation:

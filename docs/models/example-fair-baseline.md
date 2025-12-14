@@ -6,7 +6,7 @@ This example encodes a FAIR-like single-scenario model with:
 - lognormal loss magnitude
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 
 meta:
   name: "fair-baseline"

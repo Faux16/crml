@@ -18,26 +18,81 @@ crml validate model.yaml
 
 ---
 
-## `crml run`
+## `crml simulate`
 
 Run a Monte Carlo simulation based on the CRML model.
 
 ```bash
-crml run model.yaml --runs 30000
+crml simulate model.yaml -n 30000
 ```
 
 Options:
 
-- `--runs` (int): number of Monte Carlo runs (default: 20000)
+- `-n, --runs` (int): number of Monte Carlo runs (default: 10000)
+- `-s, --seed` (int): random seed for reproducibility
+- `-f, --format` (text|json): output format (default: text)
+- `--fx-config` (path): path to FX configuration file for currency conversion
+
+### Currency Handling
+
+Models should specify currency on monetary values:
+
+```yaml
+severity:
+  model: lognormal
+  parameters:
+    median: "100 000"
+    currency: EUR
+    sigma: 1.2
+```
+
+To convert currencies and control output display, use an FX config file:
+
+```bash
+crml simulate model.yaml --fx-config fx-config.yaml
+```
+
+Example `fx-config.yaml`:
+
+```yaml
+base_currency: USD
+output_currency: EUR  # Display results in Euros
+as_of: "2025-01-15"
+rates:
+  EUR: 1.08
+  GBP: 1.26
+  JPY: 0.0066
+```
 
 Output example:
 
 ```text
-=== CRML Simulation Results ===
-EAL: 2.71e+07
-VaR_95: 3.97e+07
-VaR_99: 4.43e+07
-VaR_999: 6.84e+07
+==================================================
+CRML Simulation Results
+==================================================
+Model: data-breach-simple
+Runs: 10,000
+Runtime: 45.23 ms
+Currency: EUR (€)
+
+==================================================
+Risk Metrics
+==================================================
+EAL (Expected Annual Loss):  €27,100,000.00
+VaR 95%:                      €39,700,000.00
+VaR 99%:                      €44,300,000.00
+VaR 99.9%:                    €68,400,000.00
+==================================================
+```
+
+---
+
+## `crml run` (legacy)
+
+Alias for `crml simulate` with text output.
+
+```bash
+crml run model.yaml --runs 30000
 ```
 
 ---

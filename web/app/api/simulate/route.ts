@@ -5,7 +5,7 @@ import path from 'path';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { yaml, runs = 10000, seed, currency = '$' } = body;
+        const { yaml, runs = 10000, seed, outputCurrency = 'USD' } = body;
 
         if (!yaml) {
             return NextResponse.json(
@@ -23,8 +23,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Validate currency
+        const validCurrencies = ['USD', 'EUR', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD', 'CNY', 'INR', 'BRL', 'MXN', 'KRW', 'SGD', 'HKD', 'PKR'];
+        if (!validCurrencies.includes(outputCurrency)) {
+            return NextResponse.json(
+                { success: false, errors: [`Invalid currency: ${outputCurrency}`] },
+                { status: 400 }
+            );
+        }
+
         // Run Python simulation
-        const result = await runSimulation(yaml, numRuns, seed, currency);
+        const result = await runSimulation(yaml, numRuns, seed, outputCurrency);
 
         return NextResponse.json(result);
     } catch (error) {
@@ -39,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-async function runSimulation(yamlContent: string, runs: number, seed?: number, currency: string = '$'): Promise<any> {
+async function runSimulation(yamlContent: string, runs: number, seed?: number, outputCurrency: string = 'USD'): Promise<any> {
     return new Promise((resolve, reject) => {
         // Find the Python executable and crml module
         const pythonCode = `
@@ -51,7 +60,13 @@ from crml.runtime import run_simulation
 
 yaml_content = """${yamlContent.replace(/"/g, '\\"')}"""
 
-result = run_simulation(yaml_content, n_runs=${runs}${seed ? `, seed=${seed}` : ''}, currency='${currency}')
+fx_config = {
+    "base_currency": "USD",
+    "output_currency": "${outputCurrency}",
+    "rates": None  # Use default rates
+}
+
+result = run_simulation(yaml_content, n_runs=${runs}${seed ? `, seed=${seed}` : ''}, fx_config=fx_config)
 print(json.dumps(result))
 `;
 

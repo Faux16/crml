@@ -25,7 +25,7 @@ crml --version
 Create a file called `my-first-model.yaml`:
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "my-first-risk-model"
   description: "A simple phishing risk model"
@@ -42,8 +42,9 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 10.0    # ~$22K median loss
-      sigma: 1.0  # Moderate variability
+      median: "22 000"  # $22K median loss
+      currency: USD
+      sigma: 1.0        # Moderate variability
 ```
 
 **What this models:**
@@ -123,7 +124,7 @@ Visit http://localhost:3000/playground
 
 ### Try Different Scenarios
 - Modify `lambda` to see how frequency affects risk
-- Change `mu` to model different loss amounts
+- Change `median` to model different loss amounts
 - Increase `cardinality` for larger organizations
 
 ### Advanced Features

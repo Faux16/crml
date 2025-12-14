@@ -1,4 +1,4 @@
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "qber-simplified"
   version: "1.0"
@@ -20,7 +20,8 @@ model:
     components:
       - lognormal:
           weight: 0.7  # 70% of losses follow lognormal
-          mu: 12
+          median: "162 755"  # ~$163K median loss
+          currency: USD
           sigma: 1.2
       - gamma:
           weight: 0.3  # 30% follow gamma (catastrophic losses)

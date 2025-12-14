@@ -2,9 +2,191 @@ import yaml
 import numpy as np
 import json
 import time
-from typing import Dict, Any, Union
+import math
+from typing import Dict, Any, Union, Optional
 
-def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: int = None, currency: str = "$") -> Dict[str, Any]:
+# Default currency data structure
+# Contains symbol and FX rate for each currency.
+#
+# IMPORTANT: Rate convention is "1 unit of currency = X USD"
+#   - Example: EUR rate 1.08 means 1 EUR = 1.08 USD (euro stronger than dollar)
+#   - Example: JPY rate 0.0066 means 1 JPY = 0.0066 USD
+#   - To convert: price_usd = amount * CURRENCIES[currency]["rate"]
+#
+# Rates are approximate as of December 2025 - users can provide their own fx_context for accuracy
+CURRENCIES = {
+    "USD": {"symbol": "$",   "rate": 1.0},       # US Dollar (base currency)
+    "EUR": {"symbol": "€",   "rate": 1.16},      # Euro
+    "GBP": {"symbol": "£",   "rate": 1.02},      # British Pound
+    "CHF": {"symbol": "Fr",  "rate": 1.09},      # Swiss Franc
+    "JPY": {"symbol": "¥",   "rate": 0.0064},    # Japanese Yen
+    "CNY": {"symbol": "CN¥", "rate": 0.142},     # Chinese Yuan
+    "CAD": {"symbol": "C$",  "rate": 0.72},      # Canadian Dollar
+    "AUD": {"symbol": "A$",  "rate": 0.66},      # Australian Dollar
+    "INR": {"symbol": "₹",   "rate": 0.0111},    # Indian Rupee
+    "BRL": {"symbol": "R$",  "rate": 0.18},      # Brazilian Real
+    "PKR": {"symbol": "₨",   "rate": 0.0036},    # Pakistani Rupee
+    "MXN": {"symbol": "MX$", "rate": 0.055},     # Mexican Peso
+    "KRW": {"symbol": "₩",   "rate": 0.00068},   # South Korean Won
+    "SGD": {"symbol": "S$",  "rate": 0.77},      # Singapore Dollar
+    "HKD": {"symbol": "HK$", "rate": 0.129},     # Hong Kong Dollar
+}
+
+# Derived mappings
+DEFAULT_FX_RATES = {code: info["rate"] for code, info in CURRENCIES.items()}
+CURRENCY_SYMBOL_TO_CODE = {info["symbol"]: code for code, info in CURRENCIES.items()}
+CURRENCY_CODE_TO_SYMBOL = {code: info["symbol"] for code, info in CURRENCIES.items()}
+
+
+def parse_number(value: Union[str, int, float]) -> float:
+    """
+    Parse a numeric value that may contain space-separated thousands.
+    
+    Supports ISO 80000-1 standard thin space (U+202F) and regular space as
+    thousands separators for improved readability of large numbers.
+    Commas or points are not supported, as they are used differently in various locales as decimal separators.
+    
+    This is intended for large monetary values like `median` and `scale`,
+    NOT for mathematical factors like `mu`, `sigma`, `lambda`, or `shape`.
+    
+    Examples:
+        parse_number(100000) -> 100000.0
+        parse_number("100 000") -> 100000.0
+        parse_number("1 000 000") -> 1000000.0
+        parse_number("100000") -> 100000.0
+        
+    Args:
+        value: A number or string representation that may contain spaces
+        
+    Returns:
+        The parsed float value
+    """
+    if isinstance(value, (int, float)):
+        return float(value)
+    # Remove regular spaces and thin spaces (U+202F) used as thousands separators
+    cleaned = str(value).replace(' ', '').replace('\u202f', '')
+    return float(cleaned)
+
+
+def load_fx_config(fx_config_path: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Load FX configuration from a YAML file or return defaults.
+    
+    Args:
+        fx_config_path: Path to FX config YAML file (optional)
+        
+    Returns:
+        FX configuration dict with base_currency, output_currency, and rates
+    """
+    default_config = {
+        "base_currency": "USD",
+        "output_currency": "USD",
+        "rates": DEFAULT_FX_RATES
+    }
+    
+    if fx_config_path is None:
+        return default_config
+    
+    try:
+        with open(fx_config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        # Merge with defaults
+        result = default_config.copy()
+        if config:
+            result["base_currency"] = config.get("base_currency", "USD")
+            result["output_currency"] = config.get("output_currency", result["base_currency"])
+            if "rates" in config:
+                result["rates"] = {**DEFAULT_FX_RATES, **config["rates"]}
+            result["as_of"] = config.get("as_of")
+        return result
+    except Exception as e:
+        print(f"Warning: Could not load FX config from {fx_config_path}: {e}")
+        return default_config
+
+
+def get_currency_symbol(currency: str) -> str:
+    """
+    Get the display symbol for a currency code.
+    If already a symbol or unknown code, returns the input unchanged.
+    """
+    return CURRENCY_CODE_TO_SYMBOL.get(currency.upper(), currency)
+
+
+def convert_currency(amount: float, from_currency: str, to_currency: str, fx_config: Optional[Dict] = None) -> float:
+    """
+    Convert a monetary amount between currencies.
+    
+    Args:
+        amount: The monetary amount to convert
+        from_currency: Source currency code
+        to_currency: Target currency code
+        fx_config: FX configuration with rates
+        
+    Returns:
+        The converted amount in the target currency
+    """
+    if fx_config is None:
+        fx_config = {"base_currency": "USD", "rates": DEFAULT_FX_RATES}
+    
+    rates = fx_config.get("rates", DEFAULT_FX_RATES)
+    
+    # Convert symbol to code if needed
+    if from_currency in CURRENCY_SYMBOL_TO_CODE:
+        from_currency = CURRENCY_SYMBOL_TO_CODE[from_currency]
+    if to_currency in CURRENCY_SYMBOL_TO_CODE:
+        to_currency = CURRENCY_SYMBOL_TO_CODE[to_currency]
+    
+    # If same currency, no conversion needed
+    if from_currency == to_currency:
+        return amount
+    
+    # Get rates (rates are value of 1 unit in USD)
+    from_rate = rates.get(from_currency, 1.0)
+    to_rate = rates.get(to_currency, 1.0)
+    
+    # Convert: amount in from_currency -> USD -> to_currency
+    usd_amount = amount * from_rate
+    return usd_amount / to_rate
+
+
+def normalize_currency(amount: float, from_currency: str, fx_context: Optional[Dict] = None) -> float:
+    """
+    Normalize a monetary amount to the base currency.
+    
+    Args:
+        amount: The monetary amount to normalize
+        from_currency: The currency code or symbol of the amount
+        fx_context: Optional FX context with base_currency and rates
+        
+    Returns:
+        The normalized amount in the base currency
+    """
+    if fx_context is None:
+        # Default to USD as base, use default rates
+        fx_context = {"base_currency": "USD", "rates": DEFAULT_FX_RATES}
+    
+    base_currency = fx_context.get("base_currency", "USD")
+    rates = fx_context.get("rates", DEFAULT_FX_RATES)
+    
+    # Convert symbol to code if needed
+    if from_currency in CURRENCY_SYMBOL_TO_CODE:
+        from_currency = CURRENCY_SYMBOL_TO_CODE[from_currency]
+    
+    # If already in base currency, no conversion needed
+    if from_currency == base_currency:
+        return amount
+    
+    # Get the rate for the from_currency (rate is how much 1 unit of from_currency is worth in base)
+    if from_currency in rates:
+        rate = rates[from_currency]
+        return amount * rate
+    
+    # If rate not found, assume no conversion
+    return amount
+
+
+def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: int = None, fx_config: Optional[Dict] = None) -> Dict[str, Any]:
     """
     Runs a Monte Carlo simulation based on the CRML model.
     
@@ -12,7 +194,7 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
         yaml_content: Either a file path (str) or YAML content (str) or parsed dict
         n_runs: Number of Monte Carlo iterations
         seed: Random seed for reproducibility
-        currency: Currency symbol (default: "$")
+        fx_config: FX configuration dict with base_currency, output_currency, and rates
         
     Returns:
         Dictionary with simulation results:
@@ -21,10 +203,25 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
             "metrics": {"eal": float, "var_95": float, "var_99": float, "var_999": float},
             "distribution": {"bins": [...], "frequencies": [...], "raw_data": [...]},
             "metadata": {"runs": int, "runtime_ms": float, "model_name": str, "seed": int, "currency": str},
-            "errors": [...]
+            "errors": []
         }
     """
     start_time = time.time()
+    
+    # Set default FX config if not provided
+    if fx_config is None:
+        fx_config = {
+            "base_currency": "USD",
+            "output_currency": "USD",
+            "rates": DEFAULT_FX_RATES
+        }
+    else:
+        # Ensure rates are populated with defaults if not provided
+        if fx_config.get("rates") is None:
+            fx_config["rates"] = DEFAULT_FX_RATES
+    
+    output_currency = fx_config.get("output_currency", fx_config.get("base_currency", "USD"))
+    output_symbol = get_currency_symbol(output_currency)
     
     # Set random seed if provided
     if seed is not None:
@@ -34,7 +231,7 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
         "success": False,
         "metrics": {},
         "distribution": {},
-        "metadata": {"runs": n_runs, "seed": seed, "currency": currency},
+        "metadata": {"runs": n_runs, "seed": seed, "currency": output_symbol, "currency_code": output_currency},
         "errors": []
     }
     
@@ -136,12 +333,28 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
         first_component = components[0]
         if 'lognormal' in first_component:
             sev_model = 'lognormal'
-            mu_val = float(first_component['lognormal']['mu'])
-            sigma_val = float(first_component['lognormal']['sigma'])
+            ln_params = first_component['lognormal']
+            # Support both median and mu (median is preferred)
+            if 'median' in ln_params:
+                median_val = parse_number(ln_params['median'])
+                sev_currency = ln_params.get('currency', None)
+                if sev_currency:
+                    # Convert from model currency to base currency, then to output currency
+                    median_val = convert_currency(median_val, sev_currency, output_currency, fx_config)
+                if median_val <= 0:
+                    result["errors"].append("Median parameter must be positive")
+                    return result
+                mu_val = math.log(median_val)
+            elif 'mu' in ln_params:
+                mu_val = float(ln_params['mu'])
+            else:
+                result["errors"].append("Lognormal distribution requires either 'median' or 'mu' parameter")
+                return result
+            sigma_val = float(ln_params['sigma'])
         elif 'gamma' in first_component:
             sev_model = 'gamma'
             sev_shape = float(first_component['gamma']['shape'])
-            sev_scale = float(first_component['gamma']['scale'])
+            sev_scale = parse_number(first_component['gamma']['scale'])
         else:
             result["errors"].append("Unsupported mixture component")
             return result
@@ -151,14 +364,30 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
     else:
         try:
             if sev_model == 'lognormal':
-                mu_val = float(sev['parameters']['mu'])
-                sigma_val = float(sev['parameters']['sigma'])
+                params = sev['parameters']
+                # Support both median and mu (median is preferred)
+                if 'median' in params:
+                    median_val = parse_number(params['median'])
+                    sev_currency = params.get('currency', None)
+                    if sev_currency:
+                        # Convert from model currency to output currency
+                        median_val = convert_currency(median_val, sev_currency, output_currency, fx_config)
+                    if median_val <= 0:
+                        result["errors"].append("Median parameter must be positive")
+                        return result
+                    mu_val = math.log(median_val)
+                elif 'mu' in params:
+                    mu_val = float(params['mu'])
+                else:
+                    result["errors"].append("Lognormal distribution requires either 'median' or 'mu' parameter")
+                    return result
+                sigma_val = float(params['sigma'])
                 if sigma_val <= 0:
                     result["errors"].append("Sigma parameter must be positive")
                     return result
             elif sev_model == 'gamma':
                 sev_shape = float(sev['parameters']['shape'])
-                sev_scale = float(sev['parameters']['scale'])
+                sev_scale = parse_number(sev['parameters']['scale'])
                 if sev_shape <= 0 or sev_scale <= 0:
                     result["errors"].append("Gamma shape and scale must be positive")
                     return result
@@ -252,7 +481,7 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
     return result
 
 
-def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str = 'text', currency: str = "$"):
+def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str = 'text', fx_config_path: Optional[str] = None):
     """
     CLI wrapper for run_simulation that prints results.
     
@@ -260,9 +489,11 @@ def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str =
         file_path: Path to CRML YAML file
         n_runs: Number of simulation runs
         output_format: 'text' or 'json'
-        currency: Currency symbol (default: "$")
+        fx_config_path: Path to FX configuration YAML file (optional)
     """
-    result = run_simulation(file_path, n_runs, currency=currency)
+    # Load FX config
+    fx_config = load_fx_config(fx_config_path)
+    result = run_simulation(file_path, n_runs, fx_config=fx_config)
     
     if output_format == 'json':
         print(json.dumps(result, indent=2))
@@ -278,6 +509,7 @@ def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str =
     meta = result["metadata"]
     metrics = result["metrics"]
     curr = meta.get('currency', '$')
+    curr_code = meta.get('currency_code', 'USD')
     
     print(f"\n{'='*50}")
     print(f"CRML Simulation Results")
@@ -287,7 +519,7 @@ def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str =
     print(f"Runtime: {meta['runtime_ms']:.2f} ms")
     if meta.get('seed'):
         print(f"Seed: {meta['seed']}")
-    print(f"Currency: {curr}")
+    print(f"Currency: {curr_code} ({curr})")
     print(f"\n{'='*50}")
     print(f"Risk Metrics")
     print(f"{'='*50}")

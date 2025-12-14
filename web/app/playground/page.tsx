@@ -16,9 +16,9 @@ import Link from "next/link";
 const EXAMPLE_MODELS = {
     "data-breach": {
         name: "Data Breach (Simple)",
-        description: "50 databases with PII, 5% annual breach probability, ~$100K median cost",
-        explanation: "This model represents a small-medium organization with customer data. Lambda=0.05 means 5% chance per database per year (industry average). Mu=11.5 gives ~$100K median loss (e^11.5).",
-        content: `crml: "1.0"
+        description: "50 databases with PII, 5% annual breach probability, $100K median cost",
+        explanation: "This model represents a small-medium organization with customer data. Lambda=0.05 means 5% chance per database per year (industry average). Median=100000 means $100K typical loss per breach.",
+        content: `crml: "1.1"
 meta:
   name: "data-breach-simple"
   description: "Simple data breach risk model"
@@ -32,14 +32,15 @@ model:
   severity:
     model: lognormal  # Typical small losses, rare large ones
     parameters:
-      mu: 11.5   # e^11.5 ≈ $100K median loss
-      sigma: 1.2 # Moderate variability`
+      median: "100 000"  # $100K median loss
+      currency: USD
+      sigma: 1.2  # Moderate variability`
     },
     "ransomware": {
         name: "Ransomware Scenario",
-        description: "500 critical servers, 8% annual ransomware probability, ~$700K median cost",
-        explanation: "Enterprise ransomware model based on 2023 industry data. Lambda=0.08 reflects ~8% of organizations hit annually. Mu=13.5 gives ~$700K median (ransom + downtime + recovery).",
-        content: `crml: "1.0"
+        description: "500 critical servers, 8% annual ransomware probability, $700K median loss",
+        explanation: "Enterprise ransomware model based on 2023 industry data. Lambda=0.08 reflects ~8% of organizations hit annually. Median=700000 means $700K median loss (ransom + downtime + recovery).",
+        content: `crml: "1.1"
 meta:
   name: "ransomware-scenario"
   description: "Ransomware risk based on industry statistics"
@@ -53,14 +54,15 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 13.5   # e^13.5 ≈ $700K median (industry avg)
-      sigma: 1.8 # High variability (some pay $50K, others $5M)`
+      median: "700 000"  # $700K median (industry avg)
+      currency: USD
+      sigma: 1.8  # High variability (some pay $50K, others $5M)`
     },
     "fair-baseline": {
         name: "FAIR Baseline",
-        description: "Simple FAIR-style portfolio model with 1.2 events/year, ~$8K median loss",
-        explanation: "Basic FAIR model for portfolio-level analysis. Lambda=1.2 means ~1-2 events expected per year across all assets. Mu=9.0 gives ~$8K median loss.",
-        content: `crml: "1.0"
+        description: "Simple FAIR-style portfolio model with 1.2 events/year, $8K median loss",
+        explanation: "Basic FAIR model for portfolio-level analysis. Lambda=1.2 means ~1-2 events expected per year across all assets. Median=8100 means $8100 median loss.",
+        content: `crml: "1.1"
 meta:
   name: "fair-baseline"
   description: "Simple FAIR-like Poisson + Lognormal model"
@@ -73,14 +75,15 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 9.0    # e^9 ≈ $8K median loss
-      sigma: 1.0 # Low variability`
+      median: "8 100"  # $8,100 median loss
+      currency: USD
+      sigma: 1.0  # Low variability`
     },
     "qber-simplified": {
         name: "QBER Simplified",
         description: "1000 assets, hierarchical Bayesian model with mixture severity",
         explanation: "Simplified QBER-style model using hierarchical_gamma_poisson for frequency and mixture distributions for severity. Note: Full QBER uses MCMC; this is a Monte Carlo approximation.",
-        content: `crml: "1.0"
+        content: `crml: "1.1"
 meta:
   name: "qber-simplified"
   description: "Simplified QBER-style model"
@@ -97,13 +100,26 @@ model:
     components:
       - lognormal:
           weight: 0.7
-          mu: 12
+          median: "162 755"  # ~$163K median loss
+          currency: USD
           sigma: 1.2
       - gamma:
           weight: 0.3
           shape: 2.5
           scale: 10000`
     }
+};
+
+// Supported output currencies (rate = value of 1 unit in USD)
+const OUTPUT_CURRENCIES = {
+    "USD": { symbol: "$", name: "US Dollar" },
+    "EUR": { symbol: "€", name: "Euro" },
+    "GBP": { symbol: "£", name: "British Pound" },
+    "CHF": { symbol: "Fr", name: "Swiss Franc" },
+    "JPY": { symbol: "¥", name: "Japanese Yen" },
+    "CNY": { symbol: "CN¥", name: "Chinese Yuan" },
+    "CAD": { symbol: "C$", name: "Canadian Dollar" },
+    "AUD": { symbol: "A$", name: "Australian Dollar" },
 };
 
 export default function PlaygroundPage() {
@@ -113,7 +129,7 @@ export default function PlaygroundPage() {
     const [isSimulating, setIsSimulating] = useState(false);
     const [runs, setRuns] = useState("10000");
     const [seed, setSeed] = useState("");
-    const [currency, setCurrency] = useState("$");
+    const [outputCurrency, setOutputCurrency] = useState("USD");
 
     const handleExampleChange = (value: string) => {
         setSelectedExample(value);
@@ -138,7 +154,7 @@ export default function PlaygroundPage() {
                     yaml: yamlContent,
                     runs: parseInt(runs) || 10000,
                     seed: seed ? parseInt(seed) : undefined,
-                    currency: currency
+                    outputCurrency: outputCurrency
                 }),
             });
 
@@ -272,35 +288,32 @@ export default function PlaygroundPage() {
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <Label htmlFor="currency">Currency</Label>
+                                    <Label htmlFor="currency">Output Currency</Label>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <HelpCircle className="h-4 w-4 text-muted-foreground" />
                                         </TooltipTrigger>
                                         <TooltipContent className="max-w-xs">
-                                            <p className="text-xs">Select the currency for loss amounts</p>
-                                            <p className="text-xs mt-2 font-semibold">Examples: $ (USD), € (EUR), £ (GBP), ¥ (JPY)</p>
+                                            <p className="font-semibold mb-1">Display results in your currency</p>
+                                            <p className="text-xs mb-2">All values will be converted using static FX rates</p>
+                                            <p className="text-xs">Model values (e.g., USD in YAML) are auto-converted</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </div>
-                                <Select value={currency} onValueChange={setCurrency}>
+                                <Select value={outputCurrency} onValueChange={setOutputCurrency}>
                                     <SelectTrigger id="currency">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="$">$ USD</SelectItem>
-                                        <SelectItem value="€">€ EUR</SelectItem>
-                                        <SelectItem value="£">£ GBP</SelectItem>
-                                        <SelectItem value="¥">¥ JPY</SelectItem>
-                                        <SelectItem value="₹">₹ INR</SelectItem>
-                                        <SelectItem value="C$">C$ CAD</SelectItem>
-                                        <SelectItem value="A$">A$ AUD</SelectItem>
-                                        <SelectItem value="₨">₨ PKR</SelectItem>
-                                        <SelectItem value="R$">R$ BRL</SelectItem>
+                                        {Object.entries(OUTPUT_CURRENCIES).map(([code, info]) => (
+                                            <SelectItem key={code} value={code}>
+                                                {info.symbol} {code} - {info.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                                 <p className="text-xs text-muted-foreground">
-                                    {currency}
+                                    Results shown in {OUTPUT_CURRENCIES[outputCurrency as keyof typeof OUTPUT_CURRENCIES].symbol}
                                 </p>
                             </div>
                             <div className="flex items-end gap-2">

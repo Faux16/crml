@@ -7,10 +7,10 @@ This page provides complete examples of CRML models, ranging from simple baselin
 A simple FAIR-like model using Poisson frequency and Lognormal severity with pure Monte Carlo simulation. This is useful for quick estimates and baseline comparisons.
 
 ```yaml
-crml: '1.0'
+crml: '1.1'
 meta:
   name: fair-baseline
-  version: '1.0'
+  version: '1.1'
   description: Simple FAIR-like Poisson + Lognormal model
 model:
   frequency:
@@ -21,7 +21,8 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 9.0
+      median: "8 100"   # ~$8K median loss
+      currency: USD
       sigma: 1.0
 pipeline:
   simulation:
@@ -48,7 +49,7 @@ A comprehensive QBER-style hierarchical Bayesian model. It features:
 - **MCMC (Metropolis-Hastings)** and **Monte Carlo** simulation pipeline.
 
 ```yaml
-crml: '1.0'
+crml: '1.1'
 meta:
   name: qber-enterprise-v1
   version: '2025.1'
@@ -139,7 +140,8 @@ model:
     components:
     - lognormal:
         weight: 0.7
-        mu: 12
+        median: "162 755"  # ~$163K median
+        currency: USD
         sigma: 1.2
     - gamma:
         weight: 0.3

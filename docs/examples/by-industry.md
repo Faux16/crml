@@ -9,7 +9,7 @@ Real-world CRML models for different industries.
 **Scenario:** Protected Health Information (PHI) breach affecting patient records.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "healthcare-phi-breach"
   description: "HIPAA-regulated PHI breach risk"
@@ -49,7 +49,7 @@ model:
 **Scenario:** Exploitable vulnerabilities in connected medical devices.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "medical-device-vuln"
   description: "IoMT device vulnerability exploitation"
@@ -80,7 +80,7 @@ model:
 **Scenario:** PCI DSS breach affecting credit card data.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "pci-breach"
   description: "Payment card data breach (PCI DSS)"
@@ -116,7 +116,7 @@ model:
 **Scenario:** Business Email Compromise leading to fraudulent wire transfers.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "wire-fraud-bec"
   description: "Business Email Compromise wire fraud"
@@ -151,7 +151,7 @@ model:
 **Scenario:** POS system compromise affecting customer payment data.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "pos-breach"
   description: "Point-of-sale system breach"
@@ -187,7 +187,7 @@ model:
 **Scenario:** Online store database breach exposing customer data.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "ecommerce-breach"
   description: "E-commerce customer database breach"
@@ -224,7 +224,7 @@ model:
 **Scenario:** SaaS platform outage affecting customers.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "saas-outage"
   description: "SaaS platform availability incident"
@@ -257,7 +257,7 @@ model:
 **Scenario:** API vulnerability leading to data exposure.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "api-breach"
   description: "API security vulnerability exploitation"
@@ -292,7 +292,7 @@ model:
 **Scenario:** Ransomware affecting operational technology systems.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "ot-ransomware"
   description: "Ransomware on operational technology"
@@ -329,7 +329,7 @@ model:
 **Scenario:** FERPA-protected student records breach.
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "student-data-breach"
   description: "FERPA student records breach"

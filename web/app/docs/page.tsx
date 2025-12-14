@@ -49,7 +49,7 @@ export default function DocsPage() {
                         <FileText className="mb-2 h-10 w-10 text-purple-600" />
                         <CardTitle>CRML Specification</CardTitle>
                         <CardDescription>
-                            Complete reference for CRML 1.0 syntax and features
+                            Complete reference for CRML 1.1 syntax and features
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -62,7 +62,7 @@ export default function DocsPage() {
                         </ul>
                         <Button asChild variant="outline" className="mt-4 w-full gap-2">
                             <a
-                                href="https://github.com/Faux16/crml/blob/main/spec/crml-1.0.md"
+                                href="https://github.com/Faux16/crml/blob/main/spec/crml-1.1.md"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >

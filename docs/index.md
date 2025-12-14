@@ -8,6 +8,41 @@ It is designed to:
 - Support both **FAIR-style Monte Carlo** and **QBER-style Bayesian** models
 - Integrate real telemetry from tools like **PAM, DLP, IAM, XDR, WAF**
 - Produce defensible metrics such as **EAL, VaR, CVaR, tail quantiles**
+- Enable **multi-currency support** with explicit currency declarations and FX normalization
+
+---
+
+## What's New in CRML 1.1
+
+### Human-Readable Median Parameterization
+Instead of using obscure log-space parameters, CRML now supports intuitive median values:
+
+```yaml
+severity:
+  model: lognormal
+  parameters:
+    median: "100 000"  # $100K - directly from industry reports!
+    currency: USD
+    sigma: 1.2
+```
+
+### Explicit Currency Support
+All monetary parameters can now declare their currency explicitly, with FX configuration provided separately:
+
+```yaml
+# In your CRML model:
+severity:
+  model: lognormal
+  parameters:
+    median: "100 000"
+    currency: EUR  # Just specify the currency code
+    sigma: 1.2
+```
+
+```bash
+# Use --fx-config for currency conversion:
+crml simulate model.yaml --fx-config fx-config.yaml
+```
 
 ---
 
@@ -32,7 +67,8 @@ CRML separates **what** the risk model is from **how** it is executed:
 ## Key Concepts
 
 - **Frequency models**: Poisson, Gamma–Poisson (Negative Binomial), hierarchical
-- **Severity models**: Lognormal, Gamma, finite mixtures
+- **Severity models**: Lognormal (with median or mu), Gamma, finite mixtures
+- **Currency handling**: Explicit currency declarations with FX normalization
 - **Entropy-based criticality**: Shannon entropy over controls, exposure, data classes
 - **Dependencies**: Gaussian copula over components
 - **Inference**: Metropolis–Hastings MCMC for selected parameters

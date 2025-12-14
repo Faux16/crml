@@ -2,7 +2,7 @@
 
 ## v1.x
 
-- Finalize CRML 1.0 spec based on community feedback
+- Finalize CRML 1.1 spec based on community feedback
 - Add richer JSON Schema with stricter validation
 - Publish reference Python runtime for QBER-style models
 - Add examples for industry verticals (banking, healthcare, telecom)

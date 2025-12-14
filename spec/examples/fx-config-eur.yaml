@@ -1,0 +1,21 @@
+# European FX Configuration
+# --------------------------
+# Example: Output all results in Euros
+#
+# Use with: crml simulate model.yaml --fx-config fx-config-eur.yaml
+
+base_currency: USD
+output_currency: EUR
+as_of: "2025-01-15"
+
+rates:
+  USD: 1.0
+  EUR: 1.08
+  GBP: 1.26
+  CHF: 1.12
+  JPY: 0.0066
+  CNY: 0.14
+  CAD: 0.72
+  AUD: 0.64
+  INR: 0.012
+  BRL: 0.17

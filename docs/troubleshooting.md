@@ -117,7 +117,7 @@ crml validate model.yaml
 
 **Required fields:**
 ```yaml
-crml: "1.0"  # Version (required)
+crml: "1.1"  # Version (required)
 
 model:  # Model section (required)
   frequency:  # Frequency model (required)
@@ -515,7 +515,7 @@ model:  # Model section (required)
 
 **Example bug report:**
 ```
-CRML Version: 1.0.0
+CRML Version: 1.1.0
 Python: 3.9.7
 OS: macOS 12.0
 

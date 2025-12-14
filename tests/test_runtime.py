@@ -15,7 +15,7 @@ def test_run_simulation_invalid_file(tmp_path):
 
 def test_run_simulation_unsupported_model(tmp_path):
     content = """
-crml: "1.0"
+crml: "1.1"
 model:
   frequency:
     model: unknown_model

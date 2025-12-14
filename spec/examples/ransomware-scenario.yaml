@@ -1,4 +1,4 @@
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "ransomware-scenario"
   version: "1.0"
@@ -17,7 +17,8 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 13.5  # ~$700K median loss
+      median: "700 000"  # $700K median loss
+      currency: USD
       sigma: 1.8  # High variability in ransomware losses
 pipeline:
   simulation:

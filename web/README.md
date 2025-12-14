@@ -77,7 +77,7 @@ Validates CRML YAML content.
 **Request:**
 ```json
 {
-  "yaml": "crml: \"1.0\"\nmeta:\n  name: \"test\"\n..."
+  "yaml": "crml: \"1.1\"\nmeta:\n  name: \"test\"\n..."
 }
 ```
 
@@ -87,7 +87,7 @@ Validates CRML YAML content.
   "valid": true,
   "info": {
     "name": "test",
-    "version": "1.0",
+    "version": "1.1",
     "description": "..."
   }
 }

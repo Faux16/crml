@@ -9,7 +9,7 @@ This section defines the structure and semantics of a **CRML document**.
 A CRML file is a YAML or JSON document with the following top-level keys:
 
 ```yaml
-crml: "1.0"
+crml: "1.1"
 meta: {...}
 data: {...}
 model: {...}
@@ -20,7 +20,7 @@ output: {...}
 ### `crml`
 
 - String indicating the CRML specification version.
-- Example: `"1.0"`.
+- Example: `"1.1"`.
 
 ### `meta`
 

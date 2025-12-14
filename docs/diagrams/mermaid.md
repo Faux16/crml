@@ -10,7 +10,7 @@ This diagram illustrates how a CRML model file is processed from definition to f
 graph LR
     User[User / Analyst] -->|Writes| CRML[CRML Model (.yaml)]
     CRML -->|Input| Validator[CRML Validator]
-    Validator -->|Validates| Spec[CRML Spec 1.0]
+    Validator -->|Validates| Spec[CRML Spec 1.1]
     Validator -->|Pass| Engine[Simulation Engine]
     
     subgraph Engine Process

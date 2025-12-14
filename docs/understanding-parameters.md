@@ -119,19 +119,23 @@ frequency:
 **Use when:** Losses are typically small but can be extremely large (most cyber losses)
 
 **Parameters:**
-- `mu`: Controls the median loss (most common loss amount)
+- `median`: The typical (median) loss amount in real currency
+- `currency`: The currency code for the median value (e.g., USD, EUR)
 - `sigma`: Controls the variability (how spread out losses are)
+- `mu`: Alternative to median - log-space mean (advanced users only)
 
-**How to choose mu:**
+**Number Format:** Large numbers support ISO 80000-1 style space separators for readability. Both `100000` and `"100 000"` are valid.
 
-The median loss is approximately `e^mu` (e = 2.718...)
+**How to choose median:**
 
-| mu | Approximate Median Loss | Use Case |
-|----|------------------------|----------|
-| 9.0 | $8,000 | Minor incidents (laptop theft) |
-| 11.5 | $100,000 | Data breaches (small) |
-| 13.5 | $700,000 | Ransomware (medium enterprise) |
-| 16.0 | $9,000,000 | Major data breach (large enterprise) |
+Simply use the typical loss amount directly from industry reports, own historical loss data or expert judgement.
+
+| Median | Use Case |
+|--------|----------|
+| 8000 | Minor incidents (laptop theft) |
+| "100 000" | Data breaches (small) |
+| "700 000" | Ransomware (medium enterprise) |
+| "9 000 000" | Major data breach (large enterprise) |
 
 **How to choose sigma:**
 
@@ -148,14 +152,20 @@ The median loss is approximately `e^mu` (e = 2.718...)
 severity:
   model: lognormal
   parameters:
-    mu: 11.5      # e^11.5 ≈ $100K median
-    sigma: 1.2    # Moderate variability
+    median: "100 000"  # $100K median (directly from IBM report)
+    currency: USD      # Explicit currency
+    sigma: 1.2         # Moderate variability
 ```
 
 **Visual guide:**
 - **Low sigma (0.5)**: 📊 Narrow bell curve - predictable losses
 - **Medium sigma (1.2)**: 📊 Wider curve - some big losses possible
 - **High sigma (2.0)**: 📊 Very wide - rare but catastrophic losses
+
+**Note on `mu`:** For advanced users, you can still use `mu` (the log-space mean where `mu = ln(median)`). However, `median` is recommended because:
+- It's more intuitive and human-readable
+- It directly maps to industry report data
+- No manual log transformation required
 
 #### Gamma Distribution
 
@@ -197,7 +207,10 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 11.5   # ~$100K median loss
+      median: "100 000"  # $100K median loss
+      currency: USD
+      sigma: 1.2         # Moderate variability
+```
       sigma: 1.2 # Moderate variability
 ```
 
@@ -221,11 +234,11 @@ If results seem off:
 
 **Too high?**
 - Reduce `lambda` (events are rarer than you thought)
-- Reduce `mu` (losses are smaller than you thought)
+- Reduce `median` (losses are smaller than you thought)
 
 **Too low?**
 - Increase `lambda` (events are more common)
-- Increase `mu` (losses are larger)
+- Increase `median` (losses are larger)
 - Increase `sigma` (more variability, captures rare big losses)
 
 ---
@@ -247,13 +260,14 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 13.5   # ~$700K median (ransom + downtime + recovery)
-      sigma: 1.8 # High variability (some pay $50K, others $5M)
+      median: "700 000"  # $700K median (ransom + downtime + recovery)
+      currency: USD
+      sigma: 1.8         # High variability (some pay $50K, others $5M)
 ```
 
 **Why these values?**
 - Lambda: Sophos reports ~66% of orgs hit in 2 years ≈ 33%/year, but per-server is lower
-- Mu: Average ransomware cost is $700K-$1.4M (Sophos, 2023)
+- Median: Average ransomware cost is $700K-$1.4M (Sophos, 2023)
 - Sigma: High because costs vary wildly based on negotiation, backups, etc.
 
 ### Scenario 2: Data Breach (PII)
@@ -271,13 +285,14 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 11.5   # ~$100K median
-      sigma: 1.2 # Moderate variability
+      median: "100 000"  # $100K median
+      currency: USD
+      sigma: 1.2         # Moderate variability
 ```
 
 **Why these values?**
 - Lambda: IBM reports 1 in 20 orgs have breach per year ≈ 5%
-- Mu: IBM Cost of Data Breach 2023: $4.45M average, but varies by size
+- Median: IBM Cost of Data Breach 2023: $4.45M average, but varies by size
 - Sigma: Moderate because costs are somewhat predictable (per-record costs)
 
 ### Scenario 3: Phishing Incidents
@@ -295,13 +310,14 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 9.0    # ~$8K median (mostly time to remediate)
-      sigma: 1.5 # Some lead to major breaches
+      median: "8 000"  # $8K median (mostly time to remediate)
+      currency: USD
+      sigma: 1.5       # Some lead to major breaches
 ```
 
 **Why these values?**
 - Lambda: Industry average click rate is 10-30%
-- Mu: Most phishing is caught quickly, low cost
+- Median: Most phishing is caught quickly, low cost
 - Sigma: But some lead to major breaches, so high variability
 
 ---
@@ -329,13 +345,13 @@ model:
 
 **Starting point for common scenarios:**
 
-| Risk Type | Lambda | Mu | Sigma | Rationale |
-|-----------|--------|----|----|-----------|
-| Ransomware (Enterprise) | 0.08 | 13.5 | 1.8 | Industry avg: 8%, $700K median, high variance |
-| Data Breach (SMB) | 0.05 | 11.5 | 1.2 | 5% annual, $100K median, moderate variance |
-| Phishing (per employee) | 0.2 | 9.0 | 1.5 | 20% click rate, $8K median, some escalate |
-| DDoS Attack | 0.15 | 10.5 | 1.0 | 15% annual, $35K median, predictable costs |
-| Insider Threat | 0.02 | 14.0 | 2.0 | Rare (2%), $1.2M median, highly variable |
+| Risk Type | Lambda | Median | Sigma | Rationale |
+|-----------|--------|--------|-------|-----------|
+| Ransomware (Enterprise) | 0.08 | $700,000 | 1.8 | Industry avg: 8%, $700K median, high variance |
+| Data Breach (SMB) | 0.05 | $100,000 | 1.2 | 5% annual, $100K median, moderate variance |
+| Phishing (per employee) | 0.2 | $8,000 | 1.5 | 20% click rate, $8K median, some escalate |
+| DDoS Attack | 0.15 | $35,000 | 1.0 | 15% annual, $35K median, predictable costs |
+| Insider Threat | 0.02 | $1,200,000 | 2.0 | Rare (2%), $1.2M median, highly variable |
 
 **Simulation iterations:**
 - **Quick test**: 1,000

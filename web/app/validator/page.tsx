@@ -8,7 +8,7 @@ import CodeEditor from "@/components/CodeEditor";
 import ValidationResults, { ValidationResult } from "@/components/ValidationResults";
 import { Upload, Play, FileText, Download } from "lucide-react";
 
-const DEFAULT_YAML = `crml: "1.0"
+const DEFAULT_YAML = `crml: "1.1"
 meta:
   name: "my-risk-model"
   description: "A simple cyber risk model"

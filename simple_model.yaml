@@ -1,4 +1,4 @@
-crml: "1.0"
+crml: "1.1"
 meta:
   name: "manual-test-model"
   description: "Simple model for manual verification"
@@ -12,5 +12,6 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 10.0
+      median: "22 026"  # ~$22K median loss (equivalent to mu: 10.0)
+      currency: USD
       sigma: 1.0

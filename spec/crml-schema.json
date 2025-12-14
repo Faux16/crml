@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CRML 1.0",
+  "title": "CRML 1.1",
   "type": "object",
   "required": [
     "crml",
@@ -67,7 +67,41 @@
           "type": "object"
         },
         "severity": {
-          "type": "object"
+          "type": "object",
+          "description": "Severity distribution configuration. For lognormal, use 'median' (recommended) or 'mu'",
+          "properties": {
+            "model": {
+              "type": "string",
+              "enum": ["lognormal", "gamma", "mixture"]
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "median": {
+                  "type": "number",
+                  "description": "Median loss value (recommended for lognormal). Internally converted to mu = ln(median)"
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "Currency code for the median value (e.g., USD, EUR, GBP)"
+                },
+                "mu": {
+                  "type": "number",
+                  "description": "Log-space mean (advanced usage, prefer median)"
+                },
+                "sigma": {
+                  "type": "number",
+                  "description": "Log-space standard deviation"
+                },
+                "shape": {
+                  "type": "number"
+                },
+                "scale": {
+                  "type": "number"
+                }
+              }
+            }
+          }
         },
         "dependency": {
           "type": "object"

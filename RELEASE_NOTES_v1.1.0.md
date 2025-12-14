@@ -159,11 +159,11 @@ None!
 
 ## 🙏 Acknowledgments
 
-Thanks to @Xentraxx who provided feedback on the GitHub issues:
+Thanks to @Xentraxx who provided feedback through the GitHub issues:
 - Issue #2: Median-Based Lognormal Parameterization
 - Issue #3: Explicit Currency Declaration and FX Context
-and implemented the new design principles.
 
+and implemented the design principles.
 ---
 
 **Full Changelog:** [v1.0.0...v1.1.0](https://github.com/Faux16/crml/compare/v1.0.0...v1.1.0)

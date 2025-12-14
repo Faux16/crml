@@ -39,9 +39,6 @@ export async function POST(request: NextRequest) {
             // Write YAML content to temporary file
             await writeFile(tmpFile, yamlContent, "utf-8");
 
-            // Run CRML validation
-            const { stdout, stderr } = await execAsync(`crml validate ${tmpFile}`);
-
             // Extract model info
             const info = {
                 name: parsedYaml?.meta?.name,
@@ -49,21 +46,64 @@ export async function POST(request: NextRequest) {
                 description: parsedYaml?.meta?.description,
             };
 
-            // Check if validation passed
-            if (stdout.includes("[OK]") || stdout.includes("valid")) {
-                return NextResponse.json({
-                    valid: true,
-                    info,
-                });
-            } else {
-                // Parse errors from stderr or stdout
-                const errors = stderr
-                    ? stderr.split("\n").filter((line) => line.trim())
-                    : ["Validation failed"];
+            // Run CRML validation
+            try {
+                const { stdout, stderr } = await execAsync(`crml validate "${tmpFile}"`);
+
+                // Check if validation passed
+                if (stdout.includes("[OK]")) {
+                    // Extract warnings from stdout
+                    const warnings = stdout
+                        .split("\n")
+                        .filter((line) => line.includes("[WARNING]"))
+                        .map((line) => line.replace("[WARNING]", "").trim());
+
+                    return NextResponse.json({
+                        valid: true,
+                        info,
+                        warnings,
+                    });
+                } else {
+                    // Parse errors from stderr or stdout
+                    const errors = (stderr || stdout)
+                        .split("\n")
+                        .filter((line) => line.trim() && !line.includes("[OK]"))
+                        .map((line) => line.trim());
+
+                    return NextResponse.json({
+                        valid: false,
+                        errors: errors.length > 0 ? errors : ["Validation failed"],
+                        info,
+                    });
+                }
+            } catch (execError: any) {
+                // exec throws when command exits with non-zero code
+                // But stdout/stderr are still available on the error object
+                const stdout = execError.stdout || "";
+                const stderr = execError.stderr || "";
+                const output = stdout + "\n" + stderr;
+
+                // Parse the actual validation errors from output
+                const errorLines = output
+                    .split("\n")
+                    .filter((line: string) => line.trim())
+                    .filter((line: string) => 
+                        line.includes("[ERROR]") || 
+                        line.match(/^\s*\d+\./) ||  // numbered errors like "  1. [path] message"
+                        line.includes("failed CRML")
+                    )
+                    .map((line: string) => line.replace("[ERROR]", "").trim());
+
+                // Extract warnings too
+                const warnings = output
+                    .split("\n")
+                    .filter((line: string) => line.includes("[WARNING]"))
+                    .map((line: string) => line.replace("[WARNING]", "").trim());
 
                 return NextResponse.json({
                     valid: false,
-                    errors,
+                    errors: errorLines.length > 0 ? errorLines : [`Validation failed: ${execError.message}`],
+                    warnings,
                     info,
                 });
             }

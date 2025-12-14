@@ -75,6 +75,23 @@
           },
           "examples": [["all"], ["healthcare"], ["financial-services", "technology"], ["manufacturing"]]
         },
+        "region": {
+          "type": "array",
+          "description": "Geographic regions this model is designed for or calibrated against. Use 'world' for globally applicable models.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "world",
+              "north-america",
+              "latin-america",
+              "europe",
+              "middle-east-africa",
+              "asia-pacific",
+              "oceania"
+            ]
+          },
+          "examples": [["world"], ["europe"], ["north-america", "europe"]]
+        },
         "company_size": {
           "type": "array",
           "description": "Organization sizes this model is appropriate for. Based on employee count and typical IT complexity. Models can be calibrated differently for each size tier.",

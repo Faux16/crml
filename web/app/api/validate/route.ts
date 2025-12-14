@@ -68,6 +68,8 @@ export async function POST(request: NextRequest) {
                     const errors = (stderr || stdout)
                         .split("\n")
                         .filter((line) => line.trim() && !line.includes("[OK]"))
+                        // Filter out summary lines like "file.yaml failed CRML 1.1 validation with X error(s):"
+                        .filter((line) => !line.match(/failed CRML.*validation with \d+ error\(s\)/i))
                         .map((line) => line.trim());
 
                     return NextResponse.json({
@@ -92,6 +94,8 @@ export async function POST(request: NextRequest) {
                         line.match(/^\s*\d+\./) ||  // numbered errors like "  1. [path] message"
                         line.includes("failed CRML")
                     )
+                    // Filter out summary lines that just state the failure count
+                    .filter((line: string) => !line.match(/failed CRML.*validation with \d+ error\(s\)/i))
                     .map((line: string) => line.replace("[ERROR]", "").trim());
 
                 // Extract warnings too

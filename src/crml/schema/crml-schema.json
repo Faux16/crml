@@ -69,25 +69,7 @@
             "Zeron Research Labs"
           ]
         },
-        "tags": {
-          "type": "array",
-          "description": "Categorical labels for filtering and organizing models. Common tags include methodology (fair, qber), data sources (pam, dlp), or risk types (ransomware, data-breach).",
-          "items": {
-            "type": "string"
-          },
-          "examples": [
-            [
-              "qber",
-              "bayesian",
-              "mcmc"
-            ],
-            [
-              "fair-compatible",
-              "simple"
-            ]
-          ]
-        },
-        "industry": {
+        "industries": {
           "type": "array",
           "description": "Industries or sectors this model is designed for or calibrated against. Use 'all' for cross-industry models. Categories aligned with common breach report segmentation (Verizon DBIR, IBM X-Force) for threat data applicability.",
           "items": {
@@ -126,22 +108,6 @@
             ]
           ]
         },
-        "region": {
-          "type": "array",
-          "description": "Geographic regions this model is designed for or calibrated against. Use 'world' for globally applicable models.",
-          "items": {
-            "type": "string",
-            "enum": [
-              "world",
-              "north-america",
-              "latin-america",
-              "europe",
-              "middle-east-africa",
-              "asia-pacific",
-              "oceania"
-            ]
-          ]
-        },
         "locale": {
           "description": "Geographic locales this model is designed for or calibrated against. Use the object form with 'regions' (required) and optional 'countries' (ISO country codes). Use 'world' in regions for globally applicable models.",
           "type": "object",
@@ -166,17 +132,13 @@
               "items": { "$ref": "#/$defs/iso3166_1_alpha2" }
             }
           },
+          "additionalProperties": false,
           "examples": [
-            [
-              "world"
-            ],
-            [
-              "europe"
-            ],
-            [
-              "north-america",
-              "europe"
-            ]
+            {},
+            { "regions": ["world"] },
+            { "regions": ["europe"] },
+            { "regions": ["north-america", "europe"] },
+            { "regions": ["europe", "north-america"], "countries": ["DE", "US"] }
           ]
         },
         "company_sizes": {
@@ -254,6 +216,24 @@
             [
               "pci-dss",
               "gdpr"
+            ]
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "description": "Categorical labels for filtering and organizing models. Common tags include methodology (fair, qber), data sources (pam, dlp), or risk types (ransomware, data-breach).",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            [
+              "qber",
+              "bayesian",
+              "mcmc"
+            ],
+            [
+              "fair-compatible",
+              "simple"
             ]
           ]
         }

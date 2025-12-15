@@ -398,16 +398,19 @@ export default function PlaygroundPage() {
                                     Severity (Lognormal)
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-2">
-                                    <strong>Mu (μ):</strong> Controls median loss amount
+                                    <strong>Median:</strong> Typical loss amount (recommended)
                                 </p>
                                 <ul className="text-sm space-y-1 text-muted-foreground">
-                                    <li>• 9.0 → ~$8K (minor incidents)</li>
-                                    <li>• 11.5 → ~$100K (data breaches)</li>
-                                    <li>• 13.5 → ~$700K (ransomware)</li>
-                                    <li>• 16.0 → ~$9M (major breaches)</li>
+                                    <li>• "8 000" → ~$8K (minor incidents)</li>
+                                    <li>• "100 000" → ~$100K (data breaches)</li>
+                                    <li>• "700 000" → ~$700K (ransomware)</li>
+                                    <li>• "9 000 000" → ~$9M (major breaches)</li>
                                 </ul>
                                 <p className="text-sm text-muted-foreground mt-3">
                                     <strong>Sigma (σ):</strong> Variability (0.5=low, 1.5=medium, 2.0+=high)
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-2 italic">
+                                    💡 Use median instead of mu - it's more intuitive!
                                 </p>
                             </div>
                         </div>

@@ -8,9 +8,12 @@ export async function GET() {
         // Path to examples directory (relative to project root)
         const examplesDir = path.join(process.cwd(), "..", "spec", "examples");
 
-        // Read all YAML files in the examples directory
+        // Read all files and filter to only include YAML files, excluding FX config files
         const files = await readdir(examplesDir);
-        const yamlFiles = files.filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"));
+        const yamlFiles = files.filter(
+            (file) => (file.endsWith(".yaml") || file.endsWith(".yml")) &&
+                !file.startsWith("fx-config")
+        );
 
         // Read and parse each example
         const examples = await Promise.all(

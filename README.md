@@ -9,8 +9,6 @@
 
 CRML is an open, declarative, implementation-agnostic language for expressing cyber risk models, telemetry mappings, simulation pipelines, dependencies, and output requirements.
 
-## 🎯 Use Cases
-
 CRML is designed for:
 
 - **Bayesian cyber risk models** (QBER, MCMC-based)
@@ -18,6 +16,15 @@ CRML is designed for:
 - **Insurance actuarial risk systems**
 - **Enterprise cyber risk quantification platforms**
 - **Regulatory or audit-ready risk engines**
+
+## ✨ Key Features
+
+- **📊 Intuitive Median-Based Parameterization** - Use `median` directly instead of log-space `mu` for lognormal distributions
+- **💱 Multi-Currency Support** - Model risks across different currencies with automatic conversion (15+ currencies supported)
+- **🔄 Auto-Calibration** - Provide raw loss data and let CRML calibrate distributions automatically
+- **✅ Strict Validation** - JSON Schema validation catches errors before simulation
+- **🎯 Implementation-Agnostic** - Works with any compliant simulation engine
+- **📝 Human-Readable YAML** - Models are easy to read, review, and audit
 
 ## 📦 Installation
 

@@ -127,6 +127,96 @@ Use when most losses are small, but some are huge:
       sigma: 1.2         # Moderate variability
 ```
 
+##### **Median vs Mu: Which Should You Use?**
+
+> [!TIP]
+> **Always use `median` instead of `mu`** - it's more intuitive and matches how loss data is reported.
+
+CRML supports two ways to parameterize lognormal distributions:
+
+**✅ RECOMMENDED: Use `median`**
+```yaml
+parameters:
+  median: "100 000"  # Direct median loss value
+  currency: USD
+  sigma: 1.2
+```
+
+**Why median is better:**
+- 📊 **Matches real data** - Breach reports give median costs, not log-space parameters
+- 👥 **Human-readable** - Anyone can understand "$100K median loss"
+- ✅ **Audit-friendly** - Reviewers can verify the number makes sense
+- 🎯 **No math needed** - Just use the value from your data source
+
+**❌ ADVANCED: Use `mu` (not recommended)**
+```yaml
+parameters:
+  mu: 11.513  # ln(100000) - requires calculation
+  sigma: 1.2
+```
+
+**When to use mu:**
+- You're working with legacy models that use mu
+- You have log-space parameters from statistical software
+- You're implementing academic research that specifies mu
+
+**Important:** You cannot use both `median` and `mu` in the same model. The validator will reject it.
+
+##### **Multi-Currency Support**
+
+CRML has first-class support for multi-currency models. This is essential when:
+- Combining data from different regions (EU fines in EUR, US fines in USD)
+- Modeling multinational organizations
+- Using industry reports in different currencies
+
+**Example: Multi-Currency Model**
+```yaml
+severity:
+  model: mixture
+  components:
+    - lognormal:  # GDPR fines in EUR
+        weight: 0.3
+        median: "175 000"
+        currency: EUR  # Explicit EUR
+        sigma: 1.8
+    - lognormal:  # CCPA fines in USD
+        weight: 0.7
+        median: "250 000"
+        currency: USD  # Explicit USD
+        sigma: 1.5
+```
+
+**FX Configuration**
+
+Create an FX config file to control currency conversion:
+
+```yaml
+# fx-config.yaml
+base_currency: USD      # Internal simulation currency
+output_currency: EUR    # Report results in EUR
+rates:
+  EUR: 1.16  # 1 EUR = 1.16 USD
+  GBP: 1.02  # 1 GBP = 1.02 USD
+  CHF: 1.09
+as_of: "2025-12-15"  # For documentation
+```
+
+Then run with:
+```bash
+crml simulate model.yaml --fx-config fx-config.yaml
+```
+
+**Supported Currencies:**
+USD, EUR, GBP, CHF, JPY, CNY, CAD, AUD, INR, BRL, PKR, MXN, KRW, SGD, HKD
+
+**Best Practices:**
+1. ✅ **Always declare currency** - Even if using USD, be explicit
+2. ✅ **Use external FX config** - Keeps rates separate from model logic
+3. ✅ **Document FX date** - Add `as_of` to track when rates were set
+4. ✅ **Use deterministic rates** - Don't fetch live rates (breaks reproducibility)
+
+##### **Auto-Calibration from Data**
+
 If you have real incident cost data and want it embedded in the model for auditability, you can provide `single_losses` instead and let the engine auto-calibrate:
 
 ```yaml
@@ -144,6 +234,8 @@ If you have real incident cost data and want it embedded in the model for audita
 
 With `single_losses`, the engine computes $\mu = \ln(\mathrm{median}(\text{single\_losses}))$ and $\sigma = \mathrm{stddev}(\ln(\text{single\_losses}))$ (so you must not also set `median`, `mu`, or `sigma`).
 
+##### **Choosing Parameters**
+
 **Choosing median (typical loss):**
 - median: "8 000"     → ~$8K (minor incidents)
 - median: "100 000"   → ~$100K (data breaches)
@@ -155,8 +247,6 @@ With `single_losses`, the engine computes $\mu = \ln(\mathrm{median}(\text{singl
 - 1.0 = Moderate variability
 - 1.5 = High variability
 - 2.0+ = Extreme variability (some losses 100x others)
-
-**Note:** You can also use `mu` (log-space mean) for advanced use, but `median` is recommended as it's more intuitive and directly corresponds to real-world data.
 
 #### **Option B: Gamma**
 

@@ -837,6 +837,181 @@
             }
           }
         },
+        "controls": {
+          "type": "object",
+          "description": "Security control effectiveness modeling. Defines how preventive, detective, and recovery controls reduce risk frequency and severity.",
+          "properties": {
+            "layers": {
+              "type": "array",
+              "description": "Organized layers of security controls (e.g., preventive, detective, recovery). Each layer contains one or more controls.",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "controls"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of this control layer.",
+                    "examples": [
+                      "email_security",
+                      "endpoint_protection",
+                      "network_defense",
+                      "backup_recovery"
+                    ]
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Human-readable description of this control layer's purpose.",
+                    "examples": [
+                      "Email filtering and anti-phishing controls",
+                      "Endpoint detection and response"
+                    ]
+                  },
+                  "controls": {
+                    "type": "array",
+                    "description": "Individual security controls within this layer.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "type",
+                        "effectiveness"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Unique identifier for this control.",
+                          "examples": [
+                            "email_filtering",
+                            "edr",
+                            "mfa",
+                            "immutable_backups"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "Control category based on function.",
+                          "enum": [
+                            "preventive",
+                            "detective",
+                            "corrective",
+                            "recovery",
+                            "deterrent",
+                            "compensating"
+                          ],
+                          "examples": [
+                            "preventive",
+                            "detective",
+                            "recovery"
+                          ]
+                        },
+                        "effectiveness": {
+                          "type": "number",
+                          "description": "How effective this control is at reducing risk when functioning properly. 0.0 = no effect, 1.0 = perfect prevention. Represents the percentage of attacks this control can stop.",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "examples": [
+                            0.85,
+                            0.90,
+                            0.75
+                          ]
+                        },
+                        "coverage": {
+                          "type": "number",
+                          "description": "What percentage of assets/attack surface this control covers. 0.0 = no coverage, 1.0 = complete coverage. Default: 1.0",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "default": 1.0,
+                          "examples": [
+                            1.0,
+                            0.95,
+                            0.80
+                          ]
+                        },
+                        "reliability": {
+                          "type": "number",
+                          "description": "How reliably this control functions (uptime, accuracy). 0.0 = never works, 1.0 = always works. Default: 1.0",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "default": 1.0,
+                          "examples": [
+                            0.99,
+                            0.95,
+                            0.92
+                          ]
+                        },
+                        "cost": {
+                          "type": "number",
+                          "description": "Annual cost of this control in the model's base currency. Optional, used for ROI calculations.",
+                          "minimum": 0,
+                          "examples": [
+                            50000,
+                            120000,
+                            25000
+                          ]
+                        },
+                        "currency": {
+                          "type": "string",
+                          "description": "ISO 4217 currency code for the cost field.",
+                          "pattern": "^[A-Z]{3}$",
+                          "examples": [
+                            "USD",
+                            "EUR",
+                            "GBP"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "dependencies": {
+              "type": "array",
+              "description": "Defines correlations between controls. When controls are correlated, their combined effectiveness is reduced (they may fail together or provide overlapping protection).",
+              "items": {
+                "type": "object",
+                "required": [
+                  "controls",
+                  "correlation"
+                ],
+                "properties": {
+                  "controls": {
+                    "type": "array",
+                    "description": "List of control IDs that are correlated.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 2,
+                    "examples": [
+                      [
+                        "email_filtering",
+                        "edr"
+                      ],
+                      [
+                        "mfa",
+                        "pam"
+                      ]
+                    ]
+                  },
+                  "correlation": {
+                    "type": "number",
+                    "description": "Correlation coefficient between controls. 0.0 = independent, 1.0 = perfectly correlated (fail together), -1.0 = negatively correlated.",
+                    "minimum": -1,
+                    "maximum": 1,
+                    "examples": [
+                      0.3,
+                      0.5,
+                      0.1
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
         "temporal": {
           "type": "object",
           "description": "Time horizon and granularity settings for the simulation.",

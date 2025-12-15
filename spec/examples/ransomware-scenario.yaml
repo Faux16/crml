@@ -10,9 +10,11 @@ meta:
   company_size:
     - enterprise
     - large-enterprise
-  region:
+  industries:
+    - all
+  locale:
     regions: ["world"]
-    country: "US"
+    countries: ["US"]
 model:
   assets:
     cardinality: 500  # 500 critical systems

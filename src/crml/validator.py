@@ -42,7 +42,18 @@ def validate_crml(path: str) -> bool:
         # Warn if using old CRML version
         if data.get("crml") != "1.1":
             warnings.append(f"CRML version '{data.get('crml')}' is not current. Consider upgrading to '1.1'.")
-        
+
+        # Warn if 'version', 'description', 'author', 'industries', or 'regions' are missing or empty in meta
+        meta = data.get("meta", {})
+        for key in ["version", "description", "author", "industries"]:
+            if key not in meta or meta.get(key) == [] or meta.get(key) == "":
+                warnings.append(f"'meta.{key}' is missing or empty. It is not required, but strongly recommended to add this information for better documentation and context.")
+
+        # regions is inside meta.locale.regions
+        locale = meta.get("locale", {})
+        if "regions" not in locale or locale.get("regions") == [] or locale.get("regions") == "":
+            warnings.append("'meta.locale.regions' is missing or empty. It is not required, but strongly recommended to add this information for better documentation and context.")
+
         # Warn if mixture weights don't sum to 1
         severity = data.get("model", {}).get("severity", {})
         if severity.get("model") == "mixture" and "components" in severity:
@@ -52,7 +63,7 @@ def validate_crml(path: str) -> bool:
                 total_weight += comp[dist_key].get("weight", 0)
             if abs(total_weight - 1.0) > 0.001:
                 warnings.append(f"Mixture weights sum to {total_weight:.3f}, should sum to 1.0")
-        
+
         # Warn if no output metrics specified
         output = data.get("output", {})
         if not output.get("metrics"):

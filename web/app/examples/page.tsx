@@ -107,17 +107,24 @@ export default function ExamplesPage() {
                                             <Badge key={`tag:${tag}`} variant="secondary">{tag}</Badge>
                                         ))}
 
-                                        {example.regions?.map((region) => (
-                                            <Badge key={`region:${region}`} variant="secondary">region: {region}</Badge>
-                                        ))}
 
-                                        {example.country ? (
-                                            <Badge key={`country:${example.country}`} variant="secondary">country: {example.country}</Badge>
-                                        ) : null}
+                                        {example.regions && example.regions.length > 0 && (
+                                            <Badge key={`region-badge`} variant="secondary">
+                                                region: {example.regions.join(", ")}
+                                            </Badge>
+                                        )}
 
-                                        {example.company_size?.map((size) => (
-                                            <Badge key={`size:${size}`} variant="secondary">size: {size}</Badge>
-                                        ))}
+                                        {(example.country && ((Array.isArray(example.country) && example.country.length > 0) || typeof example.country === "string")) && (
+                                            <Badge key={`country-badge`} variant="secondary">
+                                                country: {Array.isArray(example.country) ? example.country.join(", ") : example.country}
+                                            </Badge>
+                                        )}
+
+                                        {example.company_size && example.company_size.length > 0 && (
+                                            <Badge key={`size-badge`} variant="secondary">
+                                                size: {example.company_size.join(", ")}
+                                            </Badge>
+                                        )}
                                     </div>
                                 ) : null}
                             </CardHeader>

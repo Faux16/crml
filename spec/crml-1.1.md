@@ -120,27 +120,47 @@ meta:
   author: "Risk Team"
   organization: "Example Corp"
   tags: ["ransomware", "enterprise", "fair-compatible"]
-  industry: ["all"]
-  region: ["world"]
+  industries:
+    - all
+  locale:
+    regions: ["world"]
   company_size: ["enterprise"]
   regulatory_frameworks: ["nist-csf", "iso-27001"]
 ```
 
-`meta.region` MAY be either:
 
-- an array of broad region identifiers (as shown above), OR
-- an object with `regions` plus an optional `country` ISO code.
+`meta.locale` MUST be an object. Both `regions` and `countries` are optional.
 
-If provided, `meta.region.country` MUST be an **ISO 3166-1 alpha-2** country code (uppercase), e.g. `DE`, `US`.
+If provided, `meta.locale.countries` MUST be an array of **ISO 3166-1 alpha-2** country codes (uppercase), e.g. `["DE", "US"]`.
 
-Example:
+Examples:
 
 ```yaml
 meta:
   name: "ransomware-scenario"
-  region:
+  locale: {}
+```
+
+```yaml
+meta:
+  name: "ransomware-scenario"
+  locale:
     regions: ["europe"]
-    country: "DE"
+```
+
+```yaml
+meta:
+  name: "ransomware-scenario"
+  locale:
+    countries: ["DE"]
+```
+
+```yaml
+meta:
+  name: "ransomware-scenario"
+  locale:
+    regions: ["europe"]
+    countries: ["DE"]
 ```
 
 `meta` MAY contain additional keys not listed above.

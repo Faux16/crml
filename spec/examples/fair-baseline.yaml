@@ -4,14 +4,16 @@ meta:
   version: '1.0'
   description: Simple FAIR-like Poisson + Lognormal model
   author: CRML Team
-  region:
+  locale:
     regions: ["world"]
-    country: "US"
+    countries: ["US"]
   tags:
     - fair
     - baseline
   company_size:
     - smb
+  industries:
+    - all
 model:
   frequency:
     model: poisson

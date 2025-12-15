@@ -4,9 +4,9 @@ meta:
   version: '2025.1'
   description: QBER-style hierarchical Bayesian model with entropy-based CI and MCMC
   author: CRML Team
-  region:
+  locale:
     regions: ["world"]
-    country: "US"
+    countries: ["US"]
   tags:
     - qber
     - bayesian
@@ -16,20 +16,11 @@ meta:
     - iam
     - xdr
     - waf
-    - enterprise
-    - large-enterprise
   company_size:
     - enterprise
     - large-enterprise
-  tags:
-  - qber
-  - bayesian
-  - mcmc
-  - pam
-  - dlp
-  - iam
-  - xdr
-  - waf
+  industries:
+    - all
 data:
   sources:
     pam:

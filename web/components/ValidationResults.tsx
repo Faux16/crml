@@ -15,10 +15,12 @@ export interface ValidationResult {
         description?: string;
         author?: string;
         organization?: string;
-        company_size?: string[];
-        industry?: string[];
-        region?: string[];
-        country?: string | null;
+        company_sizes?: string[];
+        industries?: string[];
+        regions?: string[];
+        countries?: string | null;
+        regulatory_frameworks?: string[];
+        tags?: string[];
     };
 }
 
@@ -124,24 +126,34 @@ export default function ValidationResults({ result, isValidating }: ValidationRe
                                         <span className="font-medium">Organization:</span> {result.info.organization}
                                     </p>
                                 )}
-                                {result.info.company_size && result.info.company_size.length > 0 && (
+                                {result.info.company_sizes && result.info.company_sizes.length > 0 && (
                                     <p>
-                                        <span className="font-medium">Company Size:</span> {Array.isArray(result.info.company_size) ? result.info.company_size.join(", ") : result.info.company_size}
+                                        <span className="font-medium">Company Size:</span> {Array.isArray(result.info.company_sizes) ? result.info.company_sizes.join(", ") : result.info.company_sizes}
                                     </p>
                                 )}
-                                {result.info.industry && result.info.industry.length > 0 && (
+                                {result.info.industries && result.info.industries.length > 0 && (
                                     <p>
-                                        <span className="font-medium">Industry:</span> {Array.isArray(result.info.industry) ? result.info.industry.join(", ") : result.info.industry}
+                                        <span className="font-medium">Industries:</span> {Array.isArray(result.info.industries) ? result.info.industries.join(", ") : result.info.industries}
                                     </p>
                                 )}
-                                {result.info.region && result.info.region.length > 0 && (
+                                {result.info.regulatory_frameworks && result.info.regulatory_frameworks.length > 0 && (
                                     <p>
-                                        <span className="font-medium">Region:</span> {Array.isArray(result.info.region) ? result.info.region.join(", ") : result.info.region}
+                                        <span className="font-medium">Regulatory Frameworks:</span> {Array.isArray(result.info.regulatory_frameworks) ? result.info.regulatory_frameworks.join(", ") : result.info.regulatory_frameworks}
                                     </p>
                                 )}
-                                {result.info.country && (
+                                {result.info.tags && result.info.tags.length > 0 && (
                                     <p>
-                                        <span className="font-medium">Country:</span> {result.info.country}
+                                        <span className="font-medium">Tags:</span> {Array.isArray(result.info.tags) ? result.info.tags.join(", ") : result.info.tags}
+                                    </p>
+                                )}
+                                {result.info.regions && result.info.regions.length > 0 && (
+                                    <p>
+                                        <span className="font-medium">Regions:</span> {Array.isArray(result.info.regions) ? result.info.regions.join(", ") : result.info.regions}
+                                    </p>
+                                )}
+                                {Array.isArray(result.info.countries) && result.info.countries.length > 0 && (
+                                    <p>
+                                        <span className="font-medium">Countries:</span> {result.info.countries.join(", ")}
                                     </p>
                                 )}
                             </div>

@@ -10,9 +10,11 @@ meta:
     - pii
   company_size:
     - smb
-  region:
+  industries:
+    - all
+  locale:
     regions: ["world"]
-    country: "US"
+    countries: ["US"]
 model:
   assets:
     cardinality: 50  # 50 databases with PII

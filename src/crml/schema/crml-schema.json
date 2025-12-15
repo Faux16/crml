@@ -69,9 +69,9 @@
             "Zeron Research Labs"
           ]
         },
-        "industry": {
+        "industries": {
           "type": "array",
-          "description": "Industry sectors this model is designed for or calibrated against. Use 'all' for cross-industry models. Categories aligned with common breach report segmentation (Verizon DBIR, IBM X-Force) for threat data applicability.",
+          "description": "Industries or sectors this model is designed for or calibrated against. Use 'all' for cross-industry models. Categories aligned with common breach report segmentation (Verizon DBIR, IBM X-Force) for threat data applicability.",
           "items": {
             "type": "string",
             "enum": [
@@ -108,10 +108,11 @@
             ]
           ]
         },
-        "region": {
-          "description": "Geographic regions this model is designed for or calibrated against. Use 'world' for globally applicable models. Optionally, provide a specific ISO country code under region.",
-          "anyOf": [
-            {
+        "locale": {
+          "description": "Geographic locales this model is designed for or calibrated against. Use the object form with 'regions' (required) and optional 'countries' (ISO country codes). Use 'world' in regions for globally applicable models.",
+          "type": "object",
+          "properties": {
+            "regions": {
               "type": "array",
               "items": {
                 "type": "string",
@@ -126,54 +127,21 @@
                 ]
               }
             },
-            {
-              "type": "object",
-              "properties": {
-                "regions": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "world",
-                      "north-america",
-                      "latin-america",
-                      "europe",
-                      "middle-east-africa",
-                      "asia-pacific",
-                      "oceania"
-                    ]
-                  }
-                },
-                "country": {
-                  "$ref": "#/$defs/iso3166_1_alpha2"
-                }
-              },
-              "required": [
-                "regions"
-              ],
-              "additionalProperties": false
+            "countries": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/iso3166_1_alpha2" }
             }
-          ],
+          },
+          "additionalProperties": false,
           "examples": [
-            [
-              "world"
-            ],
-            [
-              "europe"
-            ],
-            [
-              "north-america",
-              "europe"
-            ],
-            {
-              "regions": [
-                "europe"
-              ],
-              "country": "DE"
-            }
+            {},
+            { "regions": ["world"] },
+            { "regions": ["europe"] },
+            { "regions": ["north-america", "europe"] },
+            { "regions": ["europe", "north-america"], "countries": ["DE", "US"] }
           ]
         },
-        "company_size": {
+        "company_sizes": {
           "type": "array",
           "description": "Organization sizes this model is appropriate for. Based on employee count and typical IT complexity. Models can be calibrated differently for each size tier.",
           "items": {

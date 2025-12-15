@@ -126,6 +126,23 @@ meta:
   regulatory_frameworks: ["nist-csf", "iso-27001"]
 ```
 
+`meta.region` MAY be either:
+
+- an array of broad region identifiers (as shown above), OR
+- an object with `regions` plus an optional `country` ISO code.
+
+If provided, `meta.region.country` MUST be an **ISO 3166-1 alpha-2** country code (uppercase), e.g. `DE`, `US`.
+
+Example:
+
+```yaml
+meta:
+  name: "ransomware-scenario"
+  region:
+    regions: ["europe"]
+    country: "DE"
+```
+
 `meta` MAY contain additional keys not listed above.
 
 ## 5. `data` (optional)

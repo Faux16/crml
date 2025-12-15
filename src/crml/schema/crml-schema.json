@@ -76,21 +76,48 @@
           "examples": [["all"], ["healthcare"], ["financial-services", "technology"], ["manufacturing"]]
         },
         "region": {
-          "type": "array",
-          "description": "Geographic regions this model is designed for or calibrated against. Use 'world' for globally applicable models.",
-          "items": {
-            "type": "string",
-            "enum": [
-              "world",
-              "north-america",
-              "latin-america",
-              "europe",
-              "middle-east-africa",
-              "asia-pacific",
-              "oceania"
-            ]
-          },
-          "examples": [["world"], ["europe"], ["north-america", "europe"]]
+          "description": "Geographic regions this model is designed for or calibrated against. Use 'world' for globally applicable models. Optionally, provide a specific ISO country code under region.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "world",
+                  "north-america",
+                  "latin-america",
+                  "europe",
+                  "middle-east-africa",
+                  "asia-pacific",
+                  "oceania"
+                ]
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "regions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "world",
+                      "north-america",
+                      "latin-america",
+                      "europe",
+                      "middle-east-africa",
+                      "asia-pacific",
+                      "oceania"
+                    ]
+                  }
+                },
+                "country": { "$ref": "#/$defs/iso3166_1_alpha2" }
+              },
+              "required": ["regions"],
+              "additionalProperties": false
+            }
+          ],
+          "examples": [["world"], ["europe"], ["north-america", "europe"], {"regions": ["europe"], "country": "DE"}]
         },
         "company_size": {
           "type": "array",
@@ -709,6 +736,14 @@
         }
       },
       "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "iso3166_1_alpha2": {
+      "type": "string",
+      "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+      "pattern": "^[A-Z]{2}$",
+      "examples": ["US", "DE", "GB", "FR", "JP"]
     }
   },
   "additionalProperties": true,

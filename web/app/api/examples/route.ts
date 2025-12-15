@@ -24,15 +24,10 @@ export async function GET() {
                 try {
                     const parsed: any = yaml.load(content);
 
-                    const metaRegion = parsed?.meta?.region;
-                    const regions: string[] = Array.isArray(metaRegion)
-                        ? metaRegion
-                        : Array.isArray(metaRegion?.regions)
-                            ? metaRegion.regions
-                            : [];
-                    const country: string | null = typeof metaRegion?.country === "string" && metaRegion.country
-                        ? metaRegion.country
-                        : null;
+                    // According to schema, regions and countries are in meta.locale
+                    const locale = parsed?.meta?.locale || {};
+                    const regions: string[] = Array.isArray(locale.regions) ? locale.regions : [];
+                    const countries: string[] = Array.isArray(locale.countries) ? locale.countries : (typeof locale.countries === "string" ? [locale.countries] : []);
 
                     return {
                         id: file.replace(/\.(yaml|yml)$/, ""),
@@ -41,7 +36,7 @@ export async function GET() {
                         description: parsed?.meta?.description || "No description available",
                         tags: parsed?.meta?.tags || [],
                         regions,
-                        country,
+                        countries,
                         company_size: parsed?.meta?.company_size || [],
                         content,
                     };
@@ -53,7 +48,7 @@ export async function GET() {
                         description: "Error parsing file",
                         tags: [],
                         regions: [],
-                        country: null,
+                        countries: [],
                         company_size: [],
                         content,
                     };

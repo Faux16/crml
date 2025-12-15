@@ -15,7 +15,7 @@ interface Example {
     description: string;
     tags: string[];
     regions?: string[];
-    country?: string | null;
+    countries?: string[];
     company_size?: string[];
     content: string;
 }
@@ -101,7 +101,7 @@ export default function ExamplesPage() {
                                 {(example.tags && example.tags.length > 0) ||
                                     (example.regions && example.regions.length > 0) ||
                                     (example.company_size && example.company_size.length > 0) ||
-                                    !!example.country ? (
+                                    !!example.countries ? (
                                     <div className="flex flex-wrap gap-2 pt-2">
                                         {example.tags?.map((tag) => (
                                             <Badge key={`tag:${tag}`} variant="secondary">{tag}</Badge>
@@ -110,19 +110,19 @@ export default function ExamplesPage() {
 
                                         {example.regions && example.regions.length > 0 && (
                                             <Badge key={`region-badge`} variant="secondary">
-                                                region: {example.regions.join(", ")}
+                                                Regions: {example.regions.join(", ")}
                                             </Badge>
                                         )}
 
-                                        {(example.country && ((Array.isArray(example.country) && example.country.length > 0) || typeof example.country === "string")) && (
+                                        {example.countries && example.countries.length > 0 && (
                                             <Badge key={`country-badge`} variant="secondary">
-                                                country: {Array.isArray(example.country) ? example.country.join(", ") : example.country}
+                                                Countries: {example.countries.join(", ")}
                                             </Badge>
                                         )}
 
                                         {example.company_size && example.company_size.length > 0 && (
                                             <Badge key={`size-badge`} variant="secondary">
-                                                size: {example.company_size.join(", ")}
+                                                Sizes: {example.company_size.join(", ")}
                                             </Badge>
                                         )}
                                     </div>

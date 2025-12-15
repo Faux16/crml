@@ -285,7 +285,7 @@ crml simulate model.yaml --format json | \
 ```
 
 **Export charts:**
-- Use web platform at http://localhost:3000/playground
+- Use web platform at http://localhost:3000/simulation
 - Run simulation
 - Right-click chart → "Save image as..."
 

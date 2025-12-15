@@ -17,7 +17,8 @@ meta:
     countries: ["US"]
 model:
   assets:
-    cardinality: 50  # 50 databases with PII
+    - name: "database"
+      cardinality: 50  # 50 databases with PII
   frequency:
     model: poisson
     parameters:

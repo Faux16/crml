@@ -14,7 +14,8 @@ meta:
   description: "A simple cyber risk model"
 model:
   assets:
-    cardinality: 100
+    - name: "PIIdatabase"
+      cardinality: 50  # 50 databases with PII
   frequency:
     model: poisson
     parameters:

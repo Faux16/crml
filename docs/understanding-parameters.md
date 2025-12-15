@@ -387,7 +387,7 @@ model:
 
 ## Next Steps
 
-1. **Start with examples**: Use the pre-built models in the playground
+1. **Start with examples**: Use the pre-built models in the simulation page
 2. **Modify one parameter at a time**: See how it affects results
 3. **Compare to your budget**: Does the EAL match your cyber spend?
 4. **Iterate**: Refine based on your organization's data

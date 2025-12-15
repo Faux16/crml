@@ -559,7 +559,7 @@ model:
 1. **Start simple** - Begin with Poisson + Lognormal
 2. **Use industry data** - Check Verizon DBIR, IBM reports
 3. **Document your assumptions** - Add comments explaining parameter choices
-4. **Test with different values** - Use the playground to experiment
+4. **Test with different values** - Use the simulation page to experiment
 5. **Compare to reality** - Does the output match your experience?
 
 ### ❌ DON'T:
@@ -686,7 +686,7 @@ model:
 
 ## Next Steps
 
-1. **Try the examples** - Load them in the playground
+1. **Try the examples** - Load them in the simulation page
 2. **Modify parameters** - See how results change
 3. **Build your own** - Start with your organization's risks
 4. **Read the spec** - For advanced features
@@ -696,7 +696,7 @@ model:
 
 ## Getting Help
 
-- **Playground**: Try examples interactively
+- **Simulation**: Try examples interactively
 - **Validator**: Check your YAML syntax
 - **Examples**: Browse pre-built models
 - **Understanding Parameters**: Deep dive on distributions

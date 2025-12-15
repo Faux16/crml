@@ -89,7 +89,7 @@ Simulation completed in 1.2s
 
 ## Step 5: Try the Web Platform (1 minute)
 
-Want a visual interface? Try the interactive playground:
+Want a visual interface? Try the interactive simulation page:
 
 ```bash
 # Clone the repo (if you haven't)
@@ -101,7 +101,7 @@ npm install
 npm run dev
 ```
 
-Visit http://localhost:3000/playground
+Visit http://localhost:3000/simulation
 
 ---
 
@@ -153,7 +153,7 @@ Visit http://localhost:3000/playground
 ## Get Help
 
 - 📖 [Full Documentation](index.md)
-- 🎮 [Interactive Playground](http://localhost:3000/playground)
+- 🧪 [Interactive Simulation](http://localhost:3000/simulation)
 - 💬 [GitHub Issues](https://github.com/Faux16/crml/issues)
 - 📧 [Email Support](mailto:research@zeron.one)
 

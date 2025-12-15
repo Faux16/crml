@@ -4,7 +4,7 @@ import sys
 from crml.validator import validate_crml
 from crml.runtime import run_simulation_cli
 
-def main():
+def main(argv=None, *, exit_on_return: bool = True):
     parser = argparse.ArgumentParser(
         description='CRML - Cyber Risk Modeling Language CLI'
     )
@@ -37,31 +37,49 @@ def main():
     run_parser.add_argument('--runs', type=int, default=10000,
                            help='Number of simulation runs (default: 10000)')
     
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     
     if not args.command:
         parser.print_help()
-        return 1
+        exit_code = 1
+        if exit_on_return:
+            raise SystemExit(exit_code)
+        return exit_code
     
     if args.command == 'validate':
         success = validate_crml(args.file)
-        return 0 if success else 1
+        exit_code = 0 if success else 1
+        if exit_on_return:
+            raise SystemExit(exit_code)
+        return exit_code
     
     elif args.command == 'explain':
         from crml.explainer import explain_crml
         success = explain_crml(args.file)
-        return 0 if success else 1
+        exit_code = 0 if success else 1
+        if exit_on_return:
+            raise SystemExit(exit_code)
+        return exit_code
     
     elif args.command == 'simulate':
         success = run_simulation_cli(args.file, n_runs=args.runs, output_format=args.format, fx_config_path=args.fx_config)
-        return 0 if success else 1
+        exit_code = 0 if success else 1
+        if exit_on_return:
+            raise SystemExit(exit_code)
+        return exit_code
     
     elif args.command == 'run':
         # Legacy command - use text format
         success = run_simulation_cli(args.file, n_runs=args.runs, output_format='text')
-        return 0 if success else 1
-    
-    return 0
+        exit_code = 0 if success else 1
+        if exit_on_return:
+            raise SystemExit(exit_code)
+        return exit_code
+
+    exit_code = 0
+    if exit_on_return:
+        raise SystemExit(exit_code)
+    return exit_code
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()

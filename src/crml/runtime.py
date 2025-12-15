@@ -68,6 +68,40 @@ def parse_number(value: Union[str, int, float]) -> float:
     return float(cleaned)
 
 
+def calibrate_lognormal_from_single_losses(
+    single_losses: list,
+    currency: Optional[str],
+    base_currency: str,
+    fx_config: Dict[str, Any],
+) -> tuple[float, float]:
+    """Calibrate lognormal mu/sigma from a list of single-event loss amounts.
+
+    Computes:
+      mu = ln(median(single_losses))
+      sigma = stddev(ln(single_losses))
+
+    Returns:
+      (mu, sigma)
+    """
+    if not isinstance(single_losses, list) or len(single_losses) < 2:
+        raise ValueError("single_losses must be an array with at least 2 values")
+
+    sev_currency = currency or fx_config.get('base_currency', 'USD')
+    parsed_losses = [parse_number(v) for v in single_losses]
+    parsed_losses = [convert_currency(v, sev_currency, base_currency, fx_config) for v in parsed_losses]
+
+    if any(v <= 0 for v in parsed_losses):
+        raise ValueError("single_losses values must be positive")
+
+    median_val = float(np.median(parsed_losses))
+    mu_val = math.log(median_val)
+    log_losses = [math.log(v) for v in parsed_losses]
+    sigma_val = float(np.std(log_losses))
+    if sigma_val <= 0:
+        raise ValueError("Calibrated sigma must be positive")
+    return mu_val, sigma_val
+
+
 def load_fx_config(fx_config_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Load FX configuration from a YAML file or return defaults.
@@ -220,7 +254,8 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
         if fx_config.get("rates") is None:
             fx_config["rates"] = DEFAULT_FX_RATES
     
-    output_currency = fx_config.get("output_currency", fx_config.get("base_currency", "USD"))
+    base_currency = fx_config.get("base_currency", "USD")
+    output_currency = fx_config.get("output_currency", base_currency)
     output_symbol = get_currency_symbol(output_currency)
     
     # Set random seed if provided
@@ -334,23 +369,49 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
         if 'lognormal' in first_component:
             sev_model = 'lognormal'
             ln_params = first_component['lognormal']
-            # Support both median and mu (median is preferred)
-            if 'median' in ln_params:
-                median_val = parse_number(ln_params['median'])
-                # Default to base currency (USD) if not specified
-                sev_currency = ln_params.get('currency', fx_config.get('base_currency', 'USD'))
-                # Convert from model currency to output currency
-                median_val = convert_currency(median_val, sev_currency, output_currency, fx_config)
-                if median_val <= 0:
-                    result["errors"].append("Median parameter must be positive")
+            if 'single_losses' in ln_params:
+                if any(k in ln_params for k in ('median', 'mu', 'sigma')):
+                    result["errors"].append("When using 'single_losses', do not also set 'median', 'mu', or 'sigma'.")
                     return result
-                mu_val = math.log(median_val)
-            elif 'mu' in ln_params:
-                mu_val = float(ln_params['mu'])
+                try:
+                    mu_val, sigma_val = calibrate_lognormal_from_single_losses(
+                        ln_params['single_losses'],
+                        ln_params.get('currency'),
+                        base_currency,
+                        fx_config,
+                    )
+                except (ValueError, TypeError) as e:
+                    result["errors"].append(str(e))
+                    return result
             else:
-                result["errors"].append("Lognormal distribution requires either 'median' or 'mu' parameter")
-                return result
-            sigma_val = float(ln_params['sigma'])
+                # Support both median and mu (median is preferred)
+                if 'median' in ln_params:
+                    median_val = parse_number(ln_params['median'])
+                    # Default to base currency (USD) if not specified
+                    sev_currency = ln_params.get('currency', fx_config.get('base_currency', 'USD'))
+                    # Convert from model currency to base currency (simulation currency)
+                    median_val = convert_currency(median_val, sev_currency, base_currency, fx_config)
+                    if median_val <= 0:
+                        result["errors"].append("Median parameter must be positive")
+                        return result
+                    mu_val = math.log(median_val)
+                elif 'mu' in ln_params:
+                    # If 'mu' is provided alongside a currency, interpret it as ln(median)
+                    # in that currency and shift it into base currency.
+                    sev_currency = ln_params.get('currency', fx_config.get('base_currency', 'USD'))
+                    mu_in = float(ln_params['mu'])
+                    if sev_currency != base_currency:
+                        factor = convert_currency(1.0, sev_currency, base_currency, fx_config)
+                        mu_val = mu_in + math.log(factor)
+                    else:
+                        mu_val = mu_in
+                else:
+                    result["errors"].append("Lognormal distribution requires either 'median' or 'mu' parameter")
+                    return result
+                if 'sigma' not in ln_params:
+                    result["errors"].append("Lognormal distribution requires 'sigma' (or provide 'single_losses' for auto-calibration)")
+                    return result
+                sigma_val = float(ln_params['sigma'])
         elif 'gamma' in first_component:
             sev_model = 'gamma'
             sev_shape = float(first_component['gamma']['shape'])
@@ -365,29 +426,57 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
         try:
             if sev_model == 'lognormal':
                 params = sev['parameters']
-                # Support both median and mu (median is preferred)
-                if 'median' in params:
-                    median_val = parse_number(params['median'])
-                    # Default to base currency (USD) if not specified
-                    sev_currency = params.get('currency', fx_config.get('base_currency', 'USD'))
-                    # Convert from model currency to output currency
-                    median_val = convert_currency(median_val, sev_currency, output_currency, fx_config)
-                    if median_val <= 0:
-                        result["errors"].append("Median parameter must be positive")
+                if 'single_losses' in params:
+                    if any(k in params for k in ('median', 'mu', 'sigma')):
+                        result["errors"].append("When using 'single_losses', do not also set 'median', 'mu', or 'sigma'.")
                         return result
-                    mu_val = math.log(median_val)
-                elif 'mu' in params:
-                    mu_val = float(params['mu'])
+                    try:
+                        mu_val, sigma_val = calibrate_lognormal_from_single_losses(
+                            params['single_losses'],
+                            params.get('currency'),
+                            base_currency,
+                            fx_config,
+                        )
+                    except (ValueError, TypeError) as e:
+                        result["errors"].append(str(e))
+                        return result
                 else:
-                    result["errors"].append("Lognormal distribution requires either 'median' or 'mu' parameter")
-                    return result
-                sigma_val = float(params['sigma'])
-                if sigma_val <= 0:
-                    result["errors"].append("Sigma parameter must be positive")
-                    return result
+                    # Support both median and mu (median is preferred)
+                    if 'median' in params:
+                        median_val = parse_number(params['median'])
+                        # Default to base currency (USD) if not specified
+                        sev_currency = params.get('currency', fx_config.get('base_currency', 'USD'))
+                        # Convert from model currency to base currency (simulation currency)
+                        median_val = convert_currency(median_val, sev_currency, base_currency, fx_config)
+                        if median_val <= 0:
+                            result["errors"].append("Median parameter must be positive")
+                            return result
+                        mu_val = math.log(median_val)
+                    elif 'mu' in params:
+                        # If 'mu' is provided alongside a currency, interpret it as ln(median)
+                        # in that currency and shift it into base currency.
+                        sev_currency = params.get('currency', fx_config.get('base_currency', 'USD'))
+                        mu_in = float(params['mu'])
+                        if sev_currency != base_currency:
+                            factor = convert_currency(1.0, sev_currency, base_currency, fx_config)
+                            mu_val = mu_in + math.log(factor)
+                        else:
+                            mu_val = mu_in
+                    else:
+                        result["errors"].append("Lognormal distribution requires either 'median' or 'mu' (or provide 'single_losses' for auto-calibration)")
+                        return result
+                    if 'sigma' not in params:
+                        result["errors"].append("Lognormal distribution requires 'sigma' (or provide 'single_losses' for auto-calibration)")
+                        return result
+                    sigma_val = float(params['sigma'])
+                    if sigma_val <= 0:
+                        result["errors"].append("Sigma parameter must be positive")
+                        return result
             elif sev_model == 'gamma':
                 sev_shape = float(sev['parameters']['shape'])
                 sev_scale = parse_number(sev['parameters']['scale'])
+                sev_currency = sev['parameters'].get('currency', fx_config.get('base_currency', 'USD'))
+                sev_scale = convert_currency(sev_scale, sev_currency, base_currency, fx_config)
                 if sev_shape <= 0 or sev_scale <= 0:
                     result["errors"].append("Gamma shape and scale must be positive")
                     return result
@@ -440,6 +529,11 @@ def run_simulation(yaml_content: Union[str, dict], n_runs: int = 10000, seed: in
             annual_losses = [0.0] * n_runs
 
         annual_losses = np.array(annual_losses)
+
+        # Convert losses from base currency (simulation) into output currency for reporting
+        if base_currency != output_currency:
+            factor = convert_currency(1.0, base_currency, output_currency, fx_config)
+            annual_losses = annual_losses * factor
 
         # Calculate metrics
         eal = float(np.mean(annual_losses))

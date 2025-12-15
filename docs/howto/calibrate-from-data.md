@@ -121,8 +121,25 @@ Sigma: 0.35
 severity:
   model: lognormal
   parameters:
-    mu: 10.22    # Your calibrated value
-    sigma: 0.35  # Your calibrated value
+        # Recommended when you want the raw data embedded for auditability:
+        currency: USD
+        single_losses:
+            - "25 000"
+            - "18 000"
+            - "45 000"
+            - "32 000"
+            - "21 000"
+            - "28 000"
+            - "35 000"
+            - "22 000"
+            - "41 000"
+            - "19 000"
+            - "27 000"
+            - "38 000"
+
+        # Alternative (store only calibrated parameters):
+        # mu: 10.22
+        # sigma: 0.35
 ```
 
 ---

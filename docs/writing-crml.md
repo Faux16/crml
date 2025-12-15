@@ -127,6 +127,23 @@ Use when most losses are small, but some are huge:
       sigma: 1.2         # Moderate variability
 ```
 
+If you have real incident cost data and want it embedded in the model for auditability, you can provide `single_losses` instead and let the engine auto-calibrate:
+
+```yaml
+  severity:
+    model: lognormal
+    parameters:
+      currency: USD
+      single_losses:
+        - "25 000"
+        - "18 000"
+        - "45 000"
+        - "32 000"
+        - "21 000"
+```
+
+With `single_losses`, the engine computes $\mu = \ln(\mathrm{median}(\text{single\_losses}))$ and $\sigma = \mathrm{stddev}(\ln(\text{single\_losses}))$ (so you must not also set `median`, `mu`, or `sigma`).
+
 **Choosing median (typical loss):**
 - median: "8 000"     → ~$8K (minor incidents)
 - median: "100 000"   → ~$100K (data breaches)

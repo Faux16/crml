@@ -309,15 +309,19 @@
             },
             "parameters": {
               "type": "object",
-              "description": "Distribution-specific parameters. For lognormal, provide either 'median' (recommended) or 'mu', not both.",
+              "description": "Distribution-specific parameters. For lognormal, provide either (median + sigma), (mu + sigma), or single_losses (auto-calibration).",
               "oneOf": [
                 {
-                  "required": ["median"],
-                  "not": {"required": ["mu"]}
+                  "required": ["median", "sigma"],
+                  "not": {"required": ["mu", "single_losses"]}
                 },
                 {
-                  "required": ["mu"],
-                  "not": {"required": ["median"]}
+                  "required": ["mu", "sigma"],
+                  "not": {"required": ["median", "single_losses"]}
+                },
+                {
+                  "required": ["single_losses"],
+                  "not": {"required": ["median", "mu", "sigma"]}
                 },
                 {
                   "required": ["shape"],
@@ -413,6 +417,18 @@
                     "sigma": {
                       "type": "number",
                       "minimum": 0
+                    },
+                    "single_losses": {
+                      "type": "array",
+                      "minItems": 2,
+                      "items": {
+                        "oneOf": [
+                          {"type": "number", "minimum": 0},
+                          {"type": "string", "pattern": "^[0-9 ]+$"}
+                        ]
+                      },
+                      "description": "Optional calibration input for lognormal components: list of single-event losses. If provided, engine computes mu/sigma from data. Do not combine with median/sigma.",
+                      "examples": [["25 000", "18 000", "45 000", "32 000"]]
                     },
                     "shape": {
                       "oneOf": [

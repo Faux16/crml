@@ -23,12 +23,21 @@ export async function GET() {
 
                 try {
                     const parsed: any = yaml.load(content);
+
+                    // According to schema, regions and countries are in meta.locale
+                    const locale = parsed?.meta?.locale || {};
+                    const regions: string[] = Array.isArray(locale.regions) ? locale.regions : [];
+                    const countries: string[] = Array.isArray(locale.countries) ? locale.countries : (typeof locale.countries === "string" ? [locale.countries] : []);
+
                     return {
                         id: file.replace(/\.(yaml|yml)$/, ""),
                         filename: file,
                         name: parsed?.meta?.name || file,
                         description: parsed?.meta?.description || "No description available",
                         tags: parsed?.meta?.tags || [],
+                        regions,
+                        countries,
+                        company_size: parsed?.meta?.company_size || [],
                         content,
                     };
                 } catch (error) {
@@ -38,6 +47,9 @@ export async function GET() {
                         name: file,
                         description: "Error parsing file",
                         tags: [],
+                        regions: [],
+                        countries: [],
+                        company_size: [],
                         content,
                     };
                 }

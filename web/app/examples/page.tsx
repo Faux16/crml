@@ -14,6 +14,9 @@ interface Example {
     name: string;
     description: string;
     tags: string[];
+    regions?: string[];
+    countries?: string[];
+    company_size?: string[];
     content: string;
 }
 
@@ -95,15 +98,35 @@ export default function ExamplesPage() {
                                     </div>
                                     <FileText className="h-5 w-5 text-muted-foreground" />
                                 </div>
-                                {example.tags && example.tags.length > 0 && (
+                                {(example.tags && example.tags.length > 0) ||
+                                    (example.regions && example.regions.length > 0) ||
+                                    (example.company_size && example.company_size.length > 0) ||
+                                    !!example.countries ? (
                                     <div className="flex flex-wrap gap-2 pt-2">
-                                        {example.tags.map((tag) => (
-                                            <Badge key={tag} variant="secondary">
-                                                {tag}
-                                            </Badge>
+                                        {example.tags?.map((tag) => (
+                                            <Badge key={`tag:${tag}`} variant="secondary">{tag}</Badge>
                                         ))}
+
+
+                                        {example.regions && example.regions.length > 0 && (
+                                            <Badge key={`region-badge`} variant="secondary">
+                                                Regions: {example.regions.join(", ")}
+                                            </Badge>
+                                        )}
+
+                                        {example.countries && example.countries.length > 0 && (
+                                            <Badge key={`country-badge`} variant="secondary">
+                                                Countries: {example.countries.join(", ")}
+                                            </Badge>
+                                        )}
+
+                                        {example.company_size && example.company_size.length > 0 && (
+                                            <Badge key={`size-badge`} variant="secondary">
+                                                Sizes: {example.company_size.join(", ")}
+                                            </Badge>
+                                        )}
                                     </div>
-                                )}
+                                ) : null}
                             </CardHeader>
                             <CardContent className="flex-1">
                                 <div className="mb-4 rounded-lg bg-muted p-4">

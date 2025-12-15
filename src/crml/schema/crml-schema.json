@@ -4,51 +4,70 @@
   "title": "CRML 1.1 - Cyber Risk Modeling Language",
   "description": "A declarative, implementation-agnostic language for defining end-to-end cyber risk models. CRML documents describe frequency/severity distributions, asset models, simulation pipelines, and output metrics for quantitative risk analysis.",
   "type": "object",
-  "required": ["crml", "meta", "model"],
+  "required": [
+    "crml",
+    "meta",
+    "model"
+  ],
   "properties": {
     "crml": {
       "type": "string",
       "description": "CRML specification version. Supported versions: 1.0, 1.1 (recommended).",
-      "enum": ["1.0", "1.1"],
-      "examples": ["1.1"]
+      "enum": [
+        "1.0",
+        "1.1"
+      ],
+      "examples": [
+        "1.1"
+      ]
     },
     "meta": {
       "type": "object",
       "description": "Metadata about the risk model including identification, authorship, and categorization.",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "properties": {
         "name": {
           "type": "string",
           "description": "Unique identifier for the risk model. Used for referencing and reporting.",
-          "examples": ["ransomware-scenario", "fair-baseline", "qber-enterprise"]
+          "examples": [
+            "ransomware-scenario",
+            "fair-baseline",
+            "qber-enterprise"
+          ]
         },
         "version": {
           "type": "string",
           "description": "Semantic version of this model definition. Useful for tracking model evolution.",
-          "examples": ["1.0", "2025.1", "1.0.0-beta"]
+          "examples": [
+            "1.0",
+            "2025.1",
+            "1.0.0-beta"
+          ]
         },
         "description": {
           "type": "string",
           "description": "Human-readable explanation of what this model represents and its intended use case.",
-          "examples": ["FAIR-like Poisson + Lognormal model for data breach scenarios"]
+          "examples": [
+            "FAIR-like Poisson + Lognormal model for data breach scenarios"
+          ]
         },
         "author": {
           "type": "string",
           "description": "Name or identifier of the model author.",
-          "examples": ["Jane Smith", "Risk Analytics Team"]
+          "examples": [
+            "Jane Smith",
+            "Risk Analytics Team"
+          ]
         },
         "organization": {
           "type": "string",
           "description": "Organization that owns or maintains this model.",
-          "examples": ["Acme Corp", "Zeron Research Labs"]
-        },
-        "tags": {
-          "type": "array",
-          "description": "Categorical labels for filtering and organizing models. Common tags include methodology (fair, qber), data sources (pam, dlp), or risk types (ransomware, data-breach).",
-          "items": {
-            "type": "string"
-          },
-          "examples": [["qber", "bayesian", "mcmc"], ["fair-compatible", "simple"]]
+          "examples": [
+            "Acme Corp",
+            "Zeron Research Labs"
+          ]
         },
         "industry": {
           "type": "array",
@@ -73,7 +92,21 @@
               "nonprofit-ngo"
             ]
           },
-          "examples": [["all"], ["healthcare"], ["financial-services", "technology"], ["manufacturing"]]
+          "examples": [
+            [
+              "all"
+            ],
+            [
+              "healthcare"
+            ],
+            [
+              "financial-services",
+              "technology"
+            ],
+            [
+              "manufacturing"
+            ]
+          ]
         },
         "region": {
           "description": "Geographic regions this model is designed for or calibrated against. Use 'world' for globally applicable models. Optionally, provide a specific ISO country code under region.",
@@ -111,13 +144,34 @@
                     ]
                   }
                 },
-                "country": { "$ref": "#/$defs/iso3166_1_alpha2" }
+                "country": {
+                  "$ref": "#/$defs/iso3166_1_alpha2"
+                }
               },
-              "required": ["regions"],
+              "required": [
+                "regions"
+              ],
               "additionalProperties": false
             }
           ],
-          "examples": [["world"], ["europe"], ["north-america", "europe"], {"regions": ["europe"], "country": "DE"}]
+          "examples": [
+            [
+              "world"
+            ],
+            [
+              "europe"
+            ],
+            [
+              "north-america",
+              "europe"
+            ],
+            {
+              "regions": [
+                "europe"
+              ],
+              "country": "DE"
+            }
+          ]
         },
         "company_size": {
           "type": "array",
@@ -140,7 +194,19 @@
               "large-enterprise": "10000+ employees, complex global operations"
             }
           },
-          "examples": [["all"], ["enterprise", "large-enterprise"], ["smb", "mid-market"]]
+          "examples": [
+            [
+              "all"
+            ],
+            [
+              "enterprise",
+              "large-enterprise"
+            ],
+            [
+              "smb",
+              "mid-market"
+            ]
+          ]
         },
         "regulatory_frameworks": {
           "type": "array",
@@ -170,7 +236,38 @@
               "other"
             ]
           },
-          "examples": [["nist-csf", "iso-27001"], ["hipaa", "soc2"], ["pci-dss", "gdpr"]]
+          "examples": [
+            [
+              "nist-csf",
+              "iso-27001"
+            ],
+            [
+              "hipaa",
+              "soc2"
+            ],
+            [
+              "pci-dss",
+              "gdpr"
+            ]
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "description": "Categorical labels for filtering and organizing models. Common tags include methodology (fair, qber), data sources (pam, dlp), or risk types (ransomware, data-breach).",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            [
+              "qber",
+              "bayesian",
+              "mcmc"
+            ],
+            [
+              "fair-compatible",
+              "simple"
+            ]
+          ]
         }
       },
       "additionalProperties": true
@@ -189,15 +286,43 @@
               "type": {
                 "type": "string",
                 "description": "What is providing this data.",
-                "enum": ["pam", "dlp", "iam", "xdr", "waf", "siem", "edr", "vm", "cspm", "ndr", "phishingSimulation", "casb", "asm", "ueba", "industryReport", "pentestReport", "person", "custom"],
-                "examples": ["pam", "dlp"]
+                "enum": [
+                  "pam",
+                  "dlp",
+                  "iam",
+                  "xdr",
+                  "waf",
+                  "siem",
+                  "edr",
+                  "vm",
+                  "cspm",
+                  "ndr",
+                  "phishingSimulation",
+                  "casb",
+                  "asm",
+                  "ueba",
+                  "industryReport",
+                  "pentestReport",
+                  "person",
+                  "custom"
+                ],
+                "examples": [
+                  "pam",
+                  "dlp"
+                ]
               },
               "schema": {
                 "type": "object",
                 "description": "Field definitions available from this source. Keys are field names, values are data types.",
                 "additionalProperties": {
                   "type": "string",
-                  "enum": ["int", "float", "string", "bool", "datetime"]
+                  "enum": [
+                    "int",
+                    "float",
+                    "string",
+                    "bool",
+                    "datetime"
+                  ]
                 }
               }
             }
@@ -211,7 +336,12 @@
             "description": "Source path in format 'source_name.field_name'",
             "pattern": "^[a-z_]+\\.[a-z_]+$"
           },
-          "examples": [{"pam_entropy": "pam.pam_entropy", "dlp_entropy": "dlp.channel_entropy"}]
+          "examples": [
+            {
+              "pam_entropy": "pam.pam_entropy",
+              "dlp_entropy": "dlp.channel_entropy"
+            }
+          ]
         }
       },
       "additionalProperties": true
@@ -219,7 +349,10 @@
     "model": {
       "type": "object",
       "description": "Core risk model definition including frequency of loss events, severity distributions, asset characteristics, and dependencies.",
-      "required": ["frequency", "severity"],
+      "required": [
+        "frequency",
+        "severity"
+      ],
       "properties": {
         "assets": {
           "type": "object",
@@ -229,7 +362,10 @@
               "type": "integer",
               "description": "Number of assets in the portfolio. Used for asset-level frequency models.",
               "minimum": 1,
-              "examples": [100, 10000]
+              "examples": [
+                100,
+                10000
+              ]
             },
             "criticality_index": {
               "type": "object",
@@ -238,7 +374,11 @@
                 "type": {
                   "type": "string",
                   "description": "Method for computing criticality index.",
-                  "enum": ["entropy-weighted", "manual", "uniform"],
+                  "enum": [
+                    "entropy-weighted",
+                    "manual",
+                    "uniform"
+                  ],
                   "default": "uniform"
                 },
                 "inputs": {
@@ -260,7 +400,9 @@
                 "transform": {
                   "type": "string",
                   "description": "Expression to transform weighted entropy into criticality index. Use 'total_entropy' as the computed sum.",
-                  "examples": ["clip(1 + 4 * total_entropy, 1, 5)"]
+                  "examples": [
+                    "clip(1 + 4 * total_entropy, 1, 5)"
+                  ]
                 }
               }
             }
@@ -269,18 +411,31 @@
         "frequency": {
           "type": "object",
           "description": "Specifies the distribution for loss event frequency (how often events occur).",
-          "required": ["model"],
+          "required": [
+            "model"
+          ],
           "properties": {
             "model": {
               "type": "string",
               "description": "Statistical distribution for event frequency.",
-              "enum": ["poisson", "negative_binomial", "hierarchical_gamma_poisson", "zero_inflated_poisson"],
-              "examples": ["poisson", "hierarchical_gamma_poisson"]
+              "enum": [
+                "poisson",
+                "negative_binomial",
+                "hierarchical_gamma_poisson",
+                "zero_inflated_poisson"
+              ],
+              "examples": [
+                "poisson",
+                "hierarchical_gamma_poisson"
+              ]
             },
             "scope": {
               "type": "string",
               "description": "Level at which frequency is modeled: 'portfolio' for aggregate, 'asset' for per-asset rates.",
-              "enum": ["portfolio", "asset"],
+              "enum": [
+                "portfolio",
+                "asset"
+              ],
               "default": "portfolio"
             },
             "parameters": {
@@ -289,25 +444,43 @@
               "properties": {
                 "lambda": {
                   "oneOf": [
-                    {"type": "number", "minimum": 0},
-                    {"type": "string"}
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "string"
+                    }
                   ],
                   "description": "Poisson rate parameter. For hierarchical models, can be an expression like '1 + CI * 0.5'.",
-                  "examples": [1.2, "1 + CI * 0.5"]
+                  "examples": [
+                    1.2,
+                    "1 + CI * 0.5"
+                  ]
                 },
                 "alpha_base": {
                   "oneOf": [
-                    {"type": "number", "minimum": 0},
-                    {"type": "string"}
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "string"
+                    }
                   ],
                   "description": "Gamma shape parameter for hierarchical_gamma_poisson.",
-                  "examples": [1.0, "1 + CI * 0.5"]
+                  "examples": [
+                    1.0,
+                    "1 + CI * 0.5"
+                  ]
                 },
                 "beta_base": {
                   "type": "number",
                   "description": "Gamma rate parameter for hierarchical_gamma_poisson.",
                   "minimum": 0,
-                  "examples": [1.5]
+                  "examples": [
+                    1.5
+                  ]
                 },
                 "r": {
                   "type": "number",
@@ -327,87 +500,154 @@
         "severity": {
           "type": "object",
           "description": "Specifies the distribution for loss severity (magnitude of each event). Supports lognormal (recommended), gamma, and mixture models.",
-          "required": ["model"],
+          "required": [
+            "model"
+          ],
           "properties": {
             "model": {
               "type": "string",
               "description": "Statistical distribution for loss severity.",
-              "enum": ["lognormal", "gamma", "mixture", "pareto", "weibull"]
+              "enum": [
+                "lognormal",
+                "gamma",
+                "mixture",
+                "pareto",
+                "weibull"
+              ]
             },
             "parameters": {
               "type": "object",
               "description": "Distribution-specific parameters. For lognormal, provide either (median + sigma), (mu + sigma), or single_losses (auto-calibration).",
               "oneOf": [
                 {
-                  "required": ["median", "sigma"],
-                  "not": {"required": ["mu", "single_losses"]}
+                  "required": [
+                    "median",
+                    "sigma"
+                  ],
+                  "not": {
+                    "required": [
+                      "mu",
+                      "single_losses"
+                    ]
+                  }
                 },
                 {
-                  "required": ["mu", "sigma"],
-                  "not": {"required": ["median", "single_losses"]}
+                  "required": [
+                    "mu",
+                    "sigma"
+                  ],
+                  "not": {
+                    "required": [
+                      "median",
+                      "single_losses"
+                    ]
+                  }
                 },
                 {
-                  "required": ["single_losses"],
-                  "not": {"required": ["median", "mu", "sigma"]}
+                  "required": [
+                    "single_losses"
+                  ],
+                  "not": {
+                    "required": [
+                      "median",
+                      "mu",
+                      "sigma"
+                    ]
+                  }
                 },
                 {
-                  "required": ["shape"],
+                  "required": [
+                    "shape"
+                  ],
                   "description": "For gamma/Weibull distributions"
                 },
                 {
-                  "required": ["alpha"],
+                  "required": [
+                    "alpha"
+                  ],
                   "description": "For Pareto distribution"
                 }
               ],
               "properties": {
                 "median": {
                   "oneOf": [
-                    {"type": "number", "minimum": 0},
-                    {"type": "string", "pattern": "^[0-9 ]+$"}
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "string",
+                      "pattern": "^[0-9 ]+$"
+                    }
                   ],
                   "description": "Median loss value for lognormal distribution. RECOMMENDED over mu because it's more intuitive. Accepts space-separated numbers for readability (e.g., '250 000' = 250000). Internally converted to mu = ln(median).",
-                  "examples": [250000, "250 000", "8 100"]
+                  "examples": [
+                    250000,
+                    "250 000",
+                    "8 100"
+                  ]
                 },
                 "currency": {
                   "type": "string",
                   "description": "ISO 4217 currency code for monetary values. Used with external FX configuration for conversion.",
                   "pattern": "^[A-Z]{3}$",
-                  "examples": ["USD", "EUR", "GBP", "CHF"]
+                  "examples": [
+                    "USD",
+                    "EUR",
+                    "GBP",
+                    "CHF"
+                  ]
                 },
                 "mu": {
                   "type": "number",
                   "description": "Log-space mean for lognormal distribution. ADVANCED: prefer 'median' for readability. mu = ln(median). Cannot be used together with 'median'.",
-                  "examples": [12.43]
+                  "examples": [
+                    12.43
+                  ]
                 },
                 "sigma": {
                   "type": "number",
                   "description": "Log-space standard deviation for lognormal distribution. Higher values = more variance and heavier right tail. Typical range: 0.5-2.0.",
                   "minimum": 0,
-                  "examples": [1.0, 1.2, 1.5]
+                  "examples": [
+                    1.0,
+                    1.2,
+                    1.5
+                  ]
                 },
                 "shape": {
                   "type": "number",
                   "description": "Shape parameter (k or alpha) for gamma/Weibull distributions.",
                   "minimum": 0,
-                  "examples": [2.5]
+                  "examples": [
+                    2.5
+                  ]
                 },
                 "scale": {
                   "type": "number",
                   "description": "Scale parameter (theta) for gamma/Weibull distributions.",
                   "minimum": 0,
-                  "examples": [10000]
+                  "examples": [
+                    10000
+                  ]
                 },
                 "alpha": {
                   "type": "number",
                   "description": "Shape parameter for Pareto distribution. Must be > 0.",
                   "exclusiveMinimum": 0,
-                  "examples": [1.5, 2.0]
+                  "examples": [
+                    1.5,
+                    2.0
+                  ]
                 },
                 "x_min": {
                   "type": "number",
                   "description": "Minimum value (scale) for Pareto distribution.",
                   "minimum": 0,
-                  "examples": [1000, 10000]
+                  "examples": [
+                    1000,
+                    10000
+                  ]
                 }
               }
             },
@@ -422,7 +662,9 @@
                 "additionalProperties": {
                   "type": "object",
                   "description": "Component configuration including weight and distribution parameters.",
-                  "required": ["weight"],
+                  "required": [
+                    "weight"
+                  ],
                   "properties": {
                     "weight": {
                       "type": "number",
@@ -432,8 +674,14 @@
                     },
                     "median": {
                       "oneOf": [
-                        {"type": "number", "minimum": 0},
-                        {"type": "string", "pattern": "^[0-9 ]+$"}
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^[0-9 ]+$"
+                        }
                       ],
                       "description": "Median loss value for lognormal components."
                     },
@@ -450,24 +698,49 @@
                       "minItems": 2,
                       "items": {
                         "oneOf": [
-                          {"type": "number", "minimum": 0},
-                          {"type": "string", "pattern": "^[0-9 ]+$"}
+                          {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[0-9 ]+$"
+                          }
                         ]
                       },
                       "description": "Optional calibration input for lognormal components: list of single-event losses. If provided, engine computes mu/sigma from data. Do not combine with median/sigma.",
-                      "examples": [["25 000", "18 000", "45 000", "32 000"]]
+                      "examples": [
+                        [
+                          "25 000",
+                          "18 000",
+                          "45 000",
+                          "32 000"
+                        ]
+                      ]
                     },
                     "shape": {
                       "oneOf": [
-                        {"type": "number", "minimum": 0},
-                        {"type": "string", "pattern": "^[0-9 ]+$"}
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^[0-9 ]+$"
+                        }
                       ],
                       "description": "Shape parameter for gamma/Weibull."
                     },
                     "scale": {
                       "oneOf": [
-                        {"type": "number", "minimum": 0},
-                        {"type": "string", "pattern": "^[0-9 ]+$"}
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^[0-9 ]+$"
+                        }
                       ],
                       "description": "Scale parameter for gamma/Weibull."
                     }
@@ -476,8 +749,21 @@
               },
               "examples": [
                 [
-                  {"lognormal": {"weight": 0.7, "median": "162 755", "currency": "USD", "sigma": 1.2}},
-                  {"gamma": {"weight": 0.3, "shape": 2.5, "scale": 10000}}
+                  {
+                    "lognormal": {
+                      "weight": 0.7,
+                      "median": "162 755",
+                      "currency": "USD",
+                      "sigma": 1.2
+                    }
+                  },
+                  {
+                    "gamma": {
+                      "weight": 0.3,
+                      "shape": 2.5,
+                      "scale": 10000
+                    }
+                  }
                 ]
               ]
             }
@@ -494,33 +780,70 @@
                 "type": {
                   "type": "string",
                   "description": "Copula family. Gaussian for symmetric dependencies, Clayton/Gumbel for tail dependencies.",
-                  "enum": ["gaussian", "t", "clayton", "gumbel", "frank"],
-                  "examples": ["gaussian"]
+                  "enum": [
+                    "gaussian",
+                    "t",
+                    "clayton",
+                    "gumbel",
+                    "frank"
+                  ],
+                  "examples": [
+                    "gaussian"
+                  ]
                 },
                 "dimension": {
                   "type": "integer",
                   "description": "Number of correlated variables.",
                   "minimum": 2,
-                  "examples": [4]
+                  "examples": [
+                    4
+                  ]
                 },
                 "rho_matrix": {
                   "oneOf": [
-                    {"type": "string"},
-                    {"type": "array", "items": {"type": "array", "items": {"type": "number"}}}
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    }
                   ],
                   "description": "Correlation matrix. Can be specified as expression like 'toeplitz(0.7, 4)' or explicit 2D array.",
-                  "examples": ["toeplitz(0.7, 4)", [[1, 0.7], [0.7, 1]]]
+                  "examples": [
+                    "toeplitz(0.7, 4)",
+                    [
+                      [
+                        1,
+                        0.7
+                      ],
+                      [
+                        0.7,
+                        1
+                      ]
+                    ]
+                  ]
                 },
                 "df": {
                   "type": "integer",
                   "description": "Degrees of freedom for t-copula. Lower values = heavier tails.",
                   "minimum": 1,
-                  "examples": [4, 10]
+                  "examples": [
+                    4,
+                    10
+                  ]
                 },
                 "theta": {
                   "type": "number",
                   "description": "Dependence parameter for Archimedean copulas (Clayton, Gumbel, Frank).",
-                  "examples": [2.0]
+                  "examples": [
+                    2.0
+                  ]
                 }
               }
             }
@@ -534,13 +857,22 @@
               "type": "string",
               "description": "Total time period to simulate. Format: number + unit (d=days, w=weeks, m=months, y=years).",
               "pattern": "^[0-9]+[dwmy]$",
-              "examples": ["12m", "24m", "1y", "365d"]
+              "examples": [
+                "12m",
+                "24m",
+                "1y",
+                "365d"
+              ]
             },
             "granularity": {
               "type": "string",
               "description": "Time step for simulation. Format: number + unit.",
               "pattern": "^[0-9]+[dwmy]$",
-              "examples": ["1m", "1w", "1d"]
+              "examples": [
+                "1m",
+                "1w",
+                "1d"
+              ]
             }
           }
         }
@@ -569,12 +901,19 @@
                   "description": "Number of simulation iterations. Higher = more precision but slower. Typical range: 10,000-100,000.",
                   "minimum": 100,
                   "default": 10000,
-                  "examples": [10000, 50000, 100000]
+                  "examples": [
+                    10000,
+                    50000,
+                    100000
+                  ]
                 },
                 "random_seed": {
                   "type": "integer",
                   "description": "Seed for random number generator. Set for reproducible results.",
-                  "examples": [42, 12345]
+                  "examples": [
+                    42,
+                    12345
+                  ]
                 }
               }
             },
@@ -590,7 +929,12 @@
                 "algorithm": {
                   "type": "string",
                   "description": "MCMC sampling algorithm.",
-                  "enum": ["metropolis_hastings", "nuts", "hmc", "gibbs"],
+                  "enum": [
+                    "metropolis_hastings",
+                    "nuts",
+                    "hmc",
+                    "gibbs"
+                  ],
                   "default": "metropolis_hastings"
                 },
                 "iterations": {
@@ -598,21 +942,30 @@
                   "description": "Total MCMC iterations per chain.",
                   "minimum": 1000,
                   "default": 10000,
-                  "examples": [10000, 15000]
+                  "examples": [
+                    10000,
+                    15000
+                  ]
                 },
                 "burn_in": {
                   "type": "integer",
                   "description": "Number of initial iterations to discard (warm-up period).",
                   "minimum": 0,
                   "default": 1000,
-                  "examples": [1000, 3000]
+                  "examples": [
+                    1000,
+                    3000
+                  ]
                 },
                 "chains": {
                   "type": "integer",
                   "description": "Number of independent MCMC chains for convergence diagnostics.",
                   "minimum": 1,
                   "default": 4,
-                  "examples": [2, 4]
+                  "examples": [
+                    2,
+                    4
+                  ]
                 },
                 "thinning": {
                   "type": "integer",
@@ -637,14 +990,20 @@
                   "description": "Maximum acceptable R-hat (Gelman-Rubin statistic). Values > threshold indicate non-convergence. Standard threshold is 1.05.",
                   "minimum": 1,
                   "default": 1.05,
-                  "examples": [1.05, 1.1]
+                  "examples": [
+                    1.05,
+                    1.1
+                  ]
                 },
                 "ess_min": {
                   "type": "integer",
                   "description": "Minimum effective sample size required for reliable inference.",
                   "minimum": 100,
                   "default": 1000,
-                  "examples": [1000, 5000]
+                  "examples": [
+                    1000,
+                    5000
+                  ]
                 }
               }
             }
@@ -665,8 +1024,13 @@
             "description": "Metric identifier.",
             "enum": [
               "EAL",
-              "VaR_90", "VaR_95", "VaR_99", "VaR_999",
-              "CVaR_90", "CVaR_95", "CVaR_99",
+              "VaR_90",
+              "VaR_95",
+              "VaR_99",
+              "VaR_999",
+              "CVaR_90",
+              "CVaR_95",
+              "CVaR_99",
               "median_loss",
               "mean_loss",
               "std_loss",
@@ -674,7 +1038,13 @@
               "loss_exceedance_curve"
             ]
           },
-          "examples": [["EAL", "VaR_95", "VaR_99"]]
+          "examples": [
+            [
+              "EAL",
+              "VaR_95",
+              "VaR_99"
+            ]
+          ]
         },
         "distributions": {
           "type": "object",
@@ -720,17 +1090,24 @@
             "csv": {
               "type": "string",
               "description": "Path for CSV export of results.",
-              "examples": ["results.csv", "output/risk_results.csv"]
+              "examples": [
+                "results.csv",
+                "output/risk_results.csv"
+              ]
             },
             "json": {
               "type": "string",
               "description": "Path for JSON export of results.",
-              "examples": ["results.json"]
+              "examples": [
+                "results.json"
+              ]
             },
             "parquet": {
               "type": "string",
               "description": "Path for Parquet export (efficient for large datasets).",
-              "examples": ["results.parquet"]
+              "examples": [
+                "results.parquet"
+              ]
             }
           }
         }
@@ -743,7 +1120,13 @@
       "type": "string",
       "description": "ISO 3166-1 alpha-2 country code (uppercase).",
       "pattern": "^[A-Z]{2}$",
-      "examples": ["US", "DE", "GB", "FR", "JP"]
+      "examples": [
+        "US",
+        "DE",
+        "GB",
+        "FR",
+        "JP"
+      ]
     }
   },
   "additionalProperties": true,
@@ -757,7 +1140,9 @@
       "model": {
         "frequency": {
           "model": "poisson",
-          "parameters": { "lambda": 1.2 }
+          "parameters": {
+            "lambda": 1.2
+          }
         },
         "severity": {
           "model": "lognormal",
@@ -769,7 +1154,10 @@
         }
       },
       "output": {
-        "metrics": ["EAL", "VaR_95"]
+        "metrics": [
+          "EAL",
+          "VaR_95"
+        ]
       }
     }
   ]

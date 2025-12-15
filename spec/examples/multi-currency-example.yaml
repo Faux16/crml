@@ -12,7 +12,10 @@ meta:
     
     Use with --fx-config to normalize currencies for consolidated reporting:
       crml simulate multi-currency-example.yaml --fx-config fx-config.yaml
-  author: "CRML Team"
+  author: CRML Team
+  region:
+    regions: ["europe", "north-america"]
+    country: "US"
   tags:
     - multi-currency
     - compliance

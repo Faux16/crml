@@ -13,6 +13,12 @@ export interface ValidationResult {
         name?: string;
         version?: string;
         description?: string;
+        author?: string;
+        organization?: string;
+        company_size?: string[];
+        industry?: string[];
+        region?: string[];
+        country?: string | null;
     };
 }
 
@@ -106,6 +112,36 @@ export default function ValidationResults({ result, isValidating }: ValidationRe
                                 {result.info.description && (
                                     <p>
                                         <span className="font-medium">Description:</span> {result.info.description}
+                                    </p>
+                                )}
+                                {result.info.author && (
+                                    <p>
+                                        <span className="font-medium">Author:</span> {result.info.author}
+                                    </p>
+                                )}
+                                {result.info.organization && (
+                                    <p>
+                                        <span className="font-medium">Organization:</span> {result.info.organization}
+                                    </p>
+                                )}
+                                {result.info.company_size && result.info.company_size.length > 0 && (
+                                    <p>
+                                        <span className="font-medium">Company Size:</span> {Array.isArray(result.info.company_size) ? result.info.company_size.join(", ") : result.info.company_size}
+                                    </p>
+                                )}
+                                {result.info.industry && result.info.industry.length > 0 && (
+                                    <p>
+                                        <span className="font-medium">Industry:</span> {Array.isArray(result.info.industry) ? result.info.industry.join(", ") : result.info.industry}
+                                    </p>
+                                )}
+                                {result.info.region && result.info.region.length > 0 && (
+                                    <p>
+                                        <span className="font-medium">Region:</span> {Array.isArray(result.info.region) ? result.info.region.join(", ") : result.info.region}
+                                    </p>
+                                )}
+                                {result.info.country && (
+                                    <p>
+                                        <span className="font-medium">Country:</span> {result.info.country}
                                     </p>
                                 )}
                             </div>

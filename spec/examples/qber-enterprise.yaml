@@ -3,7 +3,24 @@ meta:
   name: qber-enterprise-v1
   version: '2025.1'
   description: QBER-style hierarchical Bayesian model with entropy-based CI and MCMC
-  author: Zeron Research Labs
+  author: CRML Team
+  region:
+    regions: ["world"]
+    country: "US"
+  tags:
+    - qber
+    - bayesian
+    - mcmc
+    - pam
+    - dlp
+    - iam
+    - xdr
+    - waf
+    - enterprise
+    - large-enterprise
+  company_size:
+    - enterprise
+    - large-enterprise
   tags:
   - qber
   - bayesian

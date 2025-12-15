@@ -71,10 +71,16 @@ def validate_crml(path: str) -> bool:
             if error.validator == "const":
                 msg = f"Expected '{error.validator_value}', got '{error.instance}'"
             elif error.validator == "oneOf":
-                # Check if this is the mu/median conflict (both keys present in instance)
-                if (isinstance(error.instance, dict) and 
-                    "mu" in error.instance and "median" in error.instance):
-                    msg = "Cannot use both 'median' and 'mu'. Choose one (median is recommended)."
+                if isinstance(error.instance, dict):
+                    # More human-friendly messages for common parameter conflicts
+                    if "mu" in error.instance and "median" in error.instance:
+                        msg = "Cannot use both 'median' and 'mu'. Choose one (median is recommended)."
+                    elif "single_losses" in error.instance and any(k in error.instance for k in ("median", "mu", "sigma")):
+                        msg = "When using 'single_losses', do not also set 'median', 'mu', or 'sigma'."
+                    elif "single_losses" in error.instance:
+                        msg = "'single_losses' must be an array with at least 2 positive values. It replaces median/mu/sigma by auto-calibration."
+                    else:
+                        msg = error.message
                 else:
                     msg = error.message
             elif error.validator == "required":

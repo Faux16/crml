@@ -13,7 +13,10 @@ crml: "1.1"
 meta:
   name: "healthcare-phi-breach"
   description: "HIPAA-regulated PHI breach risk"
-  industry: "Healthcare"
+  industries:
+    - healthcare
+  locale:
+    regions: ["north-america"]
   compliance: ["HIPAA", "HITECH"]
   
 model:
@@ -53,7 +56,10 @@ crml: "1.1"
 meta:
   name: "medical-device-vuln"
   description: "IoMT device vulnerability exploitation"
-  industry: "Healthcare"
+  industries:
+    - healthcare
+  locale:
+    regions: ["north-america"]
   
 model:
   assets:
@@ -84,7 +90,10 @@ crml: "1.1"
 meta:
   name: "pci-breach"
   description: "Payment card data breach (PCI DSS)"
-  industry: "Financial Services"
+  industries:
+    - financial-services
+  locale:
+    regions: ["north-america"]
   compliance: ["PCI DSS"]
   
 model:
@@ -120,7 +129,10 @@ crml: "1.1"
 meta:
   name: "wire-fraud-bec"
   description: "Business Email Compromise wire fraud"
-  industry: "Financial Services"
+  industries:
+    - financial-services
+  locale:
+    regions: ["north-america"]
   
 model:
   assets:
@@ -155,7 +167,10 @@ crml: "1.1"
 meta:
   name: "pos-breach"
   description: "Point-of-sale system breach"
-  industry: "Retail"
+  industries:
+    - retail-wholesale
+  locale:
+    regions: ["north-america"]
   compliance: ["PCI DSS"]
   
 model:
@@ -191,7 +206,10 @@ crml: "1.1"
 meta:
   name: "ecommerce-breach"
   description: "E-commerce customer database breach"
-  industry: "Retail"
+  industries:
+    - retail-wholesale
+  locale:
+    regions: ["north-america"]
   
 model:
   assets:
@@ -228,7 +246,10 @@ crml: "1.1"
 meta:
   name: "saas-outage"
   description: "SaaS platform availability incident"
-  industry: "Technology"
+  industries:
+    - technology
+  locale:
+    regions: ["north-america"]
   
 model:
   frequency:
@@ -261,7 +282,10 @@ crml: "1.1"
 meta:
   name: "api-breach"
   description: "API security vulnerability exploitation"
-  industry: "Technology"
+  industries:
+    - technology
+  locale:
+    regions: ["north-america"]
   
 model:
   assets:
@@ -296,7 +320,10 @@ crml: "1.1"
 meta:
   name: "ot-ransomware"
   description: "Ransomware on operational technology"
-  industry: "Manufacturing"
+  industries:
+    - manufacturing
+  locale:
+    regions: ["north-america"]
   
 model:
   assets:
@@ -333,7 +360,10 @@ crml: "1.1"
 meta:
   name: "student-data-breach"
   description: "FERPA student records breach"
-  industry: "Education"
+  industries:
+    - education
+  locale:
+    regions: ["north-america"]
   compliance: ["FERPA"]
   
 model:

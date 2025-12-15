@@ -69,27 +69,9 @@
             "Zeron Research Labs"
           ]
         },
-        "tags": {
+        "industries": {
           "type": "array",
-          "description": "Categorical labels for filtering and organizing models. Common tags include methodology (fair, qber), data sources (pam, dlp), or risk types (ransomware, data-breach).",
-          "items": {
-            "type": "string"
-          },
-          "examples": [
-            [
-              "qber",
-              "bayesian",
-              "mcmc"
-            ],
-            [
-              "fair-compatible",
-              "simple"
-            ]
-          ]
-        },
-        "industry": {
-          "type": "array",
-          "description": "Industry sectors this model is designed for or calibrated against. Use 'all' for cross-industry models. Categories aligned with common breach report segmentation (Verizon DBIR, IBM X-Force) for threat data applicability.",
+          "description": "Industries or sectors this model is designed for or calibrated against. Use 'all' for cross-industry models. Categories aligned with common breach report segmentation (Verizon DBIR, IBM X-Force) for threat data applicability.",
           "items": {
             "type": "string",
             "enum": [
@@ -126,35 +108,40 @@
             ]
           ]
         },
-        "region": {
-          "type": "array",
-          "description": "Geographic regions this model is designed for or calibrated against. Use 'world' for globally applicable models.",
-          "items": {
-            "type": "string",
-            "enum": [
-              "world",
-              "north-america",
-              "latin-america",
-              "europe",
-              "middle-east-africa",
-              "asia-pacific",
-              "oceania"
-            ]
+        "locale": {
+          "description": "Geographic locales this model is designed for or calibrated against. Use the object form with 'regions' (required) and optional 'countries' (ISO country codes). Use 'world' in regions for globally applicable models.",
+          "type": "object",
+          "properties": {
+            "regions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "world",
+                  "north-america",
+                  "latin-america",
+                  "europe",
+                  "middle-east-africa",
+                  "asia-pacific",
+                  "oceania"
+                ]
+              }
+            },
+            "countries": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/iso3166_1_alpha2" }
+            }
           },
+          "additionalProperties": false,
           "examples": [
-            [
-              "world"
-            ],
-            [
-              "europe"
-            ],
-            [
-              "north-america",
-              "europe"
-            ]
+            {},
+            { "regions": ["world"] },
+            { "regions": ["europe"] },
+            { "regions": ["north-america", "europe"] },
+            { "regions": ["europe", "north-america"], "countries": ["DE", "US"] }
           ]
         },
-        "company_size": {
+        "company_sizes": {
           "type": "array",
           "description": "Organization sizes this model is appropriate for. Based on employee count and typical IT complexity. Models can be calibrated differently for each size tier.",
           "items": {
@@ -229,6 +216,24 @@
             [
               "pci-dss",
               "gdpr"
+            ]
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "description": "Categorical labels for filtering and organizing models. Common tags include methodology (fair, qber), data sources (pam, dlp), or risk types (ransomware, data-breach).",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            [
+              "qber",
+              "bayesian",
+              "mcmc"
+            ],
+            [
+              "fair-compatible",
+              "simple"
             ]
           ]
         }
@@ -1251,6 +1256,20 @@
         }
       },
       "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "iso3166_1_alpha2": {
+      "type": "string",
+      "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+      "pattern": "^[A-Z]{2}$",
+      "examples": [
+        "US",
+        "DE",
+        "GB",
+        "FR",
+        "JP"
+      ]
     }
   },
   "additionalProperties": true,

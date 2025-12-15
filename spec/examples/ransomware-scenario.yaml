@@ -3,10 +3,18 @@ meta:
   name: "ransomware-scenario"
   version: "1.0"
   description: "Real-world ransomware risk model based on industry statistics"
+  author: CRML Team
   tags:
     - ransomware
     - extortion
+  company_size:
     - enterprise
+    - large-enterprise
+  industries:
+    - all
+  locale:
+    regions: ["world"]
+    countries: ["US"]
 model:
   assets:
     cardinality: 500  # 500 critical systems

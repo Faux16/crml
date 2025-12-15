@@ -44,6 +44,22 @@ export async function POST(request: NextRequest) {
                 name: parsedYaml?.meta?.name,
                 version: parsedYaml?.meta?.version,
                 description: parsedYaml?.meta?.description,
+                author: parsedYaml?.meta?.author,
+                organization: parsedYaml?.meta?.organization,
+                company_sizes: parsedYaml?.meta?.company_sizes || [],
+                industries: parsedYaml?.meta?.industries || [],
+                regulatory_frameworks: parsedYaml?.meta?.regulatory_frameworks || [],
+                tags: parsedYaml?.meta?.tags || [],
+                regions: Array.isArray(parsedYaml?.meta?.locale)
+                    ? parsedYaml?.meta?.locale
+                    : Array.isArray(parsedYaml?.meta?.locale?.regions)
+                        ? parsedYaml?.meta?.locale?.regions
+                        : [],
+                countries: Array.isArray(parsedYaml?.meta?.locale)
+                    ? parsedYaml?.meta?.countries
+                    : Array.isArray(parsedYaml?.meta?.locale?.countries)
+                        ? parsedYaml?.meta?.locale?.countries
+                        : [],
             };
 
             // Run CRML validation

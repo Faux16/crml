@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function runSimulation(yamlContent: string, runs: number, seed?: number, outputCurrency: string = 'USD'): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         // Read YAML from stdin instead of embedding in code
         const pythonCode = `
 import sys
@@ -71,7 +71,34 @@ result = run_simulation(yaml_content, n_runs=${runs}${seed ? `, seed=${seed}` : 
 print(json.dumps(result))
 `;
 
-        const python = spawn('python3', ['-c', pythonCode], {
+
+        // Helper to check if a command exists
+        async function commandExists(cmd: string): Promise<boolean> {
+            return new Promise((resolve) => {
+                const which = process.platform === 'win32' ? 'where' : 'which';
+                const check = spawn(which, [cmd]);
+                check.on('close', (code) => resolve(code === 0));
+                check.on('error', () => resolve(false));
+            });
+        }
+
+        let pythonCmd = 'python3';
+        if (!(await commandExists('python3'))) {
+            if (await commandExists('python')) {
+                pythonCmd = 'python';
+            } else {
+                resolve({
+                    success: false,
+                    errors: ['Neither python3 nor python was found on the server.'],
+                    metrics: {},
+                    distribution: {},
+                    metadata: {}
+                });
+                return;
+            }
+        }
+
+        const python = spawn(pythonCmd, ['-c', pythonCode], {
             stdio: ['pipe', 'pipe', 'pipe']  // Enable stdin pipe
         });
 

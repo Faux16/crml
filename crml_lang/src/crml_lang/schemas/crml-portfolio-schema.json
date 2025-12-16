@@ -1,0 +1,605 @@
+{
+  "$defs": {
+    "Asset": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "cardinality": {
+          "minimum": 1,
+          "title": "Cardinality",
+          "type": "integer"
+        },
+        "criticality_index": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CriticalityIndex"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "name",
+        "cardinality"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "ConditionalRelationship": {
+      "properties": {
+        "type": {
+          "const": "conditional",
+          "title": "Type",
+          "type": "string"
+        },
+        "given": {
+          "title": "Given",
+          "type": "string"
+        },
+        "then": {
+          "title": "Then",
+          "type": "string"
+        },
+        "probability": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability",
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "given",
+        "then",
+        "probability"
+      ],
+      "title": "ConditionalRelationship",
+      "type": "object"
+    },
+    "CorrelationRelationship": {
+      "properties": {
+        "type": {
+          "const": "correlation",
+          "title": "Type",
+          "type": "string"
+        },
+        "between": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "value": {
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "enum": [
+                "gaussian_copula",
+                "rank_correlation"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Method"
+        }
+      },
+      "required": [
+        "type",
+        "between",
+        "value"
+      ],
+      "title": "CorrelationRelationship",
+      "type": "object"
+    },
+    "Coverage": {
+      "description": "Breadth of application of a control across an organization.\n\nSemantics:\n- value=0.0 means \"not deployed/applied anywhere in the stated basis\"\n- value=1.0 means \"fully deployed/applied across the stated basis\"\n\nThe basis defines the denominator for the fraction (e.g. endpoints, employees).",
+      "properties": {
+        "value": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "basis": {
+          "enum": [
+            "endpoints",
+            "employees",
+            "servers",
+            "applications",
+            "business_units",
+            "data_stores",
+            "other"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "CriticalityIndex": {
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        },
+        "inputs": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputs"
+        },
+        "weights": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weights"
+        },
+        "transform": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transform"
+        }
+      },
+      "title": "CriticalityIndex",
+      "type": "object"
+    },
+    "Meta": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Meta",
+      "type": "object"
+    },
+    "Portfolio": {
+      "properties": {
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "title": "Assets",
+          "type": "array"
+        },
+        "controls": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PortfolioControl"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Controls"
+        },
+        "scenarios": {
+          "items": {
+            "$ref": "#/$defs/ScenarioRef"
+          },
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "semantics": {
+          "$ref": "#/$defs/PortfolioSemantics"
+        },
+        "relationships": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CorrelationRelationship"
+                  },
+                  {
+                    "$ref": "#/$defs/ConditionalRelationship"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relationships"
+        },
+        "context": {
+          "additionalProperties": true,
+          "title": "Context",
+          "type": "object"
+        }
+      },
+      "required": [
+        "scenarios",
+        "semantics"
+      ],
+      "title": "Portfolio",
+      "type": "object"
+    },
+    "PortfolioConstraints": {
+      "properties": {
+        "require_paths_exist": {
+          "default": false,
+          "title": "Require Paths Exist",
+          "type": "boolean"
+        },
+        "validate_scenarios": {
+          "default": true,
+          "title": "Validate Scenarios",
+          "type": "boolean"
+        }
+      },
+      "title": "PortfolioConstraints",
+      "type": "object"
+    },
+    "PortfolioControl": {
+      "properties": {
+        "id": {
+          "description": "Canonical unique control id (non-whitespace string). Examples: cis.v8.2.3, iso27001:2022:A.5.1, hipaa.164.308(a)(1)(ii)(A)",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "implementation_effectiveness": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementation Effectiveness"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coverage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "PortfolioControl",
+      "type": "object"
+    },
+    "PortfolioSemantics": {
+      "properties": {
+        "method": {
+          "enum": [
+            "sum",
+            "mixture",
+            "choose_one",
+            "max"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "constraints": {
+          "$ref": "#/$defs/PortfolioConstraints"
+        }
+      },
+      "required": [
+        "method"
+      ],
+      "title": "PortfolioSemantics",
+      "type": "object"
+    },
+    "ScenarioBinding": {
+      "properties": {
+        "applies_to_assets": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Applies To Assets"
+        }
+      },
+      "title": "ScenarioBinding",
+      "type": "object"
+    },
+    "ScenarioRef": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weight"
+        },
+        "binding": {
+          "$ref": "#/$defs/ScenarioBinding"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "id",
+        "path"
+      ],
+      "title": "ScenarioRef",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "crml_portfolio": {
+      "const": "1.0",
+      "title": "Crml Portfolio",
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta"
+    },
+    "portfolio": {
+      "$ref": "#/$defs/Portfolio"
+    }
+  },
+  "required": [
+    "crml_portfolio",
+    "meta",
+    "portfolio"
+  ],
+  "title": "CRPortfolioSchema",
+  "type": "object"
+}

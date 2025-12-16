@@ -176,6 +176,26 @@ ransomware-risk.yaml
 data-breach-risk.yaml
 ```
 
+If you also want to **describe and validate how those scenario files relate to each other** (weights, correlations, conditional dependencies), use a separate **CRML Portfolio** document.
+
+```yaml
+crml_portfolio: "1.0"
+meta: {name: "Cyber risk portfolio"}
+portfolio:
+  semantics: {method: mixture}
+  scenarios:
+    - id: phishing
+      path: phishing-risk.yaml
+      weight: 0.7
+    - id: ransomware
+      path: ransomware-risk.yaml
+      weight: 0.3
+  relationships:
+    - type: correlation
+      between: [phishing, ransomware]
+      value: 0.2
+```
+
 Within a single scenario file, you can still model **multiple assets**. CRML supports per-asset frequency and severity via `model.frequency.models` and `model.severity.models`.
 
 ```yaml

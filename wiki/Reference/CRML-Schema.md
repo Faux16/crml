@@ -13,7 +13,13 @@ At a high level, the schema enforces:
 The canonical schema lives in:
 
 ```text
-crml_lang/src/crml_lang/schema/crml-schema.json
+crml_lang/src/crml_lang/schemas/crml-schema.json
+```
+
+The portfolio schema (for linking multiple scenario files with validated aggregation semantics) lives in:
+
+```text
+crml_lang/src/crml_lang/schemas/crml-portfolio-schema.json
 ```
 
 Example (truncated):

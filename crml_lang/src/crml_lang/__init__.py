@@ -9,21 +9,25 @@ The reference runtime/simulation lives in the separate `crml_engine` package.
 """
 
 from .api import (
-    CRModel,
+    CRScenario,
+    CRPortfolio,
     load_from_yaml,
     load_from_yaml_str,
     dump_to_yaml,
     dump_to_yaml_str,
 )
-from .validator import ValidationMessage, ValidationReport, validate
+from .validator import ValidationMessage, ValidationReport, validate, validate_portfolio, validate_control_assessment
 
 __all__ = [
-    "CRModel",
+    "CRScenario",
+    "CRPortfolio",
     "load_from_yaml",
     "load_from_yaml_str",
     "dump_to_yaml",
     "dump_to_yaml_str",
     "validate",
+    "validate_portfolio",
+    "validate_control_assessment",
     "ValidationMessage",
     "ValidationReport",
 ]

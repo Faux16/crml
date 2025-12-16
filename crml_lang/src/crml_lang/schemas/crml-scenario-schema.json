@@ -1,0 +1,606 @@
+{
+  "$defs": {
+    "Coverage": {
+      "description": "Breadth of application of a control across an organization.\n\nSemantics:\n- value=0.0 means \"not deployed/applied anywhere in the stated basis\"\n- value=1.0 means \"fully deployed/applied across the stated basis\"\n\nThe basis defines the denominator for the fraction (e.g. endpoints, employees).",
+      "properties": {
+        "value": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "basis": {
+          "enum": [
+            "endpoints",
+            "employees",
+            "servers",
+            "applications",
+            "business_units",
+            "data_stores",
+            "other"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "Data": {
+      "properties": {
+        "sources": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/DataSource"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sources"
+        },
+        "feature_mapping": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature Mapping"
+        }
+      },
+      "title": "Data",
+      "type": "object"
+    },
+    "DataSource": {
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "data_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Schema"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "DataSource",
+      "type": "object"
+    },
+    "Frequency": {
+      "properties": {
+        "basis": {
+          "default": "per_organization_per_year",
+          "enum": [
+            "per_organization_per_year",
+            "per_asset_unit_per_year"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/FrequencyParameters"
+        }
+      },
+      "required": [
+        "model",
+        "parameters"
+      ],
+      "title": "Frequency",
+      "type": "object"
+    },
+    "FrequencyParameters": {
+      "properties": {
+        "lambda": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lambda"
+        },
+        "alpha_base": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alpha Base"
+        },
+        "beta_base": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Beta Base"
+        },
+        "r": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "R"
+        },
+        "p": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P"
+        }
+      },
+      "title": "FrequencyParameters",
+      "type": "object"
+    },
+    "Meta": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Meta",
+      "type": "object"
+    },
+    "Scenario": {
+      "properties": {
+        "frequency": {
+          "$ref": "#/$defs/Frequency"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "controls": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "description": "Canonical unique control id (non-whitespace string). Examples: cis.v8.2.3, iso27001:2022:A.5.1, hipaa.164.308(a)(1)(ii)(A)",
+                    "maxLength": 256,
+                    "minLength": 1,
+                    "pattern": "^\\S+$",
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/ScenarioControl"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Controls"
+        }
+      },
+      "required": [
+        "frequency",
+        "severity"
+      ],
+      "title": "Scenario",
+      "type": "object"
+    },
+    "ScenarioControl": {
+      "description": "Scenario-specific control reference.\n\nThis allows a scenario to specify scenario-scoped assumptions for a control\n(e.g. partial applicability) without requiring portfolio-wide changes.",
+      "properties": {
+        "id": {
+          "description": "Canonical unique control id (non-whitespace string). Examples: cis.v8.2.3, iso27001:2022:A.5.1, hipaa.164.308(a)(1)(ii)(A)",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "implementation_effectiveness": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementation Effectiveness"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coverage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ScenarioControl",
+      "type": "object"
+    },
+    "Severity": {
+      "properties": {
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/SeverityParameters"
+        },
+        "components": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Components"
+        }
+      },
+      "required": [
+        "model",
+        "parameters"
+      ],
+      "title": "Severity",
+      "type": "object"
+    },
+    "SeverityParameters": {
+      "properties": {
+        "median": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Median"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Currency"
+        },
+        "mu": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mu"
+        },
+        "sigma": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sigma"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shape"
+        },
+        "scale": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scale"
+        },
+        "alpha": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alpha"
+        },
+        "x_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "X Min"
+        },
+        "single_losses": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Single Losses"
+        }
+      },
+      "title": "SeverityParameters",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "crml_scenario": {
+      "const": "1.2",
+      "title": "Crml Scenario",
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta"
+    },
+    "data": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Data"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "scenario": {
+      "$ref": "#/$defs/Scenario"
+    }
+  },
+  "required": [
+    "crml_scenario",
+    "meta",
+    "scenario"
+  ],
+  "title": "CRScenarioSchema",
+  "type": "object"
+}

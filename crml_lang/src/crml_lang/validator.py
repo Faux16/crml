@@ -56,7 +56,9 @@ from typing import Any, Literal, Optional
 from jsonschema import Draft202012Validator
 
 
-SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema", "crml-schema.json")
+CRML_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schemas", "crml-scenario-schema.json")
+PORTFOLIO_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schemas", "crml-portfolio-schema.json")
+CONTROL_ASSESSMENT_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schemas", "crml-control-assessment-schema.json")
 
 
 @dataclass(frozen=True)
@@ -80,7 +82,7 @@ class ValidationReport:
             `ok`.
         errors:
             List of schema/model/IO errors.
-        warnings:
+                                message=f"Scenario references control id '{cid}' but it is not present in portfolio.controls. Add it (e.g. implementation_effectiveness: 0.0) to make the mapping explicit.",
             List of semantic warnings.
     """
 
@@ -108,9 +110,21 @@ class ValidationReport:
         return "\n".join(lines)
 
 
-def _load_schema() -> dict[str, Any]:
-    with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
+def _load_schema(path: str) -> dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def _load_crml_schema() -> dict[str, Any]:
+    return _load_schema(CRML_SCHEMA_PATH)
+
+
+def _load_portfolio_schema() -> dict[str, Any]:
+    return _load_schema(PORTFOLIO_SCHEMA_PATH)
+
+
+def _load_control_assessment_schema() -> dict[str, Any]:
+    return _load_schema(CONTROL_ASSESSMENT_SCHEMA_PATH)
 
 
 def _looks_like_yaml_text(s: str) -> bool:
@@ -206,17 +220,46 @@ def _format_jsonschema_error(error) -> str:
     return error.message
 
 
+def _control_ids_from_controls(value: Any) -> list[str]:
+    """Normalize control references to a list of control ids.
+
+    Supports:
+    - strings ("iso27001:2022:A.5.1")
+    - dicts ({id: "...", ...})
+    - Pydantic models with an `id` attribute
+    """
+
+    if not isinstance(value, list):
+        return []
+
+    ids: list[str] = []
+    for item in value:
+        if isinstance(item, str):
+            ids.append(item)
+            continue
+
+        if isinstance(item, dict) and isinstance(item.get("id"), str):
+            ids.append(item["id"])
+            continue
+
+        cid = getattr(item, "id", None)
+        if isinstance(cid, str):
+            ids.append(cid)
+
+    return ids
+
+
 def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
     warnings: list[ValidationMessage] = []
 
     # Warn if using old CRML version
-    if data.get("crml") != "1.1":
+    if data.get("crml_scenario") != "1.2":
         warnings.append(
             ValidationMessage(
                 level="warning",
                 source="semantic",
-                path="crml",
-                message=f"CRML version '{data.get('crml')}' is not current. Consider upgrading to '1.1'.",
+                path="crml_scenario",
+                message=f"CRML scenario version '{data.get('crml_scenario')}' is not current. Consider upgrading to '1.2'.",
             )
         )
 
@@ -245,8 +288,8 @@ def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
         )
 
     # Warn if mixture weights don't sum to 1
-    model = data.get("model", {}) if isinstance(data.get("model"), dict) else {}
-    severity = model.get("severity", {}) if isinstance(model.get("severity"), dict) else {}
+    scenario = data.get("scenario", {}) if isinstance(data.get("scenario"), dict) else {}
+    severity = scenario.get("severity", {}) if isinstance(scenario.get("severity"), dict) else {}
     if severity.get("model") == "mixture" and isinstance(severity.get("components"), list):
         total_weight = 0.0
         for comp in severity.get("components", []):
@@ -260,7 +303,7 @@ def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
                 ValidationMessage(
                     level="warning",
                     source="semantic",
-                    path="model -> severity -> components",
+                    path="scenario -> severity -> components",
                     message=f"Mixture weights sum to {total_weight:.3f}, should sum to 1.0",
                 )
             )
@@ -272,20 +315,21 @@ def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
             ValidationMessage(
                 level="warning",
                 source="semantic",
-                path="model -> severity -> parameters",
+                path="scenario -> severity -> parameters",
                 message="Severity node has monetary values but no 'currency' property. Specify the currency to avoid implicit assumptions.",
             )
         )
 
-    # Warn if no output metrics specified
-    output = data.get("output", {}) if isinstance(data.get("output"), dict) else {}
-    if not output.get("metrics"):
+    # Warn if scenario control ids contain duplicates
+    scenario_controls = scenario.get("controls") if isinstance(scenario, dict) else None
+    ids = _control_ids_from_controls(scenario_controls)
+    if ids and len(ids) != len(set(ids)):
         warnings.append(
             ValidationMessage(
                 level="warning",
                 source="semantic",
-                path="output -> metrics",
-                message="No output metrics specified. Consider adding 'EAL', 'VaR_95', etc.",
+                path="scenario -> controls",
+                message="Scenario 'controls' contains duplicate control ids.",
             )
         )
 
@@ -339,11 +383,11 @@ def validate(
     assert data is not None
 
     try:
-        schema = _load_schema()
+        schema = _load_crml_schema()
     except FileNotFoundError:
         return ValidationReport(
             ok=False,
-            errors=[ValidationMessage(level="error", source="io", path="(root)", message=f"Schema file not found at {SCHEMA_PATH}")],
+            errors=[ValidationMessage(level="error", source="io", path="(root)", message=f"Schema file not found at {CRML_SCHEMA_PATH}")],
             warnings=[],
         )
 
@@ -364,9 +408,9 @@ def validate(
 
     if strict_model and not errors:
         try:
-            from .models.crml_model import CRMLSchema
+            from .models.crml_model import CRScenarioSchema
 
-            CRMLSchema.model_validate(data)
+            CRScenarioSchema.model_validate(data)
         except Exception as e:
             # Prefer detailed Pydantic errors if available.
             try:
@@ -397,5 +441,402 @@ def validate(
                         validator="pydantic",
                     )
                 )
+
+    return ValidationReport(ok=(len(errors) == 0), errors=errors, warnings=warnings)
+
+
+def validate_control_assessment(
+    source: str | dict[str, Any],
+    *,
+    source_kind: Literal["path", "yaml", "data"] | None = None,
+    strict_model: bool = False,
+) -> ValidationReport:
+    """Validate a CRML Control Assessment Pack document."""
+
+    data, io_errors = _load_input(source, source_kind=source_kind)
+    if io_errors:
+        return ValidationReport(ok=False, errors=io_errors, warnings=[])
+    assert data is not None
+
+    try:
+        schema = _load_control_assessment_schema()
+    except FileNotFoundError:
+        return ValidationReport(
+            ok=False,
+            errors=[
+                ValidationMessage(
+                    level="error",
+                    source="io",
+                    path="(root)",
+                    message=f"Schema file not found at {CONTROL_ASSESSMENT_SCHEMA_PATH}",
+                )
+            ],
+            warnings=[],
+        )
+
+    validator = Draft202012Validator(schema)
+    errors: list[ValidationMessage] = []
+    for err in validator.iter_errors(data):
+        errors.append(
+            ValidationMessage(
+                level="error",
+                source="schema",
+                path=_jsonschema_path(err),
+                message=_format_jsonschema_error(err),
+                validator=getattr(err, "validator", None),
+            )
+        )
+
+    if strict_model and not errors:
+        try:
+            from .models.control_assessment_model import CRControlAssessmentSchema
+
+            CRControlAssessmentSchema.model_validate(data)
+        except Exception as e:
+            errors.append(
+                ValidationMessage(
+                    level="error",
+                    source="pydantic",
+                    path="(root)",
+                    message=f"Pydantic validation failed: {e}",
+                    validator="pydantic",
+                )
+            )
+
+    return ValidationReport(ok=(len(errors) == 0), errors=errors, warnings=[])
+
+
+def _portfolio_semantic_checks(data: dict[str, Any], *, base_dir: str | None = None) -> list[ValidationMessage]:
+    messages: list[ValidationMessage] = []
+
+    portfolio = data.get("portfolio")
+    if not isinstance(portfolio, dict):
+        return messages
+
+    scenarios = portfolio.get("scenarios")
+    if not isinstance(scenarios, list):
+        return messages
+
+    # Controls uniqueness (by canonical id)
+    controls = portfolio.get("controls")
+    if isinstance(controls, list):
+        ids: list[str] = []
+        for idx, c in enumerate(controls):
+            if not isinstance(c, dict):
+                continue
+            cid = c.get("id")
+            if isinstance(cid, str):
+                ids.append(cid)
+            else:
+                messages.append(
+                    ValidationMessage(
+                        level="error",
+                        source="semantic",
+                        path=f"portfolio -> controls -> {idx} -> id",
+                        message="Control id must be a string.",
+                    )
+                )
+
+        if len(ids) != len(set(ids)):
+            messages.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path="portfolio -> controls -> id",
+                    message="Control ids must be unique within a portfolio.",
+                )
+            )
+
+    semantics = portfolio.get("semantics")
+    if not isinstance(semantics, dict):
+        return messages
+
+    method = semantics.get("method")
+    constraints = semantics.get("constraints") if isinstance(semantics.get("constraints"), dict) else {}
+
+    validate_scenarios = isinstance(constraints, dict) and constraints.get("validate_scenarios") is True
+    require_paths_exist = isinstance(constraints, dict) and constraints.get("require_paths_exist") is True
+
+    # Collect IDs / paths
+    scenario_ids: list[str] = []
+    scenario_paths: list[str] = []
+    weights: list[float] = []
+
+    for idx, sc in enumerate(scenarios):
+        if not isinstance(sc, dict):
+            continue
+
+        sid = sc.get("id")
+        if isinstance(sid, str):
+            scenario_ids.append(sid)
+
+        spath = sc.get("path")
+        if isinstance(spath, str):
+            scenario_paths.append(spath)
+
+        w = sc.get("weight")
+        if w is None:
+            continue
+        try:
+            weights.append(float(w))
+        except Exception:
+            messages.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"portfolio -> scenarios -> {idx} -> weight",
+                    message="Scenario weight must be a number.",
+                )
+            )
+
+    # Uniqueness checks (JSON Schema cannot enforce unique-by-property)
+    if len(set(scenario_ids)) != len(scenario_ids):
+        messages.append(
+            ValidationMessage(
+                level="error",
+                source="semantic",
+                path="portfolio -> scenarios -> id",
+                message="Scenario ids must be unique within a portfolio.",
+            )
+        )
+
+    if len(set(scenario_paths)) != len(scenario_paths):
+        messages.append(
+            ValidationMessage(
+                level="error",
+                source="semantic",
+                path="portfolio -> scenarios -> path",
+                message="Scenario paths must be unique within a portfolio.",
+            )
+        )
+
+    # Optional on-disk existence check for local paths (opt-in)
+    if require_paths_exist:
+        for idx, sc in enumerate(scenarios):
+            if not isinstance(sc, dict):
+                continue
+            spath = sc.get("path")
+            if not isinstance(spath, str):
+                continue
+
+            resolved_path = spath
+            if base_dir and not os.path.isabs(resolved_path):
+                resolved_path = os.path.join(base_dir, resolved_path)
+
+            if not os.path.exists(resolved_path):
+                messages.append(
+                    ValidationMessage(
+                        level="error",
+                        source="semantic",
+                        path=f"portfolio -> scenarios -> {idx} -> path",
+                        message=f"Scenario file not found at path: {resolved_path}",
+                    )
+                )
+
+    # Cross-document check: controls referenced by scenarios must be present in portfolio.controls.
+    # This supports CRML Studio by producing a deterministic "controls to map" list.
+    if validate_scenarios:
+        portfolio_controls = portfolio.get("controls")
+        portfolio_control_ids: set[str] = set()
+        if isinstance(portfolio_controls, list):
+            for c in portfolio_controls:
+                if isinstance(c, dict) and isinstance(c.get("id"), str):
+                    portfolio_control_ids.add(c["id"])
+
+        for idx, sc in enumerate(scenarios):
+            if not isinstance(sc, dict):
+                continue
+
+            spath = sc.get("path")
+            if not isinstance(spath, str) or not spath:
+                continue
+
+            resolved_path = spath
+            if base_dir and not os.path.isabs(resolved_path):
+                resolved_path = os.path.join(base_dir, resolved_path)
+
+            if not os.path.exists(resolved_path):
+                # If required, missing files are already errors above; otherwise warn.
+                if not require_paths_exist:
+                    messages.append(
+                        ValidationMessage(
+                            level="warning",
+                            source="semantic",
+                            path=f"portfolio -> scenarios -> {idx} -> path",
+                            message=f"Cannot verify scenario control mappings because scenario file was not found at path: {resolved_path}",
+                        )
+                    )
+                continue
+
+            try:
+                import yaml
+
+                with open(resolved_path, "r", encoding="utf-8") as f:
+                    scenario_data = yaml.safe_load(f)
+
+                from .models.crml_model import CRScenarioSchema
+
+                scenario_doc = CRScenarioSchema.model_validate(scenario_data)
+            except Exception as e:
+                messages.append(
+                    ValidationMessage(
+                        level="error",
+                        source="semantic",
+                        path=f"portfolio -> scenarios -> {idx} -> path",
+                        message=f"Failed to load/validate scenario for control mapping: {e}",
+                    )
+                )
+                continue
+
+            scenario_controls_any = scenario_doc.scenario.controls or []
+            scenario_controls = _control_ids_from_controls(scenario_controls_any)
+            if scenario_controls and not portfolio_control_ids:
+                messages.append(
+                    ValidationMessage(
+                        level="error",
+                        source="semantic",
+                        path="portfolio -> controls",
+                        message="Scenario(s) reference controls but portfolio.controls is missing or empty. Import your control assessment output into the portfolio.",
+                    )
+                )
+                break
+
+            for cid in scenario_controls:
+                if cid not in portfolio_control_ids:
+                    messages.append(
+                        ValidationMessage(
+                            level="error",
+                            source="semantic",
+                            path=f"portfolio -> scenarios -> {idx} -> path",
+                            message=f"Scenario references control id '{cid}' but it is not present in portfolio.controls. Add it (e.g. implementation_effectiveness: 0.0) to make the mapping explicit.",
+                        )
+                    )
+
+    # Weight semantics
+    if method in ("mixture", "choose_one"):
+        missing_weight_idx: list[int] = []
+        for idx, sc in enumerate(scenarios):
+            if not isinstance(sc, dict):
+                continue
+            if sc.get("weight") is None:
+                missing_weight_idx.append(idx)
+        if missing_weight_idx:
+            messages.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path="portfolio -> scenarios",
+                    message=f"All scenarios must define 'weight' when portfolio.semantics.method is '{method}'. Missing at indices: {missing_weight_idx}",
+                )
+            )
+
+        # Sum-to-1 check
+        try:
+            weight_sum = 0.0
+            for sc in scenarios:
+                if isinstance(sc, dict) and sc.get("weight") is not None:
+                    weight_sum += float(sc["weight"])
+
+            if abs(weight_sum - 1.0) > 1e-9:
+                messages.append(
+                    ValidationMessage(
+                        level="error",
+                        source="semantic",
+                        path="portfolio -> scenarios -> weight",
+                        message=f"Scenario weights must sum to 1.0 for method '{method}' (got {weight_sum}).",
+                    )
+                )
+        except Exception:
+            # Numeric conversion errors are handled above per-scenario.
+            pass
+
+    # Relationship references must point to defined scenario ids
+    relationships = portfolio.get("relationships")
+    if isinstance(relationships, list) and scenario_ids:
+        scenario_id_set = set(scenario_ids)
+        for idx, rel in enumerate(relationships):
+            if not isinstance(rel, dict):
+                continue
+            rel_type = rel.get("type")
+            if rel_type == "correlation":
+                between = rel.get("between")
+                if isinstance(between, list):
+                    for j, sid in enumerate(between):
+                        if isinstance(sid, str) and sid not in scenario_id_set:
+                            messages.append(
+                                ValidationMessage(
+                                    level="error",
+                                    source="semantic",
+                                    path=f"portfolio -> relationships -> {idx} -> between -> {j}",
+                                    message=f"Unknown scenario id referenced in relationship: {sid}",
+                                )
+                            )
+
+            if rel_type == "conditional":
+                for key in ("given", "then"):
+                    sid = rel.get(key)
+                    if isinstance(sid, str) and sid not in scenario_id_set:
+                        messages.append(
+                            ValidationMessage(
+                                level="error",
+                                source="semantic",
+                                path=f"portfolio -> relationships -> {idx} -> {key}",
+                                message=f"Unknown scenario id referenced in relationship: {sid}",
+                            )
+                        )
+
+    return messages
+
+
+def validate_portfolio(
+    source: str | dict[str, Any],
+    *,
+    source_kind: Literal["path", "yaml", "data"] | None = None,
+) -> ValidationReport:
+    """Validate a CRML portfolio document.
+
+    A portfolio document links multiple single-scenario CRML files and defines
+    machine-enforced aggregation semantics (e.g., mixture/choose_one weights).
+    """
+
+    data, io_errors = _load_input(source, source_kind=source_kind)
+    if io_errors:
+        return ValidationReport(ok=False, errors=io_errors, warnings=[])
+    assert data is not None
+
+    try:
+        schema = _load_portfolio_schema()
+    except FileNotFoundError:
+        return ValidationReport(
+            ok=False,
+            errors=[ValidationMessage(level="error", source="io", path="(root)", message=f"Schema file not found at {PORTFOLIO_SCHEMA_PATH}")],
+            warnings=[],
+        )
+
+    validator = Draft202012Validator(schema)
+    errors: list[ValidationMessage] = []
+    warnings: list[ValidationMessage] = []
+    for err in validator.iter_errors(data):
+        errors.append(
+            ValidationMessage(
+                level="error",
+                source="schema",
+                path=_jsonschema_path(err),
+                message=_format_jsonschema_error(err),
+                validator=getattr(err, "validator", None),
+            )
+        )
+
+    # Portfolio semantic checks are machine-enforced semantics, but may also produce warnings.
+    if not errors:
+        base_dir = None
+        if isinstance(source, str) and source_kind == "path":
+            base_dir = os.path.dirname(os.path.abspath(source))
+
+        for msg in _portfolio_semantic_checks(data, base_dir=base_dir):
+            if msg.level == "warning":
+                warnings.append(msg)
+            else:
+                errors.append(msg)
 
     return ValidationReport(ok=(len(errors) == 0), errors=errors, warnings=warnings)

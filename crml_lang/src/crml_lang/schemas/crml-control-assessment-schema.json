@@ -1,0 +1,333 @@
+{
+  "$defs": {
+    "ControlAssessment": {
+      "properties": {
+        "id": {
+          "description": "Canonical unique control id (non-whitespace string). Examples: cis.v8.2.3, iso27001:2022:A.5.1, hipaa.164.308(a)(1)(ii)(A)",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlStructuredRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "implementation_effectiveness": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementation Effectiveness"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coverage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ControlAssessment",
+      "type": "object"
+    },
+    "ControlAssessmentPack": {
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "framework": {
+          "title": "Framework",
+          "type": "string"
+        },
+        "assessments": {
+          "items": {
+            "$ref": "#/$defs/ControlAssessment"
+          },
+          "title": "Assessments",
+          "type": "array"
+        }
+      },
+      "required": [
+        "framework",
+        "assessments"
+      ],
+      "title": "ControlAssessmentPack",
+      "type": "object"
+    },
+    "ControlStructuredRef": {
+      "description": "Standard-independent structured control locator.\n\nThis is optional metadata that can be used by tools/UI to help users map\ncontrols, but *referencing* in scenarios/portfolios should be done via\n`ControlId`.\n\nExample:\n    {standard: \"CIS\", version: \"v8\", control: \"2\", safeguard: \"3\"}",
+      "properties": {
+        "standard": {
+          "title": "Standard",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "control": {
+          "title": "Control",
+          "type": "string"
+        },
+        "safeguard": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Safeguard"
+        }
+      },
+      "required": [
+        "standard",
+        "control"
+      ],
+      "title": "ControlStructuredRef",
+      "type": "object"
+    },
+    "Coverage": {
+      "description": "Breadth of application of a control across an organization.\n\nSemantics:\n- value=0.0 means \"not deployed/applied anywhere in the stated basis\"\n- value=1.0 means \"fully deployed/applied across the stated basis\"\n\nThe basis defines the denominator for the fraction (e.g. endpoints, employees).",
+      "properties": {
+        "value": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "basis": {
+          "enum": [
+            "endpoints",
+            "employees",
+            "servers",
+            "applications",
+            "business_units",
+            "data_stores",
+            "other"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "Meta": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Meta",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "crml_control_assessment": {
+      "const": "1.0",
+      "title": "Crml Control Assessment",
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta"
+    },
+    "assessment": {
+      "$ref": "#/$defs/ControlAssessmentPack"
+    }
+  },
+  "required": [
+    "crml_control_assessment",
+    "meta",
+    "assessment"
+  ],
+  "title": "CRControlAssessmentSchema",
+  "type": "object"
+}

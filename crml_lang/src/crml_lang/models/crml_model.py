@@ -1,38 +1,25 @@
+"""crml_model.py
+
+Scenario-first CRML language models.
+
+This module defines the CRML *Scenario* document.
+
+Key design rule:
+- A scenario is validated and exchanged on its own, but it is only *executable*
+    within a CRML Portfolio (which provides assets/exposure and scenario relations).
+
+Consequences:
+- Assets (inventory/exposure) are NOT part of the scenario document.
+- Portfolio-level concerns (aggregation, correlations across scenarios, etc.) are
+    defined in a separate portfolio schema/model.
 """
-crmlModel.py
-============
 
-This module defines the core data models for CRML (Cyber Risk Modeling Language) using Pydantic for type safety and validation.
-
-Purpose:
---------
-- Provide structured, validated representations of CRML concepts such as assets, frequency, severity, metadata, and data sources.
-- Enable attribute-style access and type checking for all model elements used in simulation, validation, and runtime analysis.
-- Serve as the schema backbone for parsing, validating, and manipulating CRML YAML/JSON documents in Python code.
-
-Key Model Groups:
------------------
-- Meta: Describes metadata about the model (name, version, author, etc.).
-- Data: Describes data sources and feature mappings.
-- Asset: Represents assets with cardinality and criticality.
-- Frequency/Severity: Parameterize risk event frequency and loss severity, supporting multiple statistical models.
-- (Other models may be defined for controls, scenarios, etc.)
-
-Validation:
------------
-- Uses Pydantic validators to parse and normalize numeric/string fields (e.g., cardinality, lambda, percentages).
-- Ensures type safety and consistency for downstream simulation and reporting.
-
-Usage:
-------
-- Import these models in runtime, validator, and CLI modules to load, validate, and process CRML documents.
-- Extend or compose these models to support new CRML features or custom fields.
-
-"""
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-from .numberish import parse_floatish, parse_float_list, parse_intish
+from .numberish import parse_floatish, parse_float_list
+from .control_ref import ControlId
+from .coverage_model import Coverage
 
 
 # --- $defs ---
@@ -61,24 +48,9 @@ class Data(BaseModel):
     sources: Optional[Dict[str, DataSource]] = None
     feature_mapping: Optional[Dict[str, str]] = None
 
-# --- Model: Assets ---
-class CriticalityIndex(BaseModel):
-    type: Optional[str] = None
-    inputs: Optional[Dict[str, str]] = None
-    weights: Optional[Dict[str, float]] = None
-    transform: Optional[str] = None
-
-class Asset(BaseModel):
-    name: str
-    cardinality: int = Field(..., ge=1)
-    criticality_index: Optional[CriticalityIndex] = None
-
-    @field_validator('cardinality', mode='before')
-    @classmethod
-    def _parse_cardinality(cls, v):
-        return parse_intish(v)
-
 # --- Model: Frequency ---
+FrequencyBasis = Literal["per_organization_per_year", "per_asset_unit_per_year"]
+
 class FrequencyParameters(BaseModel):
     lambda_: Optional[float] = Field(None, alias="lambda")
     alpha_base: Optional[float] = None
@@ -100,16 +72,10 @@ class FrequencyParameters(BaseModel):
             return None
         return parse_floatish(v, allow_percent=True)
 
-class FrequencyModel(BaseModel):
-    asset: str
+class Frequency(BaseModel):
+    basis: FrequencyBasis = "per_organization_per_year"
     model: str
     parameters: FrequencyParameters
-
-class Frequency(BaseModel):
-    scope: Optional[str] = "portfolio"
-    model: Optional[str] = None
-    parameters: Optional[FrequencyParameters] = None
-    models: Optional[List[FrequencyModel]] = None
 
 # --- Model: Severity ---
 class SeverityParameters(BaseModel):
@@ -137,109 +103,48 @@ class SeverityParameters(BaseModel):
             return parse_float_list(v, allow_percent=False)
         return v
 
-class SeverityModel(BaseModel):
-    asset: str
+class Severity(BaseModel):
     model: str
     parameters: SeverityParameters
-
-class Severity(BaseModel):
-    model: Optional[str] = None
-    parameters: Optional[SeverityParameters] = None
     components: Optional[List[Dict[str, Any]]] = None
-    models: Optional[List[SeverityModel]] = None
 
 
-# --- Model: Dependency ---
-class Dependency(BaseModel):
-    name: str
-    depends_on: Optional[List[str]] = None
-    type: Optional[str] = None
-    parameters: Optional[Dict[str, Any]] = None
+class ScenarioControl(BaseModel):
+    """Scenario-specific control reference.
 
-# --- Model: Controls ---
-class Control(BaseModel):
-    name: str
-    description: Optional[str] = None
-    effectiveness: Optional[float] = None
-    cost: Optional[float] = None
-    parameters: Optional[Dict[str, Any]] = None
+    This allows a scenario to specify scenario-scoped assumptions for a control
+    (e.g. partial applicability) without requiring portfolio-wide changes.
+    """
 
-    @field_validator('effectiveness', mode='before')
-    @classmethod
-    def _parse_effectiveness(cls, v):
-        if v is None:
-            return None
-        return parse_floatish(v, allow_percent=True)
-
-    @field_validator('cost', mode='before')
-    @classmethod
-    def _parse_cost(cls, v):
-        if v is None:
-            return None
-        return parse_floatish(v, allow_percent=False)
-
-class Controls(BaseModel):
-    controls: Optional[List[Control]] = None
-    layers: Optional[List[Dict[str, Any]]] = None
-
-# --- Model: Temporal ---
-class Temporal(BaseModel):
-    time_horizon: Optional[float] = None
-    granularity: Optional[str] = None
-    parameters: Optional[Dict[str, Any]] = None
-
-    @field_validator('time_horizon', mode='before')
-    @classmethod
-    def _parse_time_horizon(cls, v):
-        if v is None:
-            return None
-        return parse_floatish(v, allow_percent=False)
-
-# --- Model: Pipeline ---
-class Pipeline(BaseModel):
-    steps: Optional[List[Dict[str, Any]]] = None
-    parameters: Optional[Dict[str, Any]] = None
-
-# --- Model: Output ---
-class Output(BaseModel):
-    format: Optional[str] = None
-    destination: Optional[str] = None
-    parameters: Optional[Dict[str, Any]] = None
+    id: ControlId
+    implementation_effectiveness: Optional[float] = Field(None, ge=0.0, le=1.0)
+    coverage: Optional[Coverage] = None
+    notes: Optional[str] = None
 
 
-# --- Model: Correlation ---
-class Correlation(BaseModel):
-    assets: List[str]
-    value: float
+class Scenario(BaseModel):
+    frequency: Frequency
+    severity: Severity
+    # Threat-centric declaration of relevant controls.
+    # Semantics: "This threat can be mitigated by these controls (if present in the portfolio)".
+    controls: Optional[List[Union[ControlId, ScenarioControl]]] = None
 
-class Model(BaseModel):
-    assets: List[Asset] = Field(default_factory=list)
-    correlations: Optional[List[Correlation]] = None
-    frequency: Optional[Frequency] = None
-    severity: Optional[Severity] = None
-    dependency: Optional[List[Dependency]] = None
-    controls: Optional[Controls] = None
-    temporal: Optional[Temporal] = None
-    pipeline: Optional[Pipeline] = None
-    output: Optional[Output] = None
 
-# --- Root CRML Schema ---
-class CRMLSchema(BaseModel):
-    crml: str
+# --- Root CRML Scenario Schema ---
+class CRScenarioSchema(BaseModel):
+    crml_scenario: Literal["1.2"]
     meta: Meta
     data: Optional[Data] = None
-    model: Model
-    pipeline: Optional[Dict[str, Any]] = None
-    output: Optional[Dict[str, Any]] = None
+    scenario: Scenario
 
     # Pydantic v2 config
     model_config: ConfigDict = ConfigDict(populate_by_name=True)
 
-# Usage: CRMLSchema.parse_obj(your_json_dict)
+# Usage: CRScenarioSchema.model_validate(your_json_dict)
 
 
-def load_crml_from_yaml(path: str) -> CRMLSchema:
-    """Load a CRML YAML file from `path` and validate it against the Pydantic model.
+def load_crml_from_yaml(path: str) -> CRScenarioSchema:
+    """Load a CRML Scenario YAML file from `path` and validate it.
 
     Requires PyYAML (`pip install pyyaml`).
     """
@@ -251,15 +156,15 @@ def load_crml_from_yaml(path: str) -> CRMLSchema:
     with open(path, 'r', encoding='utf-8') as f:
         data = yaml.safe_load(f)
 
-    return CRMLSchema.model_validate(data)
+    return CRScenarioSchema.model_validate(data)
 
 
-def load_crml_from_yaml_str(yaml_text: str) -> CRMLSchema:
-    """Load CRML document from a YAML string and validate."""
+def load_crml_from_yaml_str(yaml_text: str) -> CRScenarioSchema:
+    """Load a CRML Scenario document from a YAML string and validate."""
     try:
         import yaml
     except Exception as e:
         raise ImportError('PyYAML is required to load YAML files: pip install pyyaml') from e
 
     data = yaml.safe_load(yaml_text)
-    return CRMLSchema.model_validate(data)
+    return CRScenarioSchema.model_validate(data)

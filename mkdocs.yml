@@ -1,0 +1,91 @@
+site_name: "CRML Documentation"
+site_url: "https://Faux16.github.io/crml/"
+docs_dir: wiki
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: Home.md
+
+  - Getting Started:
+    - Installation: Installation.md
+    - Quickstart: Quickstart.md
+    - Getting Started: Getting-Started.md
+
+  - Guides:
+    - Writing CRML Models: Guides/Writing-CRML.md
+    - Understanding Parameters: Guides/Understanding-Parameters.md
+    - Control Effectiveness: Control-Effectiveness.md
+    - Executive Reporting: Guides/Executive-Reporting.md
+    - Tool Integration: Guides/Tool-Integration.md
+    - Calibrate from Data: Guides/Calibrate-from-Data.md
+    - Add New Distribution: Guides/Add-New-Distribution.md
+    - Multi-Currency Support: Multi-Currency-Support.md
+    - Auto-Calibration: Auto-Calibration.md
+
+  - Examples:
+    - Overview: Examples.md
+    - By Industry: Examples/By-Industry.md
+    - Full Examples: Examples/Full-Examples.md
+    - FAIR Baseline Model: Examples/FAIR-Baseline-Model.md
+    - QBER Enterprise Model: Examples/QBER-Enterprise-Model.md
+    - Best Practices: Examples/Best-Practices.md
+    - Specification Examples: Examples/Spec-Examples.md
+
+  - Concepts:
+    - Architecture: Concepts/Architecture.md
+    - FAIR vs QBER: Concepts/FAIR-vs-QBER.md
+    - Attack Graphs: Concepts/Attack-Graphs.md
+    - Runtime (Frequency): Concepts/Runtime-Frequency.md
+    - Runtime (Severity): Concepts/Runtime-Severity.md
+    - Runtime (Entropy): Concepts/Runtime-Entropy.md
+    - Runtime (Copula): Concepts/Runtime-Copula.md
+    - Runtime (MCMC): Concepts/Runtime-MCMC.md
+    - Deep Mathematics: Concepts/Deep-Math.md
+    - Diagrams (Mermaid): Concepts/Mermaid-Diagrams.md
+
+  - Reference:
+    - CRML Specification (Overview): Reference/CRML-Specification.md
+    - CRML 1.1 Specification: Reference/CRML-1.1.md
+    - CRML Schema: Reference/CRML-Schema.md
+    - CLI Commands: Reference/CLI-Commands.md
+    - Python API: Python-API.md
+    - FAQ: Reference/FAQ.md
+    - Troubleshooting: Reference/Troubleshooting.md
+    - Glossary: Reference/Glossary.md
+
+  - Project:
+    - Roadmap: Roadmap.md
+    - Contributing: Contributing.md
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - attr_list
+  - def_list
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.arithmatex
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Faux16/crml
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/crml-lang/
+    - icon: fontawesome/solid/envelope
+      link: mailto:research@zeron.one
+    - icon: fontawesome/solid/globe
+      link: https://zeron.one
+
+copyright: |
+  &copy; 2024 Zeron Research Labs. Licensed under <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.<br>
+  CRML is an open-source project. <a href="https://github.com/Faux16/crml/blob/main/CONTRIBUTING.md" target="_blank">Contributions welcome</a>!

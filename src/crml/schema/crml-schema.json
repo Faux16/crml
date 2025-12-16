@@ -9,13 +9,12 @@
         "cardinality": {
           "anyOf": [
             {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1
             },
             {
-              "type": "number"
-            },
-            {
-              "type": "string"
+              "type": "string",
+              "pattern": "^\\+?[1-9][0-9 ,_\u202f]*$"
             }
           ],
           "title": "Cardinality"
@@ -66,7 +65,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?%?$"
             },
             {
               "type": "null"
@@ -84,7 +84,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -416,7 +417,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -434,7 +436,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -452,7 +455,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -470,7 +474,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -488,7 +493,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?%?$"
             },
             {
               "type": "null"
@@ -892,7 +898,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -934,7 +941,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -952,7 +960,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -970,7 +979,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -988,7 +998,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -1006,7 +1017,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"
@@ -1027,7 +1039,8 @@
                     "type": "number"
                   },
                   {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
                   }
                 ]
               },
@@ -1055,7 +1068,8 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[+-]?[0-9][0-9 ,_\u202f]*(\\.[0-9][0-9 ,_\u202f]*)?$"
             },
             {
               "type": "null"

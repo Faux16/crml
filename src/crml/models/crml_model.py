@@ -29,14 +29,11 @@ Usage:
 - Extend or compose these models to support new CRML features or custom fields.
 
 """
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-# This module (resultModel.py) defines Pydantic models for simulation results, metrics, distribution, and metadata.
-# Use these models to enable attribute-style access and type safety for simulation outputs in runtime.py and related modules.
+from .numberish import parse_floatish, parse_float_list, parse_intish
 
-# --- Helper Types ---
-NumberOrString = Union[int, float, str]
 
 # --- $defs ---
 class ISO3166Alpha2(str):
@@ -73,56 +70,35 @@ class CriticalityIndex(BaseModel):
 
 class Asset(BaseModel):
     name: str
-    cardinality: NumberOrString
+    cardinality: int = Field(..., ge=1)
     criticality_index: Optional[CriticalityIndex] = None
 
     @field_validator('cardinality', mode='before')
     @classmethod
     def _parse_cardinality(cls, v):
-        if isinstance(v, str):
-            s = v.strip().replace(',', '').replace(' ', '')
-            try:
-                return int(s)
-            except Exception:
-                try:
-                    return float(s)
-                except Exception:
-                    return v
-        return v
+        return parse_intish(v)
 
 # --- Model: Frequency ---
 class FrequencyParameters(BaseModel):
-    lambda_: Optional[NumberOrString] = Field(None, alias="lambda")
-    alpha_base: Optional[NumberOrString] = None
-    beta_base: Optional[NumberOrString] = None
-    r: Optional[NumberOrString] = None
-    p: Optional[NumberOrString] = None
+    lambda_: Optional[float] = Field(None, alias="lambda")
+    alpha_base: Optional[float] = None
+    beta_base: Optional[float] = None
+    r: Optional[float] = None
+    p: Optional[float] = None
 
-    @staticmethod
-    def _parse_numberish_value(v):
-        """
-        Parse a numeric value that may contain space-separated thousands (ISO 80000-1 thin space or regular space).
-        This matches the parse_number logic in runtime.py.
-        """
-        if isinstance(v, (int, float)):
-            return float(v)
-        if isinstance(v, str):
-            s = v.strip().replace(' ', '').replace('\u202f', '').replace(',', '')
-            if s.endswith('%'):
-                try:
-                    return float(s[:-1]) / 100.0
-                except Exception:
-                    return v
-            try:
-                return float(s)
-            except Exception:
-                return v
-        return v
-
-    @field_validator('lambda_', 'alpha_base', 'beta_base', 'r', 'p', mode='before')
+    @field_validator('lambda_', 'alpha_base', 'beta_base', 'r', mode='before')
     @classmethod
-    def _parse_numbers(cls, v):
-        return cls._parse_numberish_value(v)
+    def _parse_numbers_no_percent(cls, v):
+        if v is None:
+            return None
+        return parse_floatish(v, allow_percent=False)
+
+    @field_validator('p', mode='before')
+    @classmethod
+    def _parse_probability(cls, v):
+        if v is None:
+            return None
+        return parse_floatish(v, allow_percent=True)
 
 class FrequencyModel(BaseModel):
     asset: str
@@ -137,46 +113,28 @@ class Frequency(BaseModel):
 
 # --- Model: Severity ---
 class SeverityParameters(BaseModel):
-    median: Optional[NumberOrString] = None
+    median: Optional[float] = None
     currency: Optional[str] = None
     mu: Optional[float] = None
-    sigma: Optional[NumberOrString] = None
-    shape: Optional[NumberOrString] = None
-    scale: Optional[NumberOrString] = None
-    alpha: Optional[NumberOrString] = None
-    x_min: Optional[NumberOrString] = None
-    single_losses: Optional[List[NumberOrString]] = None
-
-    @staticmethod
-    def _parse_numberish_value(v):
-        """
-        Parse a numeric value that may contain space-separated thousands (ISO 80000-1 thin space or regular space).
-        """
-        if isinstance(v, (int, float)):
-            return float(v)
-        if isinstance(v, str):
-            s = v.strip().replace(' ', '').replace('\u202f', '').replace(',', '')
-            if s.endswith('%'):
-                try:
-                    return float(s[:-1]) / 100.0
-                except Exception:
-                    return v
-            try:
-                return float(s)
-            except Exception:
-                return v
-        return v
+    sigma: Optional[float] = None
+    shape: Optional[float] = None
+    scale: Optional[float] = None
+    alpha: Optional[float] = None
+    x_min: Optional[float] = None
+    single_losses: Optional[List[float]] = None
 
     @field_validator('median', 'sigma', 'shape', 'scale', 'alpha', 'x_min', mode='before')
     @classmethod
-    def _parse_numbers(cls, v):
-        return cls._parse_numberish_value(v)
+    def _parse_numbers_no_percent(cls, v):
+        if v is None:
+            return None
+        return parse_floatish(v, allow_percent=False)
 
     @field_validator('single_losses', mode='before')
     @classmethod
     def _parse_single_losses(cls, v):
         if isinstance(v, list):
-            return [cls._parse_numberish_value(item) for item in v]
+            return parse_float_list(v, allow_percent=False)
         return v
 
 class SeverityModel(BaseModel):
@@ -202,9 +160,23 @@ class Dependency(BaseModel):
 class Control(BaseModel):
     name: str
     description: Optional[str] = None
-    effectiveness: Optional[NumberOrString] = None
-    cost: Optional[NumberOrString] = None
+    effectiveness: Optional[float] = None
+    cost: Optional[float] = None
     parameters: Optional[Dict[str, Any]] = None
+
+    @field_validator('effectiveness', mode='before')
+    @classmethod
+    def _parse_effectiveness(cls, v):
+        if v is None:
+            return None
+        return parse_floatish(v, allow_percent=True)
+
+    @field_validator('cost', mode='before')
+    @classmethod
+    def _parse_cost(cls, v):
+        if v is None:
+            return None
+        return parse_floatish(v, allow_percent=False)
 
 class Controls(BaseModel):
     controls: Optional[List[Control]] = None
@@ -212,9 +184,16 @@ class Controls(BaseModel):
 
 # --- Model: Temporal ---
 class Temporal(BaseModel):
-    time_horizon: Optional[NumberOrString] = None
+    time_horizon: Optional[float] = None
     granularity: Optional[str] = None
     parameters: Optional[Dict[str, Any]] = None
+
+    @field_validator('time_horizon', mode='before')
+    @classmethod
+    def _parse_time_horizon(cls, v):
+        if v is None:
+            return None
+        return parse_floatish(v, allow_percent=False)
 
 # --- Model: Pipeline ---
 class Pipeline(BaseModel):

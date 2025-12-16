@@ -374,22 +374,24 @@ class TestIntegration:
     
     def test_model_without_controls(self):
         """Test that models without controls still work."""
-        model_yaml = """
-crml_scenario: "1.0"
-meta:
-  name: "test-no-controls"
-scenario:
-  frequency:
-        basis: per_organization_per_year
-    model: poisson
-    parameters:
-      lambda: 0.10
-  severity:
-    model: lognormal
-    parameters:
-      median: "100000"
-      sigma: 1.2
-"""
+        model_yaml = textwrap.dedent(
+                        """\
+                        crml_scenario: "1.0"
+                        meta:
+                            name: "test-no-controls"
+                        scenario:
+                            frequency:
+                                model: poisson
+                                basis: per_organization_per_year
+                                parameters:
+                                    lambda: 0.10
+                            severity:
+                                model: lognormal
+                                parameters:
+                                    median: "100000"
+                                    sigma: 1.2
+                        """
+        )
         
         result = run_simulation(model_yaml, n_runs=1000, seed=42)
         

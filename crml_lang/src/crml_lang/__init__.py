@@ -18,7 +18,7 @@ from .api import (
     dump_to_yaml,
     dump_to_yaml_str,
 )
-from .validator import (
+from .validators import (
     ValidationMessage,
     ValidationReport,
     validate,

@@ -36,7 +36,7 @@ from .models.crml_model import CRScenarioSchema as _CRScenarioSchema
 from .models.control_assessment_model import CRControlAssessmentSchema as _CRControlAssessmentSchema
 from .models.control_catalog_model import CRControlCatalogSchema as _CRControlCatalogSchema
 from .models.portfolio_model import CRPortfolioSchema as _CRPortfolioSchema
-from .validator import ValidationMessage, ValidationReport, validate, validate_portfolio
+from .validators import ValidationMessage, ValidationReport, validate, validate_portfolio
 
 
 class CRScenario(_CRScenarioSchema):

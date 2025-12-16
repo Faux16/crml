@@ -339,9 +339,9 @@ Risk Reduction:                   76.9%
 
 ### Complete Example
 
-See [ransomware-with-controls.yaml](file:///Users/sanketsarkar/Desktop/RND/crml_full_repo/spec/examples/ransomware-with-controls.yaml) for a full working example with 6 layered controls.
+See [ransomware-with-controls.yaml](/spec/examples/ransomware-with-controls.yaml) for a full working example with 6 layered controls.
 
-For detailed guidance, see the [Control Effectiveness Guide](file:///Users/sanketsarkar/Desktop/RND/crml_full_repo/docs/controls-guide.md).
+For detailed guidance, see the [Control Effectiveness Guide](/docs/controls-guide.md).
 
   model: mixture
   components:

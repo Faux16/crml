@@ -47,14 +47,14 @@ data:
   sources:
     pam:
       type: pam
-      schema:
+      data_schema:
         priv_escalations: int
         failed_sudo: int
         vault_access: int
 
     dlp:
       type: dlp
-      schema:
+      data_schema:
         dpi_hits: int
         exfil_attempts: int
 

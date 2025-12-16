@@ -68,7 +68,7 @@ fx_config = {
 }
 
 result = run_simulation(yaml_content, n_runs=${runs}${seed ? `, seed=${seed}` : ''}, fx_config=fx_config)
-print(json.dumps(result))
+print(json.dumps(result.model_dump()))
 `;
 
 

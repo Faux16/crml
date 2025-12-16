@@ -246,7 +246,7 @@
       "properties": {
         "sources": {
           "type": "object",
-          "description": "Named data sources from security tools (PAM, DLP, IAM, XDR, WAF, etc.). Each source defines a schema of available fields.",
+          "description": "Named data sources from security tools (PAM, DLP, IAM, XDR, WAF, etc.). Each source defines a data_schema of available fields.",
           "additionalProperties": {
             "type": "object",
             "description": "Configuration for a single data source.",
@@ -281,7 +281,7 @@
                   "dlp"
                 ]
               },
-              "schema": {
+              "data_schema": {
                 "type": "object",
                 "description": "Field definitions available from this source. Keys are field names, values are data types.",
                 "additionalProperties": {

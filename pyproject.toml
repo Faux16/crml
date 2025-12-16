@@ -20,7 +20,7 @@ dependencies = [
     "pyyaml",
     "jsonschema",
     "numpy",
-    pydantic
+    "pydantic"
 ]
 
 [project.optional-dependencies]

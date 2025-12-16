@@ -24,9 +24,9 @@ model:
 """
     
     result = run_simulation(model, n_runs=10000, seed=42)
-    assert result["success"] is True
-    assert result["metadata"]["currency_code"] == "USD"
-    assert result["metrics"]["eal"] > 0
+    assert result.success is True
+    assert result.metadata.currency_code == "USD"
+    assert result.metrics.eal > 0
 
 
 def test_multi_currency_mixture():
@@ -63,8 +63,8 @@ model:
     }
     
     result = run_simulation(model, n_runs=10000, seed=42, fx_config=fx_config)
-    assert result["success"] is True
-    assert result["metadata"]["currency_code"] == "USD"
+    assert result.success is True
+    assert result.metadata.currency_code == "USD"
 
 
 def test_fx_config_conversion():
@@ -103,12 +103,12 @@ model:
     }
     result_eur = run_simulation(model, n_runs=50000, seed=42, fx_config=fx_eur)
     
-    assert result_usd["success"] is True
-    assert result_eur["success"] is True
+    assert result_usd.success is True
+    assert result_eur.success is True
     
     # EAL in EUR should be EAL in USD divided by EUR rate
-    eal_usd = result_usd["metrics"]["eal"]
-    eal_eur = result_eur["metrics"]["eal"]
+    eal_usd = result_usd.metrics.eal
+    eal_eur = result_eur.metrics.eal
     eur_rate = DEFAULT_FX_RATES["EUR"]
     
     expected_eal_eur = eal_usd / eur_rate
@@ -121,20 +121,36 @@ def test_convert_currency_function():
     
     # USD to EUR
     usd_amount = 100000
-    eur_amount = convert_currency(usd_amount, "USD", "EUR", {"rates": DEFAULT_FX_RATES})
+    from crml.models.fx_model import FXConfig
+    eur_amount = convert_currency(
+      usd_amount,
+      "USD",
+      "EUR",
+      FXConfig(base_currency="USD", output_currency="EUR", rates=DEFAULT_FX_RATES)
+    )
     eur_rate = DEFAULT_FX_RATES["EUR"]
     expected = usd_amount / eur_rate
     assert abs(eur_amount - expected) < 0.01
     
     # EUR to USD
     eur_amount = 100000
-    usd_amount = convert_currency(eur_amount, "EUR", "USD", {"rates": DEFAULT_FX_RATES})
+    usd_amount = convert_currency(
+          eur_amount,
+          "EUR",
+          "USD",
+          FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+      )
     expected = eur_amount * eur_rate
     assert abs(usd_amount - expected) < 0.01
     
     # Same currency (no conversion)
     usd_amount = 100000
-    result = convert_currency(usd_amount, "USD", "USD", {"rates": DEFAULT_FX_RATES})
+    result = convert_currency(
+      usd_amount,
+      "USD",
+      "USD",
+      FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+    )
     assert result == usd_amount
 
 
@@ -189,12 +205,12 @@ model:
     result_eur = run_simulation(model_eur, n_runs=50000, seed=42, fx_config=fx_config)
     result_usd = run_simulation(model_usd, n_runs=50000, seed=42, fx_config=fx_config)
     
-    assert result_eur["success"] is True
-    assert result_usd["success"] is True
+    assert result_eur.success is True
+    assert result_usd.success is True
     
     # Results should be very close since we normalized the inputs
-    eal_eur = result_eur["metrics"]["eal"]
-    eal_usd = result_usd["metrics"]["eal"]
+    eal_eur = result_eur.metrics.eal
+    eal_usd = result_usd.metrics.eal
     relative_diff = abs(eal_eur - eal_usd) / max(eal_eur, eal_usd)
     assert relative_diff < 0.03, f"Normalized results don't match: {eal_eur} vs {eal_usd}"
 
@@ -226,4 +242,4 @@ model:
 """
         
         result = run_simulation(model, n_runs=1000, seed=42)
-        assert result["success"] is True, f"Failed for currency {currency}"
+        assert result.success is True, f"Failed for currency {currency}"

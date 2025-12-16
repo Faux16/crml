@@ -373,14 +373,13 @@ model:
       median: "100000"
       sigma: 1.2
 """
-        
         result = run_simulation(model_yaml, n_runs=1000, seed=42)
-        
-        assert result['success']
-        assert result['metadata']['controls_applied']
-        assert result['metadata']['lambda_baseline'] == 0.10
-        assert result['metadata']['lambda_effective'] < 0.10
-        assert result['metadata']['control_reduction_pct'] > 0
+
+        assert result.success
+        assert result.metadata.controls_applied
+        assert result.metadata.lambda_baseline == 0.10
+        assert result.metadata.lambda_effective < 0.10
+        assert result.metadata.control_reduction_pct > 0
     
     def test_model_without_controls(self):
         """Test that models without controls still work."""
@@ -402,8 +401,8 @@ model:
         
         result = run_simulation(model_yaml, n_runs=1000, seed=42)
         
-        assert result['success']
-        assert not result['metadata']['controls_applied']
+        assert result.success
+        assert not result.metadata.controls_applied
 
 
 if __name__ == '__main__':

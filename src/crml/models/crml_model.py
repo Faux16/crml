@@ -228,8 +228,14 @@ class Output(BaseModel):
     parameters: Optional[Dict[str, Any]] = None
 
 
+# --- Model: Correlation ---
+class Correlation(BaseModel):
+    assets: List[str]
+    value: float
+
 class Model(BaseModel):
     assets: List[Asset] = Field(default_factory=list)
+    correlations: Optional[List[Correlation]] = None
     frequency: Optional[Frequency] = None
     severity: Optional[Severity] = None
     dependency: Optional[List[Dependency]] = None

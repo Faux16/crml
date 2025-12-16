@@ -156,6 +156,68 @@ def run_monte_carlo(
             'sev_comps': sev.components
         })
 
+    # 4a. Correlation & Copula Setup
+    # -----------------------------
+    correlated_uniforms_map = {}
+    
+    # Identify all assets involved in scenarios
+    scenario_assets = [sc['name'] for sc in scenarios]
+    
+    if model.correlations and len(model.correlations) > 0:
+        try:
+            from scipy.stats import norm
+            
+            n_assets = len(scenario_assets)
+            if n_assets > 1:
+                # 1. Initialize Correlation Matrix
+                asset_idx_map = {name: i for i, name in enumerate(scenario_assets)}
+                cov_matrix = np.eye(n_assets)
+                
+                for corr in model.correlations:
+                    # Expecting correlation between exactly 2 assets
+                    if len(corr.assets) != 2:
+                        continue
+                    a1, a2 = corr.assets[0], corr.assets[1]
+                    idx1 = asset_idx_map.get(a1)
+                    idx2 = asset_idx_map.get(a2)
+                    
+                    if idx1 is not None and idx2 is not None:
+                        cov_matrix[idx1, idx2] = corr.value
+                        cov_matrix[idx2, idx1] = corr.value
+                        
+                # 2. Cholesky Decomposition
+                # Raises LinAlgError if not positive definite
+                # We add a tiny jitter to diagonal if strictly PD check fails due to float precision
+                try:
+                    L = np.linalg.cholesky(cov_matrix)
+                except np.linalg.LinAlgError:
+                    # Simple fix: boost diagonal slightly
+                    cov_matrix += np.eye(n_assets) * 1e-6
+                    L = np.linalg.cholesky(cov_matrix)
+                    
+                # 3. Generate Correlated Normals
+                # Z_uncorr: (n_runs, n_assets)
+                Z_uncorr = np.random.standard_normal((n_runs, n_assets))
+                
+                # Z_corr = Z_uncorr @ L.T
+                Z_corr = Z_uncorr @ L.T
+                
+                # 4. Convert to Uniforms (CDF)
+                # U_corr: (n_runs, n_assets)
+                U_corr = norm.cdf(Z_corr)
+                
+                # Map back to asset names
+                for i, name in enumerate(scenario_assets):
+                    correlated_uniforms_map[name] = U_corr[:, i]
+                
+                # Store in metadata for UI
+                result.metadata.correlation_info = [c.model_dump() for c in model.correlations]
+                    
+        except ImportError:
+            result.errors.append("Scipy required for correlations. Install with: pip install scipy")
+        except Exception as e:
+            result.errors.append(f"Correlation processing error: {e}")
+
     # 5. Simulation Loop (Aggregated)
     try:
         # Initialize total annual losses accumulator
@@ -163,15 +225,16 @@ def run_monte_carlo(
         
         for sc in scenarios:
             f_model = sc['freq_model']
-            # Apply control effectiveness logic here if needed (e.g., per-asset controls)
-            # Currently heuristic is global/single-lambda only. 
-            # TODO: Improve per-scenario controls in future.
+            asset_name = sc['name']
             
+            # ... (Control logic omitted for brevity) ...
+
+            # Get correlated uniforms for this asset if available
+            uniforms = correlated_uniforms_map.get(asset_name)
+
             # Using specific parameters for this scenario
             if f_model == 'poisson' and sc['freq_params']:
                  lambda_val = float(sc['freq_params'].lambda_) if sc['freq_params'].lambda_ is not None else 0.0
-                 # For now, if global controls applied, we might want to scale this?
-                 # Keeping simple: No global control scaling on sub-models unless explicitly handled.
             
             # A. Frequency Generation
             counts = FrequencyEngine.generate_frequency(
@@ -179,7 +242,8 @@ def run_monte_carlo(
                 params=sc['freq_params'],
                 n_runs=n_runs,
                 cardinality=1, # Per-scenario is typically 1 asset group or aggregate
-                seed=seed
+                seed=seed,
+                uniforms=uniforms
             )
             
             scenario_losses = np.zeros(n_runs)

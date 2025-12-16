@@ -14,7 +14,8 @@ class FrequencyEngine:
         params: Any, 
         n_runs: int, 
         cardinality: int,
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
+        uniforms: Optional[np.ndarray] = None
     ) -> np.ndarray:
         """
         Generate an array of shape (n_runs,) containing event counts.
@@ -25,6 +26,7 @@ class FrequencyEngine:
             n_runs: Number of simulation iterations
             cardinality: Total number of assets (multiplier for lambda)
             seed: Random seed (optional, but usually set at engine level)
+            uniforms: Optional correlated uniform random numbers (0, 1) to use for sampling (Copula method)
             
         Returns:
             np.ndarray of integers (event counts per run)
@@ -39,7 +41,15 @@ class FrequencyEngine:
                 
             # Scale lambda by asset count
             total_lambda = lambda_val * cardinality
-            return np.random.poisson(total_lambda, n_runs)
+            
+            if uniforms is not None:
+                # Use Copula method (Inverse CDF)
+                from scipy.stats import poisson
+                # PPF returns k such that P(X<=k) >= u
+                # inputs: (q, mu) where q is probability
+                return poisson.ppf(uniforms, total_lambda).astype(int)
+            else:
+                return np.random.poisson(total_lambda, n_runs)
             
         elif freq_model == 'gamma':
             # Direct Gamma sampling for frequency (often used as a proxy for uncertainty)
@@ -48,9 +58,15 @@ class FrequencyEngine:
             
             if shape_val <= 0 or scale_val <= 0:
                 return np.zeros(n_runs, dtype=int)
+            
+            if uniforms is not None:
+                from scipy.stats import gamma
+                # Gamma args: a (shape), scale=scale
+                rates = gamma.ppf(uniforms, a=shape_val, scale=scale_val)
+            else:
+                # Sample continuous rates
+                rates = np.random.gamma(shape_val, scale_val, n_runs)
                 
-            # Sample continuous rates
-            rates = np.random.gamma(shape_val, scale_val, n_runs)
             # Scale by cardinality and round to nearest integer
             return np.maximum(0, np.round(rates * cardinality)).astype(int)
             
@@ -73,14 +89,27 @@ class FrequencyEngine:
                 return np.zeros(n_runs, dtype=int)
             
             # Step 1: Sample 'true' lambda for this scenario/year from Gamma
-            # This represents parameter uncertainty about the frequency
-            sampled_lambdas = np.random.gamma(shape_val, scale_val, n_runs)
-            
-            # Step 2: Scale by cardinality
-            total_lambdas = sampled_lambdas * cardinality
-            
-            # Step 3: Sample realization from Poisson
-            return np.random.poisson(total_lambdas)
+            if uniforms is not None:
+                from scipy.stats import gamma, poisson
+                # We reuse the same uniforms for the Gamma step to induce correlation in the underlying rate.
+                # Ideally, we might want *two* correlated uniforms per run for full NORTA, 
+                # but correlating the rate parameter is the primary driver of correlation here.
+                sampled_lambdas = gamma.ppf(uniforms, a=shape_val, scale=scale_val)
+                total_lambdas = sampled_lambdas * cardinality
+                # Step 2: Poisson realization (uncorrelated step given lambda, or re-use u?)
+                # If we reuse U, we get perfect correlation given lambda.
+                # Standard practice: Sample Poisson given Lambda.
+                return np.random.poisson(total_lambdas)
+            else:
+                # Step 1: Sample 'true' lambda for this scenario/year from Gamma
+                # This represents parameter uncertainty about the frequency
+                sampled_lambdas = np.random.gamma(shape_val, scale_val, n_runs)
+                
+                # Step 2: Scale by cardinality
+                total_lambdas = sampled_lambdas * cardinality
+                
+                # Step 3: Sample realization from Poisson
+                return np.random.poisson(total_lambdas)
             
         else:
             # Fallback or unknown model

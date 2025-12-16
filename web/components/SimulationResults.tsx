@@ -46,6 +46,10 @@ export interface SimulationMetadata {
         cost?: number;
     }>;
     control_warnings?: string[];
+    correlation_info?: Array<{
+        assets: string[];
+        value: number;
+    }>;
 }
 
 export interface SimulationResult {
@@ -193,6 +197,38 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                         </CardDescription>
                     </CardHeader>
                 </Card>
+
+                {/* Correlation Info */}
+                {metadata?.correlation_info && metadata.correlation_info.length > 0 && (
+                    <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                <CardTitle className="text-base">Correlated Risks Active</CardTitle>
+                            </div>
+                            <CardDescription className="text-xs">
+                                Asset failures are modeled as dependent events (Copula method).
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div className="text-xs font-medium text-muted-foreground mb-2">Active Correlations:</div>
+                            <div className="grid grid-cols-1 gap-1">
+                                {metadata.correlation_info.map((c, i) => (
+                                    <div key={i} className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded border border-blue-100 dark:border-blue-900 text-xs">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold">{c.assets[0]}</span>
+                                            <span className="text-muted-foreground">↔</span>
+                                            <span className="font-semibold">{c.assets[1]}</span>
+                                        </div>
+                                        <div className="font-bold text-blue-600 dark:text-blue-400">
+                                            {c.value.toFixed(2)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Control Effectiveness */}
                 {metadata?.controls_applied && (

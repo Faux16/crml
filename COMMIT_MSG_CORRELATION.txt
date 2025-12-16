@@ -1,0 +1,22 @@
+Feat: Asset Correlation & System Documentation (Phase 2 Complete)
+
+Significantly advances the risk engine's capabilities by introducing dependency modeling (Common Mode Failures) and finalizing system architecture documentation.
+
+**1. Engine & Math**
+- **Asset Correlation**: Implemented Gaussian Copula logic (`engine.py`) to model dependencies between assets.
+- **Correlated Sampling**: Updated `FrequencyEngine` to accept correlated uniforms and use Inverse Transform Sampling (PPF).
+- **Dependency**: Added `scipy` to `pyproject.toml` for efficient statistical functions.
+- **Schema**: Updated `CRMLSchema` to support a `correlations` matrix in the model definition.
+
+**2. Frontend / UI**
+- **Visualization**: Added "Correlated Risks Active" card to `SimulationResults.tsx` to explicitly show when dependency assumptions are active.
+- **Metadata**: Updated `result_model.py` and `engine.py` to pass correlation metadata to the frontend.
+
+**3. Documentation**
+- **Architecture**: Added `docs/architecture.md` with Mermaid diagrams illustrating the full Simulation Engine flow.
+- **Developer Guide**: Added `docs/howto/add-new-distribution.md` to guide future extensions.
+
+**4. Verification**
+- **Unit Tests**: Added `tests/test_correlation.py` verifying statistical properties (Pearson correlation > 0.9 for high-corr inputs).
+- **Example**: Added `spec/examples/correlation-example.yaml`.
+- **Comparison**: Validated that correlation increases VaR (Tail Risk) while preserving EAL.

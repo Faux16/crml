@@ -53,6 +53,7 @@ class Metadata(BaseModel):
     control_details: Optional[Any] = None
     control_warnings: Optional[Any] = None
     control_warning: Optional[str] = None
+    correlation_info: Optional[List[dict]] = None
 
 class SimulationResult(BaseModel):
     success: bool = False

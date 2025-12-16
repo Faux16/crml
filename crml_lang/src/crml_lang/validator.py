@@ -454,6 +454,8 @@ def validate_control_assessment(
     source: str | dict[str, Any],
     *,
     source_kind: Literal["path", "yaml", "data"] | None = None,
+    control_catalogs: Optional[list[str | dict[str, Any]]] = None,
+    control_catalogs_source_kind: Literal["path", "yaml", "data"] | None = None,
     strict_model: bool = False,
 ) -> ValidationReport:
     """Validate a CRML Control Assessment Pack document."""
@@ -507,6 +509,98 @@ def validate_control_assessment(
                     validator="pydantic",
                 )
             )
+
+    # Semantic checks
+    if not errors:
+        assessment = data.get("assessment")
+        assessments = assessment.get("assessments") if isinstance(assessment, dict) else None
+        if isinstance(assessments, list):
+            ids: list[str] = []
+            for idx, a in enumerate(assessments):
+                if not isinstance(a, dict):
+                    continue
+                cid = a.get("id")
+                if isinstance(cid, str):
+                    ids.append(cid)
+                else:
+                    errors.append(
+                        ValidationMessage(
+                            level="error",
+                            source="semantic",
+                            path=f"assessment -> assessments -> {idx} -> id",
+                            message="Control assessment entry 'id' must be a string.",
+                        )
+                    )
+
+            if len(ids) != len(set(ids)):
+                errors.append(
+                    ValidationMessage(
+                        level="error",
+                        source="semantic",
+                        path="assessment -> assessments",
+                        message="Control assessment contains duplicate control ids.",
+                    )
+                )
+
+            # Cross-pack check: if catalogs are provided, every assessment id must exist in them.
+            if control_catalogs:
+                catalog_ids: set[str] = set()
+                for cidx, catalog_source in enumerate(control_catalogs):
+                    catalog_data, catalog_io_errors = _load_input(
+                        catalog_source,
+                        source_kind=control_catalogs_source_kind,
+                    )
+                    if catalog_io_errors:
+                        errors.extend(
+                            [
+                                ValidationMessage(
+                                    level=e.level,
+                                    source=e.source,
+                                    path=f"control_catalogs -> {cidx} -> {e.path}",
+                                    message=e.message,
+                                    validator=e.validator,
+                                )
+                                for e in catalog_io_errors
+                            ]
+                        )
+                        continue
+                    assert catalog_data is not None
+
+                    # Validate catalog itself first (schema + semantic) to avoid partial/garbage ids.
+                    cat_report = validate_control_catalog(catalog_data, source_kind="data")
+                    if not cat_report.ok:
+                        errors.extend(
+                            [
+                                ValidationMessage(
+                                    level=e.level,
+                                    source=e.source,
+                                    path=f"control_catalogs -> {cidx} -> {e.path}",
+                                    message=e.message,
+                                    validator=e.validator,
+                                )
+                                for e in cat_report.errors
+                            ]
+                        )
+                        continue
+
+                    catalog = catalog_data.get("catalog")
+                    controls = catalog.get("controls") if isinstance(catalog, dict) else None
+                    if isinstance(controls, list):
+                        for entry in controls:
+                            if isinstance(entry, dict) and isinstance(entry.get("id"), str):
+                                catalog_ids.add(entry["id"])
+
+                if catalog_ids:
+                    for cid in ids:
+                        if cid not in catalog_ids:
+                            errors.append(
+                                ValidationMessage(
+                                    level="error",
+                                    source="semantic",
+                                    path="assessment -> assessments -> id",
+                                    message=f"Control assessment references unknown control id '{cid}' (not found in provided control catalog pack(s)).",
+                                )
+                            )
 
     return ValidationReport(ok=(len(errors) == 0), errors=errors, warnings=[])
 

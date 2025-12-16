@@ -33,6 +33,8 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from .models.crml_model import CRScenarioSchema as _CRScenarioSchema
+from .models.control_assessment_model import CRControlAssessmentSchema as _CRControlAssessmentSchema
+from .models.control_catalog_model import CRControlCatalogSchema as _CRControlCatalogSchema
 from .models.portfolio_model import CRPortfolioSchema as _CRPortfolioSchema
 from .validator import ValidationMessage, ValidationReport, validate, validate_portfolio
 
@@ -164,9 +166,99 @@ class CRPortfolio(_CRPortfolioSchema):
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
 
+
+class CRControlCatalog(_CRControlCatalogSchema):
+    """Root CRML Control Catalog document model."""
+
+    @classmethod
+    def load_from_yaml(cls, path: str) -> "CRControlCatalog":
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError("PyYAML is required to load YAML files: pip install pyyaml") from e
+
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return cls.model_validate(data)
+
+    @classmethod
+    def load_from_yaml_str(cls, yaml_text: str) -> "CRControlCatalog":
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError("PyYAML is required to load YAML strings: pip install pyyaml") from e
+
+        data = yaml.safe_load(yaml_text)
+        return cls.model_validate(data)
+
+    def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError("PyYAML is required to write YAML files: pip install pyyaml") from e
+
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        with open(path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(data, f, sort_keys=sort_keys, allow_unicode=True)
+
+    def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError("PyYAML is required to write YAML: pip install pyyaml") from e
+
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
+
+
+class CRControlAssessment(_CRControlAssessmentSchema):
+    """Root CRML Control Assessment document model."""
+
+    @classmethod
+    def load_from_yaml(cls, path: str) -> "CRControlAssessment":
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError("PyYAML is required to load YAML files: pip install pyyaml") from e
+
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return cls.model_validate(data)
+
+    @classmethod
+    def load_from_yaml_str(cls, yaml_text: str) -> "CRControlAssessment":
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError("PyYAML is required to load YAML strings: pip install pyyaml") from e
+
+        data = yaml.safe_load(yaml_text)
+        return cls.model_validate(data)
+
+    def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError("PyYAML is required to write YAML files: pip install pyyaml") from e
+
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        with open(path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(data, f, sort_keys=sort_keys, allow_unicode=True)
+
+    def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError("PyYAML is required to write YAML: pip install pyyaml") from e
+
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
+
 __all__ = [
     "CRScenario",
     "CRPortfolio",
+    "CRControlCatalog",
+    "CRControlAssessment",
     "load_from_yaml",
     "load_from_yaml_str",
     "dump_to_yaml",

@@ -145,20 +145,22 @@ class SeverityEngine:
             # TODO: Implement proper weighted mixture sampling
             
             first = components[0]
-            # Convert dict component to a temporary params mock to reuse logic?
-            # Or just implement specific logic for first component types
             
+            # Helper to parse potential string numbers
+            from .utils import parse_numberish_value
+            def _safe_parse(v):
+                if v is None: return None
+                return parse_numberish_value(v)
+
             if 'lognormal' in first:
                 ln_data = first['lognormal']
-                # Create a simple object to mimic params
                 class MockParams:
                     pass
                 p = MockParams()
-                p.multiple_losses = ln_data.get('single_losses') # Mapping check
-                p.single_losses = ln_data.get('single_losses')
-                p.median = ln_data.get('median')
-                p.mu = ln_data.get('mu')
-                p.sigma = ln_data.get('sigma')
+                p.single_losses = ln_data.get('single_losses') # handled by calibrate if present
+                p.median = _safe_parse(ln_data.get('median'))
+                p.mu = _safe_parse(ln_data.get('mu'))
+                p.sigma = _safe_parse(ln_data.get('sigma'))
                 p.currency = ln_data.get('currency')
                 
                 return cls.generate_severity('lognormal', p, None, total_events, fx_config)
@@ -168,8 +170,8 @@ class SeverityEngine:
                 class MockParams:
                     pass
                 p = MockParams()
-                p.shape = g_data.get('shape')
-                p.scale = g_data.get('scale')
+                p.shape = _safe_parse(g_data.get('shape'))
+                p.scale = _safe_parse(g_data.get('scale'))
                 p.currency = g_data.get('currency')
                 
                 return cls.generate_severity('gamma', p, None, total_events, fx_config)

@@ -179,10 +179,16 @@ class SeverityParameters(BaseModel):
             return [cls._parse_numberish_value(item) for item in v]
         return v
 
-class Severity(BaseModel):
+class SeverityModel(BaseModel):
+    asset: str
     model: str
+    parameters: SeverityParameters
+
+class Severity(BaseModel):
+    model: Optional[str] = None
     parameters: Optional[SeverityParameters] = None
     components: Optional[List[Dict[str, Any]]] = None
+    models: Optional[List[SeverityModel]] = None
 
 
 # --- Model: Dependency ---

@@ -1,0 +1,23 @@
+crml: "1.1"
+meta:
+  name: "Mixture Bug Repro String"
+model:
+  assets:
+    - name: "EU_DB"
+      cardinality: 10
+  frequency:
+    model: poisson
+    parameters: {lambda: 2.0}
+  severity:
+    model: mixture
+    components:
+      - lognormal:
+          weight: 0.5
+          median: "10 000" # String with space
+          currency: EUR
+          sigma: 1.0
+      - lognormal:
+          weight: 0.5
+          median: "20,000" # String with comma
+          currency: USD
+          sigma: 1.0

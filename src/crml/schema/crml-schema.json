@@ -1,1348 +1,1153 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://crml.dev/schemas/crml-1.1.json",
-  "title": "CRML 1.1 - Cyber Risk Modeling Language",
-  "description": "A declarative, implementation-agnostic language for defining end-to-end cyber risk models. CRML documents describe frequency/severity distributions, asset models, simulation pipelines, and output metrics for quantitative risk analysis.",
-  "type": "object",
+  "$defs": {
+    "Asset": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "cardinality": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Cardinality"
+        },
+        "criticality_index": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CriticalityIndex"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "name",
+        "cardinality"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "Control": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "effectiveness": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effectiveness"
+        },
+        "cost": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cost"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parameters"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Control",
+      "type": "object"
+    },
+    "Controls": {
+      "properties": {
+        "controls": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Control"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Controls"
+        },
+        "layers": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Layers"
+        }
+      },
+      "title": "Controls",
+      "type": "object"
+    },
+    "CriticalityIndex": {
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        },
+        "inputs": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputs"
+        },
+        "weights": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weights"
+        },
+        "transform": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transform"
+        }
+      },
+      "title": "CriticalityIndex",
+      "type": "object"
+    },
+    "Data": {
+      "properties": {
+        "sources": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/DataSource"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sources"
+        },
+        "feature_mapping": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature Mapping"
+        }
+      },
+      "title": "Data",
+      "type": "object"
+    },
+    "DataSource": {
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "data_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Schema"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "DataSource",
+      "type": "object"
+    },
+    "Dependency": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "depends_on": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Depends On"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parameters"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Dependency",
+      "type": "object"
+    },
+    "Frequency": {
+      "properties": {
+        "scope": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "portfolio",
+          "title": "Scope"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FrequencyParameters"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "models": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FrequencyModel"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Models"
+        }
+      },
+      "title": "Frequency",
+      "type": "object"
+    },
+    "FrequencyModel": {
+      "properties": {
+        "asset": {
+          "title": "Asset",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/FrequencyParameters"
+        }
+      },
+      "required": [
+        "asset",
+        "model",
+        "parameters"
+      ],
+      "title": "FrequencyModel",
+      "type": "object"
+    },
+    "FrequencyParameters": {
+      "properties": {
+        "lambda": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lambda"
+        },
+        "alpha_base": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alpha Base"
+        },
+        "beta_base": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Beta Base"
+        },
+        "r": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "R"
+        },
+        "p": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P"
+        }
+      },
+      "title": "FrequencyParameters",
+      "type": "object"
+    },
+    "Meta": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Meta",
+      "type": "object"
+    },
+    "Model": {
+      "properties": {
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "title": "Assets",
+          "type": "array"
+        },
+        "frequency": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Frequency"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Severity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "dependency": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Dependency"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dependency"
+        },
+        "controls": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Controls"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "temporal": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Temporal"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "pipeline": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Pipeline"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "output": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Output"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "Model",
+      "type": "object"
+    },
+    "Output": {
+      "properties": {
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "destination": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Destination"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parameters"
+        }
+      },
+      "title": "Output",
+      "type": "object"
+    },
+    "Pipeline": {
+      "properties": {
+        "steps": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Steps"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parameters"
+        }
+      },
+      "title": "Pipeline",
+      "type": "object"
+    },
+    "Severity": {
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SeverityParameters"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "components": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Components"
+        },
+        "models": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/SeverityModel"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Models"
+        }
+      },
+      "title": "Severity",
+      "type": "object"
+    },
+    "SeverityModel": {
+      "properties": {
+        "asset": {
+          "title": "Asset",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/SeverityParameters"
+        }
+      },
+      "required": [
+        "asset",
+        "model",
+        "parameters"
+      ],
+      "title": "SeverityModel",
+      "type": "object"
+    },
+    "SeverityParameters": {
+      "properties": {
+        "median": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Median"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Currency"
+        },
+        "mu": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mu"
+        },
+        "sigma": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sigma"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shape"
+        },
+        "scale": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scale"
+        },
+        "alpha": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alpha"
+        },
+        "x_min": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "X Min"
+        },
+        "single_losses": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Single Losses"
+        }
+      },
+      "title": "SeverityParameters",
+      "type": "object"
+    },
+    "Temporal": {
+      "properties": {
+        "time_horizon": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Time Horizon"
+        },
+        "granularity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Granularity"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parameters"
+        }
+      },
+      "title": "Temporal",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "crml": {
+      "title": "Crml",
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta"
+    },
+    "data": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Data"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "model": {
+      "$ref": "#/$defs/Model"
+    },
+    "pipeline": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Pipeline"
+    },
+    "output": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Output"
+    }
+  },
   "required": [
     "crml",
     "meta",
     "model"
   ],
-  "properties": {
-    "crml": {
-      "type": "string",
-      "description": "CRML specification version. Supported versions: 1.0, 1.1 (recommended).",
-      "enum": [
-        "1.0",
-        "1.1"
-      ],
-      "examples": [
-        "1.1"
-      ]
-    },
-    "meta": {
-      "type": "object",
-      "description": "Metadata about the risk model including identification, authorship, and categorization.",
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Unique identifier for the risk model. Used for referencing and reporting.",
-          "examples": [
-            "ransomware-scenario",
-            "fair-baseline",
-            "qber-enterprise"
-          ]
-        },
-        "version": {
-          "type": "string",
-          "description": "Semantic version of this model definition. Useful for tracking model evolution.",
-          "examples": [
-            "1.0",
-            "2025.1",
-            "1.0.0-beta"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "Human-readable explanation of what this model represents and its intended use case.",
-          "examples": [
-            "FAIR-like Poisson + Lognormal model for data breach scenarios"
-          ]
-        },
-        "author": {
-          "type": "string",
-          "description": "Name or identifier of the model author.",
-          "examples": [
-            "Jane Smith",
-            "Risk Analytics Team"
-          ]
-        },
-        "organization": {
-          "type": "string",
-          "description": "Organization that owns or maintains this model.",
-          "examples": [
-            "Acme Corp",
-            "Zeron Research Labs"
-          ]
-        },
-        "industries": {
-          "type": "array",
-          "description": "Industries or sectors this model is designed for or calibrated against. Use 'all' for cross-industry models. Categories aligned with common breach report segmentation (Verizon DBIR, IBM X-Force) for threat data applicability.",
-          "items": {
-            "type": "string",
-            "enum": [
-              "all",
-              "financial-services",
-              "healthcare",
-              "manufacturing",
-              "retail-wholesale",
-              "technology",
-              "professional-services",
-              "education",
-              "government",
-              "energy-utilities",
-              "transportation-logistics",
-              "media-entertainment",
-              "construction-real-estate",
-              "hospitality-food-service",
-              "nonprofit-ngo"
-            ]
-          },
-          "examples": [
-            [
-              "all"
-            ],
-            [
-              "healthcare"
-            ],
-            [
-              "financial-services",
-              "technology"
-            ],
-            [
-              "manufacturing"
-            ]
-          ]
-        },
-        "locale": {
-          "description": "Geographic locales this model is designed for or calibrated against. Use the object form with 'regions' (required) and optional 'countries' (ISO country codes). Use 'world' in regions for globally applicable models.",
-          "type": "object",
-          "properties": {
-            "regions": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "world",
-                  "north-america",
-                  "latin-america",
-                  "europe",
-                  "middle-east-africa",
-                  "asia-pacific",
-                  "oceania"
-                ]
-              }
-            },
-            "countries": {
-              "type": "array",
-              "items": { "$ref": "#/$defs/iso3166_1_alpha2" }
-            }
-          },
-          "additionalProperties": false,
-          "examples": [
-            {},
-            { "regions": ["world"] },
-            { "regions": ["europe"] },
-            { "regions": ["north-america", "europe"] },
-            { "regions": ["europe", "north-america"], "countries": ["DE", "US"] }
-          ]
-        },
-        "company_sizes": {
-          "type": "array",
-          "description": "Organization sizes this model is appropriate for. Based on employee count and typical IT complexity. Models can be calibrated differently for each size tier.",
-          "items": {
-            "type": "string",
-            "enum": [
-              "all",
-              "startup",
-              "smb",
-              "mid-market",
-              "enterprise",
-              "large-enterprise"
-            ],
-            "enumDescriptions": {
-              "startup": "1-50 employees, minimal security infrastructure",
-              "smb": "51-500 employees, basic security controls",
-              "mid-market": "501-2500 employees, dedicated security team",
-              "enterprise": "2501-10000 employees, mature security program",
-              "large-enterprise": "10000+ employees, complex global operations"
-            }
-          },
-          "examples": [
-            [
-              "all"
-            ],
-            [
-              "enterprise",
-              "large-enterprise"
-            ],
-            [
-              "smb",
-              "mid-market"
-            ]
-          ]
-        },
-        "regulatory_frameworks": {
-          "type": "array",
-          "description": "Compliance frameworks this model aligns with or helps assess risk for.",
-          "items": {
-            "type": "string",
-            "enum": [
-              "nist-csf",
-              "iso-27001",
-              "soc2",
-              "gdpr",
-              "ccpa",
-              "hipaa",
-              "pci-dss",
-              "glba",
-              "sox",
-              "fisma",
-              "fedramp",
-              "cmmc",
-              "nerc-cip",
-              "dora",
-              "nis2",
-              "psd2",
-              "cis-controls",
-              "cobit",
-              "tisax",
-              "other"
-            ]
-          },
-          "examples": [
-            [
-              "nist-csf",
-              "iso-27001"
-            ],
-            [
-              "hipaa",
-              "soc2"
-            ],
-            [
-              "pci-dss",
-              "gdpr"
-            ]
-          ]
-        },
-        "tags": {
-          "type": "array",
-          "description": "Categorical labels for filtering and organizing models. Common tags include methodology (fair, qber), data sources (pam, dlp), or risk types (ransomware, data-breach).",
-          "items": {
-            "type": "string"
-          },
-          "examples": [
-            [
-              "qber",
-              "bayesian",
-              "mcmc"
-            ],
-            [
-              "fair-compatible",
-              "simple"
-            ]
-          ]
-        }
-      },
-      "additionalProperties": true
-    },
-    "data": {
-      "type": "object",
-      "description": "Defines telemetry sources and feature mappings that feed into the risk model. Models can run with synthetic data or expert estimates if no real data sources are configured.",
-      "properties": {
-        "sources": {
-          "type": "object",
-          "description": "Named data sources from security tools (PAM, DLP, IAM, XDR, WAF, etc.). Each source defines a data_schema of available fields.",
-          "additionalProperties": {
-            "type": "object",
-            "description": "Configuration for a single data source.",
-            "properties": {
-              "type": {
-                "type": "string",
-                "description": "What is providing this data.",
-                "enum": [
-                  "pam",
-                  "dlp",
-                  "iam",
-                  "xdr",
-                  "waf",
-                  "siem",
-                  "edr",
-                  "vm",
-                  "cspm",
-                  "ndr",
-                  "casb",
-                  "asm",
-                  "ueba",
-                  "audit",
-                  "phishingSimulation",
-                  "vulnerabilityReport",
-                  "industryReport",
-                  "pentestReport",
-                  "person",
-                  "custom"
-                ],
-                "examples": [
-                  "pam",
-                  "dlp"
-                ]
-              },
-              "data_schema": {
-                "type": "object",
-                "description": "Field definitions available from this source. Keys are field names, values are data types.",
-                "additionalProperties": {
-                  "type": "string",
-                  "enum": [
-                    "int",
-                    "float",
-                    "string",
-                    "bool",
-                    "datetime"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "feature_mapping": {
-          "type": "object",
-          "description": "Maps model input variables to specific fields in your data sources (key-value pairs). The key is the variable used in the model, the value is the source and field (e.g., 'pam.pam_entropy').",
-          "additionalProperties": {
-            "type": "string",
-            "description": "Source path in format 'source_name.field_name'",
-            "pattern": "^[a-z_]+\\.[a-z_]+$"
-          },
-          "examples": [
-            {
-              "pam_entropy": "pam.pam_entropy",
-              "dlp_entropy": "dlp.channel_entropy"
-            }
-          ]
-        }
-      },
-      "additionalProperties": true
-    },
-    "model": {
-      "type": "object",
-      "description": "Core risk model definition including frequency of loss events, severity distributions, asset characteristics, and dependencies.",
-      "required": [
-        "frequency",
-        "severity"
-      ],
-      "properties": {
-        "assets": {
-          "type": "array",
-          "description": "List of asset or asset types being modeled. Each asset (type) has a name, cardinality, and optional criticality index configuration.",
-          "items": {
-            "type": "object",
-            "required": ["name", "cardinality"],
-            "properties": {
-              "name": {
-                "type": "string",
-                "description": "Name or type of the asset (e.g., 'laptop', 'server')."
-              },
-              "cardinality": {
-                "oneOf": [
-                  {"type": "integer", "minimum": 1},
-                  {"type": "string", "pattern": "^[0-9 ]+$"}
-                ],
-                "description": "Number of assets of this type. Can be a number or a string with spaces for readability (e.g., '10 000').",
-                "examples": [100, "10 000", 50]
-              },
-              "criticality_index": {
-                "type": "object",
-                "description": "Configuration for computing asset criticality scores (1-5 scale typically).",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "description": "Method for computing criticality index.",
-                    "enum": ["entropy-weighted", "manual", "uniform"],
-                    "default": "uniform"
-                  },
-                  "inputs": {
-                    "type": "object",
-                    "description": "Maps input names to feature_mapping keys for entropy-weighted calculation.",
-                    "additionalProperties": {"type": "string"}
-                  },
-                  "weights": {
-                    "type": "object",
-                    "description": "Relative weights for each input. Should sum to 1.0.",
-                    "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
-                  },
-                  "transform": {
-                    "type": "string",
-                    "description": "Expression to transform weighted entropy into criticality index. Use 'total_entropy' as the computed sum.",
-                    "examples": ["clip(1 + 4 * total_entropy, 1, 5)"]
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "frequency": {
-          "type": "object",
-          "description": "Specifies the distribution for loss event frequency (how often events occur).",
-          "properties": {
-            "scope": {
-              "type": "string",
-              "description": "Level at which frequency is modeled: 'portfolio' for aggregate, 'asset' for per-asset rates. Default is 'portfolio'.",
-              "enum": ["portfolio", "asset"],
-              "default": "portfolio"
-            },
-            "model": {
-              "type": "string",
-              "description": "Statistical distribution for event frequency (used if scope is 'portfolio').",
-              "enum": ["poisson", "negative_binomial", "hierarchical_gamma_poisson", "zero_inflated_poisson"],
-              "examples": ["poisson", "hierarchical_gamma_poisson"]
-            },
-            "parameters": {
-              "type": "object",
-              "description": "Distribution-specific parameters (used if scope is 'portfolio'). Can include expressions referencing CI (criticality index).",
-              "properties": {
-                "lambda": {
-                  "oneOf": [
-                    {"type": "number", "minimum": 0},
-                    {"type": "string"}
-                  ],
-                  "description": "Poisson rate parameter. For hierarchical models, can be an expression like '1 + CI * 0.5'.",
-                  "examples": [1.2, "1 + CI * 0.5"]
-                },
-                "alpha_base": {
-                  "oneOf": [
-                    {"type": "number", "minimum": 0},
-                    {"type": "string"}
-                  ],
-                  "description": "Gamma shape parameter for hierarchical_gamma_poisson.",
-                  "examples": [1.0, "1 + CI * 0.5"]
-                },
-                "beta_base": {
-                  "type": "number",
-                  "description": "Gamma rate parameter for hierarchical_gamma_poisson.",
-                  "minimum": 0,
-                  "examples": [1.5]
-                },
-                "r": {
-                  "type": "number",
-                  "description": "Number of successes parameter for negative_binomial.",
-                  "minimum": 0
-                },
-                "p": {
-                  "type": "number",
-                  "description": "Success probability for negative_binomial.",
-                  "minimum": 0,
-                  "maximum": 1
-                }
-              }
-            },
-            "models": {
-              "type": "array",
-              "description": "If scope is 'asset', defines frequency model and parameters for each asset type.",
-              "items": {
-                "type": "object",
-                "required": ["asset", "model", "parameters"],
-                "properties": {
-                  "asset": {
-                    "type": "string",
-                    "description": "Name of the asset type (must match an entry in assets[].name)."
-                  },
-                  "model": {
-                    "type": "string",
-                    "description": "Statistical distribution for event frequency.",
-                    "enum": ["poisson", "negative_binomial", "hierarchical_gamma_poisson", "zero_inflated_poisson"]
-                  },
-                  "parameters": {
-                    "type": "object",
-                    "description": "Distribution-specific parameters for this asset type.",
-                    "properties": {
-                      "lambda": {
-                        "oneOf": [
-                          {"type": "number", "minimum": 0},
-                          {"type": "string", "pattern": "^[0-9 ]+$"},
-                          {"type": "string"}
-                        ],
-                        "description": "Poisson rate parameter. Can be a number, a string with spaces (e.g., '1 200'), or an expression like '1 + CI * 0.5'."
-                      },
-                      "alpha_base": {
-                        "oneOf": [
-                          {"type": "number", "minimum": 0},
-                          {"type": "string", "pattern": "^[0-9 ]+$"},
-                          {"type": "string"}
-                        ],
-                        "description": "Gamma shape parameter for hierarchical_gamma_poisson. Can be a number or a string with spaces."
-                      },
-                      "beta_base": {
-                        "type": "number",
-                        "description": "Gamma rate parameter for hierarchical_gamma_poisson.",
-                        "minimum": 0
-                      },
-                      "r": {
-                        "oneOf": [
-                          {"type": "number", "minimum": 0},
-                          {"type": "string", "pattern": "^[0-9 ]+$"}
-                        ],
-                        "description": "Number of successes parameter for negative_binomial. Can be a number or a string with spaces."
-                      },
-                      "p": {
-                        "type": "number",
-                        "description": "Success probability for negative_binomial.",
-                        "minimum": 0,
-                        "maximum": 1
-                      }
-                    },
-                    "additionalProperties": true
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          },
-          "oneOf": [
-            {"required": ["model", "parameters"]},
-            {"required": ["scope", "models"]}
-          ]
-        },
-        "severity": {
-          "type": "object",
-          "description": "Specifies the distribution for loss severity (magnitude of each event). Supports lognormal (recommended), gamma, and mixture models.",
-          "required": [
-            "model"
-          ],
-          "properties": {
-            "model": {
-              "type": "string",
-              "description": "Statistical distribution for loss severity.",
-              "enum": [
-                "lognormal",
-                "gamma",
-                "mixture",
-                "pareto",
-                "weibull"
-              ]
-            },
-            "parameters": {
-              "type": "object",
-              "description": "Distribution-specific parameters. For lognormal, provide either (median + sigma), (mu + sigma), or single_losses (auto-calibration).",
-              "oneOf": [
-                {
-                  "required": [
-                    "median",
-                    "sigma"
-                  ],
-                  "not": {
-                    "required": [
-                      "mu",
-                      "single_losses"
-                    ]
-                  }
-                },
-                {
-                  "required": [
-                    "mu",
-                    "sigma"
-                  ],
-                  "not": {
-                    "required": [
-                      "median",
-                      "single_losses"
-                    ]
-                  }
-                },
-                {
-                  "required": [
-                    "single_losses"
-                  ],
-                  "not": {
-                    "required": [
-                      "median",
-                      "mu",
-                      "sigma"
-                    ]
-                  }
-                },
-                {
-                  "required": [
-                    "shape"
-                  ],
-                  "description": "For gamma/Weibull distributions"
-                },
-                {
-                  "required": [
-                    "alpha"
-                  ],
-                  "description": "For Pareto distribution"
-                }
-              ],
-              "properties": {
-                "median": {
-                  "oneOf": [
-                    {"type": "number", "minimum": 0},
-                    {"type": "string", "pattern": "^[0-9 ]+$"}
-                  ],
-                  "description": "Median loss value for lognormal distribution. RECOMMENDED over mu because it's more intuitive. Accepts space-separated numbers for readability (e.g., '250 000' = 250000). Internally converted to mu = ln(median).",
-                  "examples": [250000, "250 000", "8 100"]
-                },
-                "currency": {
-                  "type": "string",
-                  "description": "ISO 4217 currency code for monetary values. Used with external FX configuration for conversion.",
-                  "pattern": "^[A-Z]{3}$",
-                  "examples": [
-                    "USD",
-                    "EUR",
-                    "GBP",
-                    "CHF"
-                  ]
-                },
-                "mu": {
-                  "type": "number",
-                  "description": "Log-space mean for lognormal distribution. ADVANCED: prefer 'median' for readability. mu = ln(median). Cannot be used together with 'median'.",
-                  "examples": [
-                    12.43
-                  ]
-                },
-                "sigma": {
-                  "type": "number",
-                  "description": "Log-space standard deviation for lognormal distribution. Higher values = more variance and heavier right tail. Typical range: 0.5-2.0.",
-                  "minimum": 0,
-                  "examples": [
-                    1.0,
-                    1.2,
-                    1.5
-                  ]
-                },
-                "shape": {
-                  "type": "number",
-                  "description": "Shape parameter (k or alpha) for gamma/Weibull distributions.",
-                  "minimum": 0,
-                  "examples": [
-                    2.5
-                  ]
-                },
-                "scale": {
-                  "oneOf": [
-                    {"type": "number", "minimum": 0},
-                    {"type": "string", "pattern": "^[0-9 ]+$"}
-                  ],
-                  "description": "Scale parameter (theta) for gamma/Weibull distributions. Can be a number or a string with spaces.",
-                  "examples": [10000, "10 000"]
-                },
-                "alpha": {
-                  "type": "number",
-                  "description": "Shape parameter for Pareto distribution. Must be > 0.",
-                  "exclusiveMinimum": 0,
-                  "examples": [
-                    1.5,
-                    2.0
-                  ]
-                },
-                "x_min": {
-                  "oneOf": [
-                    {"type": "number", "minimum": 0},
-                    {"type": "string", "pattern": "^[0-9 ]+$"}
-                  ],
-                  "description": "Minimum value (scale) for Pareto distribution. Can be a number or a string with spaces.",
-                  "examples": [1000, "10 000"]
-                }
-              }
-            },
-            "components": {
-              "type": "array",
-              "description": "For mixture models: array of weighted component distributions. Each component is an object with a single key (the distribution type) containing the parameters.",
-              "items": {
-                "type": "object",
-                "description": "A single component in the mixture. Use the distribution name as the key (e.g., 'lognormal', 'gamma').",
-                "minProperties": 1,
-                "maxProperties": 1,
-                "additionalProperties": {
-                  "type": "object",
-                  "description": "Component configuration including weight and distribution parameters.",
-                  "required": [
-                    "weight"
-                  ],
-                  "properties": {
-                    "weight": {
-                      "type": "number",
-                      "description": "Mixing weight for this component. All weights should sum to 1.0.",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    "median": {
-                      "oneOf": [
-                        {
-                          "type": "number",
-                          "minimum": 0
-                        },
-                        {
-                          "type": "string",
-                          "pattern": "^[0-9 ]+$"
-                        }
-                      ],
-                      "description": "Median loss value for lognormal components."
-                    },
-                    "currency": {
-                      "type": "string",
-                      "pattern": "^[A-Z]{3}$"
-                    },
-                    "sigma": {
-                      "type": "number",
-                      "minimum": 0
-                    },
-                    "single_losses": {
-                      "type": "array",
-                      "minItems": 2,
-                      "items": {
-                        "oneOf": [
-                          {
-                            "type": "number",
-                            "minimum": 0
-                          },
-                          {
-                            "type": "string",
-                            "pattern": "^[0-9 ]+$"
-                          }
-                        ]
-                      },
-                      "description": "Optional calibration input for lognormal components: list of single-event losses. If provided, engine computes mu/sigma from data. Do not combine with median/sigma.",
-                      "examples": [
-                        [
-                          "25 000",
-                          "18 000",
-                          "45 000",
-                          "32 000"
-                        ]
-                      ]
-                    },
-                    "shape": {
-                      "oneOf": [
-                        {
-                          "type": "number",
-                          "minimum": 0
-                        },
-                        {
-                          "type": "string",
-                          "pattern": "^[0-9 ]+$"
-                        }
-                      ],
-                      "description": "Shape parameter for gamma/Weibull."
-                    },
-                    "scale": {
-                      "oneOf": [
-                        {
-                          "type": "number",
-                          "minimum": 0
-                        },
-                        {
-                          "type": "string",
-                          "pattern": "^[0-9 ]+$"
-                        }
-                      ],
-                      "description": "Scale parameter for gamma/Weibull."
-                    }
-                  }
-                }
-              },
-              "examples": [
-                [
-                  {
-                    "lognormal": {
-                      "weight": 0.7,
-                      "median": "162 755",
-                      "currency": "USD",
-                      "sigma": 1.2
-                    }
-                  },
-                  {
-                    "gamma": {
-                      "weight": 0.3,
-                      "shape": 2.5,
-                      "scale": 10000
-                    }
-                  }
-                ]
-              ]
-            }
-          }
-        },
-        "dependency": {
-          "type": "object",
-          "description": "Models dependencies between risk factors or assets using copulas.",
-          "properties": {
-            "copula": {
-              "type": "object",
-              "description": "Copula configuration for modeling tail dependencies and correlations.",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "description": "Copula family. Gaussian for symmetric dependencies, Clayton/Gumbel for tail dependencies.",
-                  "enum": [
-                    "gaussian",
-                    "t",
-                    "clayton",
-                    "gumbel",
-                    "frank"
-                  ],
-                  "examples": [
-                    "gaussian"
-                  ]
-                },
-                "dimension": {
-                  "type": "integer",
-                  "description": "Number of correlated variables.",
-                  "minimum": 2,
-                  "examples": [
-                    4
-                  ]
-                },
-                "rho_matrix": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "array",
-                        "items": {
-                          "type": "number"
-                        }
-                      }
-                    }
-                  ],
-                  "description": "Correlation matrix. Can be specified as expression like 'toeplitz(0.7, 4)' or explicit 2D array.",
-                  "examples": [
-                    "toeplitz(0.7, 4)",
-                    [
-                      [
-                        1,
-                        0.7
-                      ],
-                      [
-                        0.7,
-                        1
-                      ]
-                    ]
-                  ]
-                },
-                "df": {
-                  "type": "integer",
-                  "description": "Degrees of freedom for t-copula. Lower values = heavier tails.",
-                  "minimum": 1,
-                  "examples": [
-                    4,
-                    10
-                  ]
-                },
-                "theta": {
-                  "type": "number",
-                  "description": "Dependence parameter for Archimedean copulas (Clayton, Gumbel, Frank).",
-                  "examples": [
-                    2.0
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "controls": {
-          "type": "object",
-          "description": "Security control effectiveness modeling. Defines how preventive, detective, and recovery controls reduce risk frequency and severity.",
-          "properties": {
-            "layers": {
-              "type": "array",
-              "description": "Organized layers of security controls (e.g., preventive, detective, recovery). Each layer contains one or more controls.",
-              "items": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "controls"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Name of this control layer.",
-                    "examples": [
-                      "email_security",
-                      "endpoint_protection",
-                      "network_defense",
-                      "backup_recovery"
-                    ]
-                  },
-                  "description": {
-                    "type": "string",
-                    "description": "Human-readable description of this control layer's purpose.",
-                    "examples": [
-                      "Email filtering and anti-phishing controls",
-                      "Endpoint detection and response"
-                    ]
-                  },
-                  "controls": {
-                    "type": "array",
-                    "description": "Individual security controls within this layer.",
-                    "items": {
-                      "type": "object",
-                      "required": [
-                        "id",
-                        "type",
-                        "effectiveness"
-                      ],
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "description": "Unique identifier for this control.",
-                          "examples": [
-                            "email_filtering",
-                            "edr",
-                            "mfa",
-                            "immutable_backups"
-                          ]
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "Control category based on function.",
-                          "enum": [
-                            "preventive",
-                            "detective",
-                            "corrective",
-                            "recovery",
-                            "deterrent",
-                            "compensating"
-                          ],
-                          "examples": [
-                            "preventive",
-                            "detective",
-                            "recovery"
-                          ]
-                        },
-                        "effectiveness": {
-                          "type": "number",
-                          "description": "How effective this control is at reducing risk when functioning properly. 0.0 = no effect, 1.0 = perfect prevention. Represents the percentage of attacks this control can stop.",
-                          "minimum": 0,
-                          "maximum": 1,
-                          "examples": [
-                            0.85,
-                            0.90,
-                            0.75
-                          ]
-                        },
-                        "coverage": {
-                          "type": "number",
-                          "description": "What percentage of assets/attack surface this control covers. 0.0 = no coverage, 1.0 = complete coverage. Default: 1.0",
-                          "minimum": 0,
-                          "maximum": 1,
-                          "default": 1.0,
-                          "examples": [
-                            1.0,
-                            0.95,
-                            0.80
-                          ]
-                        },
-                        "reliability": {
-                          "type": "number",
-                          "description": "How reliably this control functions (uptime, accuracy). 0.0 = never works, 1.0 = always works. Default: 1.0",
-                          "minimum": 0,
-                          "maximum": 1,
-                          "default": 1.0,
-                          "examples": [
-                            0.99,
-                            0.95,
-                            0.92
-                          ]
-                        },
-                        "cost": {
-                          "type": "number",
-                          "description": "Annual cost of this control in the model's base currency. Optional, used for ROI calculations.",
-                          "minimum": 0,
-                          "examples": [
-                            50000,
-                            120000,
-                            25000
-                          ]
-                        },
-                        "currency": {
-                          "type": "string",
-                          "description": "ISO 4217 currency code for the cost field.",
-                          "pattern": "^[A-Z]{3}$",
-                          "examples": [
-                            "USD",
-                            "EUR",
-                            "GBP"
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "dependencies": {
-              "type": "array",
-              "description": "Defines correlations between controls. When controls are correlated, their combined effectiveness is reduced (they may fail together or provide overlapping protection).",
-              "items": {
-                "type": "object",
-                "required": [
-                  "controls",
-                  "correlation"
-                ],
-                "properties": {
-                  "controls": {
-                    "type": "array",
-                    "description": "List of control IDs that are correlated.",
-                    "items": {
-                      "type": "string"
-                    },
-                    "minItems": 2,
-                    "examples": [
-                      [
-                        "email_filtering",
-                        "edr"
-                      ],
-                      [
-                        "mfa",
-                        "pam"
-                      ]
-                    ]
-                  },
-                  "correlation": {
-                    "type": "number",
-                    "description": "Correlation coefficient between controls. 0.0 = independent, 1.0 = perfectly correlated (fail together), -1.0 = negatively correlated.",
-                    "minimum": -1,
-                    "maximum": 1,
-                    "examples": [
-                      0.3,
-                      0.5,
-                      0.1
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "temporal": {
-          "type": "object",
-          "description": "Time horizon and granularity settings for the simulation.",
-          "properties": {
-            "horizon": {
-              "type": "string",
-              "description": "Total time period to simulate. Format: number + unit (d=days, w=weeks, m=months, y=years).",
-              "pattern": "^[0-9]+[dwmy]$",
-              "examples": [
-                "12m",
-                "24m",
-                "1y",
-                "365d"
-              ]
-            },
-            "granularity": {
-              "type": "string",
-              "description": "Time step for simulation. Format: number + unit.",
-              "pattern": "^[0-9]+[dwmy]$",
-              "examples": [
-                "1m",
-                "1w",
-                "1d"
-              ]
-            }
-          }
-        }
-      },
-      "additionalProperties": true
-    },
-    "pipeline": {
-      "type": "object",
-      "description": "Simulation and validation configuration for the risk model execution.",
-      "properties": {
-        "simulation": {
-          "type": "object",
-          "description": "Simulation engine settings.",
-          "properties": {
-            "monte_carlo": {
-              "type": "object",
-              "description": "Monte Carlo simulation configuration for frequentist risk quantification.",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "description": "Whether to run Monte Carlo simulation.",
-                  "default": true
-                },
-                "runs": {
-                  "type": "integer",
-                  "description": "Number of simulation iterations. Higher = more precision but slower. Typical range: 10,000-100,000.",
-                  "minimum": 100,
-                  "default": 10000,
-                  "examples": [
-                    10000,
-                    50000,
-                    100000
-                  ]
-                },
-                "random_seed": {
-                  "type": "integer",
-                  "description": "Seed for random number generator. Set for reproducible results.",
-                  "examples": [
-                    42,
-                    12345
-                  ]
-                }
-              }
-            },
-            "mcmc": {
-              "type": "object",
-              "description": "Markov Chain Monte Carlo configuration for Bayesian inference.",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "description": "Whether to run MCMC inference.",
-                  "default": false
-                },
-                "algorithm": {
-                  "type": "string",
-                  "description": "MCMC sampling algorithm.",
-                  "enum": [
-                    "metropolis_hastings",
-                    "nuts",
-                    "hmc",
-                    "gibbs"
-                  ],
-                  "default": "metropolis_hastings"
-                },
-                "iterations": {
-                  "type": "integer",
-                  "description": "Total MCMC iterations per chain.",
-                  "minimum": 1000,
-                  "default": 10000,
-                  "examples": [
-                    10000,
-                    15000
-                  ]
-                },
-                "burn_in": {
-                  "type": "integer",
-                  "description": "Number of initial iterations to discard (warm-up period).",
-                  "minimum": 0,
-                  "default": 1000,
-                  "examples": [
-                    1000,
-                    3000
-                  ]
-                },
-                "chains": {
-                  "type": "integer",
-                  "description": "Number of independent MCMC chains for convergence diagnostics.",
-                  "minimum": 1,
-                  "default": 4,
-                  "examples": [
-                    2,
-                    4
-                  ]
-                },
-                "thinning": {
-                  "type": "integer",
-                  "description": "Keep every nth sample to reduce autocorrelation.",
-                  "minimum": 1,
-                  "default": 1
-                }
-              }
-            }
-          }
-        },
-        "validation": {
-          "type": "object",
-          "description": "Validation thresholds for simulation quality checks.",
-          "properties": {
-            "mcmc": {
-              "type": "object",
-              "description": "MCMC convergence diagnostic thresholds.",
-              "properties": {
-                "rhat_threshold": {
-                  "type": "number",
-                  "description": "Maximum acceptable R-hat (Gelman-Rubin statistic). Values > threshold indicate non-convergence. Standard threshold is 1.05.",
-                  "minimum": 1,
-                  "default": 1.05,
-                  "examples": [
-                    1.05,
-                    1.1
-                  ]
-                },
-                "ess_min": {
-                  "type": "integer",
-                  "description": "Minimum effective sample size required for reliable inference.",
-                  "minimum": 100,
-                  "default": 1000,
-                  "examples": [
-                    1000,
-                    5000
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      "additionalProperties": true
-    },
-    "output": {
-      "type": "object",
-      "description": "Specifies requested output metrics, distributions, and export formats.",
-      "properties": {
-        "metrics": {
-          "type": "array",
-          "description": "List of risk metrics to compute.",
-          "items": {
-            "type": "string",
-            "description": "Metric identifier.",
-            "enum": [
-              "EAL",
-              "VaR_90",
-              "VaR_95",
-              "VaR_99",
-              "VaR_999",
-              "CVaR_90",
-              "CVaR_95",
-              "CVaR_99",
-              "median_loss",
-              "mean_loss",
-              "std_loss",
-              "max_loss",
-              "loss_exceedance_curve"
-            ]
-          },
-          "examples": [
-            [
-              "EAL",
-              "VaR_95",
-              "VaR_99"
-            ]
-          ]
-        },
-        "distributions": {
-          "type": "object",
-          "description": "Distribution outputs to generate.",
-          "properties": {
-            "annual_loss": {
-              "type": "boolean",
-              "description": "Output full annual loss distribution.",
-              "default": false
-            },
-            "frequency": {
-              "type": "boolean",
-              "description": "Output frequency distribution.",
-              "default": false
-            },
-            "severity": {
-              "type": "boolean",
-              "description": "Output severity distribution.",
-              "default": false
-            }
-          }
-        },
-        "diagnostics": {
-          "type": "object",
-          "description": "Diagnostic outputs for model validation.",
-          "properties": {
-            "convergence": {
-              "type": "boolean",
-              "description": "Include MCMC convergence diagnostics (R-hat, ESS, trace plots).",
-              "default": false
-            },
-            "sensitivity": {
-              "type": "boolean",
-              "description": "Include parameter sensitivity analysis.",
-              "default": false
-            }
-          }
-        },
-        "export": {
-          "type": "object",
-          "description": "File export configuration.",
-          "properties": {
-            "csv": {
-              "type": "string",
-              "description": "Path for CSV export of results.",
-              "examples": [
-                "results.csv",
-                "output/risk_results.csv"
-              ]
-            },
-            "json": {
-              "type": "string",
-              "description": "Path for JSON export of results.",
-              "examples": [
-                "results.json"
-              ]
-            },
-            "parquet": {
-              "type": "string",
-              "description": "Path for Parquet export (efficient for large datasets).",
-              "examples": [
-                "results.parquet"
-              ]
-            }
-          }
-        }
-      },
-      "additionalProperties": true
-    }
-  },
-  "$defs": {
-    "iso3166_1_alpha2": {
-      "type": "string",
-      "description": "ISO 3166-1 alpha-2 country code (uppercase).",
-      "pattern": "^[A-Z]{2}$",
-      "examples": [
-        "US",
-        "DE",
-        "GB",
-        "FR",
-        "JP"
-      ]
-    }
-  },
-  "additionalProperties": true,
-  "examples": [
-    {
-      "crml": "1.1",
-      "meta": {
-        "name": "simple-fair-model",
-        "description": "Basic FAIR-style risk model"
-      },
-      "model": {
-        "assets": [
-          {
-            "name": "laptop",
-            "cardinality": 100,
-            "criticality_index": { "type": "uniform" }
-          },
-          {
-            "name": "server",
-            "cardinality": 50,
-            "criticality_index": { "type": "uniform" }
-          }
-        ],
-        "frequency": {
-          "scope": "asset",
-          "models": [
-            {
-              "asset": "laptop",
-              "model": "poisson",
-              "parameters": { "lambda": 0.02 }
-            },
-            {
-              "asset": "server",
-              "model": "poisson",
-              "parameters": { "lambda": 0.05 }
-            }
-          ]
-        },
-        "severity": {
-          "model": "lognormal",
-          "parameters": {
-            "median": 50000,
-            "currency": "USD",
-            "sigma": 1.2
-          }
-        }
-      },
-      "output": {
-        "metrics": [
-          "EAL",
-          "VaR_95"
-        ]
-      }
-    }
-  ]
+  "title": "CRMLSchema",
+  "type": "object"
 }

@@ -1,0 +1,35 @@
+crml: "1.1"
+meta:
+  name: "Multi-Scenario Demo"
+  version: "1.0"
+  description: "A model demonstrating aggregation of distinct risk scenarios."
+model:
+  assets:
+    - name: "Database_Server"
+      cardinality: 1
+    - name: "Employee_Laptops"
+      cardinality: 500
+
+  frequency:
+    models:
+      - asset: "Database_Server"
+        model: "poisson"
+        parameters:
+          lambda: 0.1  # Major breach every 10 years
+      - asset: "Employee_Laptops"
+        model: "poisson"
+        parameters:
+          lambda: 12.0 # 1 incident per month
+
+  severity:
+    models:
+      - asset: "Database_Server"
+        model: "lognormal"
+        parameters:
+          median: 5000000
+          sigma: 1.5
+      - asset: "Employee_Laptops"
+        model: "lognormal"
+        parameters:
+          median: 2000
+          sigma: 0.5

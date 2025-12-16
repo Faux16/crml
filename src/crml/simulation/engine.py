@@ -26,13 +26,6 @@ def run_monte_carlo(
     start_time = time.time()
     
     # 1. Configuration Setup
-    if fx_config is None:
-        fx_config = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
-    elif isinstance(fx_config, dict):
-        fx_config = dict(fx_config)
-        if 'rates' not in fx_config: fx_config['rates'] = DEFAULT_FX_RATES
-        fx_config = FXConfig(**fx_config)
-        
     fx_config = normalize_fx_config(fx_config)
     output_symbol = get_currency_symbol(fx_config.output_currency)
 
@@ -122,60 +115,110 @@ def run_monte_carlo(
         # Let's create a temporary override dict or modify the params object
         freq.parameters.lambda_ = lambda_val
 
-    # 4. Simulation Loop
+    # 4. Simulation Scenarios Extraction
+    # We identify "scenarios" as (FrequencyModel, SeverityModel) pairs.
+    # Grouping logic:
+    # - If freq.models and sev.models exist, match by asset name.
+    # - Fail back to global models if asset-specific ones not found.
+    # - If no models list, use single global scenario logic.
+
+    scenarios = []
+    
+    # helper to find severity for an asset
+    def get_sev_for_asset(asset_name, global_sev):
+        if global_sev.models:
+            for sm in global_sev.models:
+                if sm.asset == asset_name:
+                    return sm.model, sm.parameters, None # components not supported in sub-models yet
+        # Fallback to global
+        return global_sev.model, global_sev.parameters, global_sev.components
+
+    if freq.models:
+        # Multi-scenario mode driven by frequency assets
+        for fm in freq.models:
+            s_model, s_params, s_comps = get_sev_for_asset(fm.asset, sev)
+            scenarios.append({
+                'name': fm.asset,
+                'freq_model': fm.model,
+                'freq_params': fm.parameters,
+                'sev_model': s_model if s_model else (sev.model if sev else ''),
+                'sev_params': s_params if s_params else sev.parameters,
+                'sev_comps': s_comps
+            })
+    else:
+        # Global single scenario
+        scenarios.append({
+            'name': 'global',
+            'freq_model': freq.model if freq else '',
+            'freq_params': freq.parameters,
+            'sev_model': sev.model if sev else '',
+            'sev_params': sev.parameters,
+            'sev_comps': sev.components
+        })
+
+    # 5. Simulation Loop (Aggregated)
     try:
-        # A. Frequency
-        counts = FrequencyEngine.generate_frequency(
-            freq_model=freq_model,
-            params=freq.parameters,
-            n_runs=n_runs,
-            cardinality=cardinality,
-            seed=seed
-        )
+        # Initialize total annual losses accumulator
+        total_annual_losses = np.zeros(n_runs)
         
-        annual_losses = []
-        total_events = int(np.sum(counts))
-        
-        if total_events > 0:
-            # B. Severity
-            sev_model = sev.model if sev else ''
-            severities = SeverityEngine.generate_severity(
-                sev_model=sev_model,
-                params=sev.parameters,
-                components=sev.components,
-                total_events=total_events,
-                fx_config=fx_config
+        for sc in scenarios:
+            f_model = sc['freq_model']
+            # Apply control effectiveness logic here if needed (e.g., per-asset controls)
+            # Currently heuristic is global/single-lambda only. 
+            # TODO: Improve per-scenario controls in future.
+            
+            # Using specific parameters for this scenario
+            if f_model == 'poisson' and sc['freq_params']:
+                 lambda_val = float(sc['freq_params'].lambda_) if sc['freq_params'].lambda_ is not None else 0.0
+                 # For now, if global controls applied, we might want to scale this?
+                 # Keeping simple: No global control scaling on sub-models unless explicitly handled.
+            
+            # A. Frequency Generation
+            counts = FrequencyEngine.generate_frequency(
+                freq_model=f_model,
+                params=sc['freq_params'],
+                n_runs=n_runs,
+                cardinality=1, # Per-scenario is typically 1 asset group or aggregate
+                seed=seed
             )
             
-            # C. Aggregation (Sum severities per year)
-            # This can be optimized with vectorization (np.add.at or cumsum/diff)
-            # For now, keeping the loop for clarity and safety with jagged arrays logic
+            scenario_losses = np.zeros(n_runs)
+            total_events = int(np.sum(counts))
             
-            # Make sure we got enough severities (should be exact)
-            if len(severities) != total_events:
-                 # Fallback if something went wrong inside severity engine
-                 severities = np.zeros(total_events)
+            if total_events > 0:
+                # B. Severity Generation
+                severities = SeverityEngine.generate_severity(
+                    sev_model=sc['sev_model'],
+                    params=sc['sev_params'],
+                    components=sc['sev_comps'],
+                    total_events=total_events,
+                    fx_config=fx_config
+                )
+                
+                # Check for length mismatch
+                if len(severities) != total_events:
+                     severities = np.zeros(total_events)
+
+                # C. Aggregation for this scenario
+                current_idx = 0
+                temp_losses = []
+                for c in counts:
+                    if c > 0:
+                       loss = np.sum(severities[current_idx : current_idx + c])
+                       temp_losses.append(loss)
+                       current_idx += c
+                    else:
+                       temp_losses.append(0.0)
+                scenario_losses = np.array(temp_losses)
             
-            # Optimized aggregation
-            # Create Run IDs for each event
-            # run_indices = np.repeat(np.arange(n_runs), counts)
-            # annual_losses_arr = np.bincount(run_indices, weights=severities, minlength=n_runs)
-            # annual_losses = annual_losses_arr
-            
-            current_idx = 0
-            for c in counts:
-                if c > 0:
-                   loss = np.sum(severities[current_idx : current_idx + c])
-                   annual_losses.append(loss)
-                   current_idx += c
-                else:
-                   annual_losses.append(0.0)
-        else:
-            annual_losses = np.zeros(n_runs)
-            
-        annual_losses = np.array(annual_losses)
+            # Add to total
+            total_annual_losses += scenario_losses
+
+        annual_losses = total_annual_losses
 
         # 5. Reporting Currency Conversion
+        annual_losses = np.asarray(total_annual_losses, dtype=np.float64)
+        
         if fx_config.base_currency != fx_config.output_currency:
             factor = convert_currency(1.0, fx_config.base_currency, fx_config.output_currency, fx_config)
             annual_losses = annual_losses * factor

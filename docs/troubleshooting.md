@@ -294,7 +294,7 @@ model:  # Model section (required)
 
 ### "API simulation fails"
 
-**Problem:** Playground simulation returns error.
+**Problem:** Simulation page returns error.
 
 **Solutions:**
 

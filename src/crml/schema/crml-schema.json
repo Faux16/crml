@@ -242,11 +242,11 @@
     },
     "data": {
       "type": "object",
-      "description": "Defines telemetry sources and feature mappings that feed into the risk model. Optional—models can run with synthetic data or expert estimates if no real data sources are configured.",
+      "description": "Defines telemetry sources and feature mappings that feed into the risk model. Models can run with synthetic data or expert estimates if no real data sources are configured.",
       "properties": {
         "sources": {
           "type": "object",
-          "description": "Named data sources from security tools (PAM, DLP, IAM, XDR, WAF, etc.). Each source defines a schema of available fields.",
+          "description": "Named data sources from security tools (PAM, DLP, IAM, XDR, WAF, etc.). Each source defines a data_schema of available fields.",
           "additionalProperties": {
             "type": "object",
             "description": "Configuration for a single data source.",
@@ -265,10 +265,12 @@
                   "vm",
                   "cspm",
                   "ndr",
-                  "phishingSimulation",
                   "casb",
                   "asm",
                   "ueba",
+                  "audit",
+                  "phishingSimulation",
+                  "vulnerabilityReport",
                   "industryReport",
                   "pentestReport",
                   "person",
@@ -279,7 +281,7 @@
                   "dlp"
                 ]
               },
-              "schema": {
+              "data_schema": {
                 "type": "object",
                 "description": "Field definitions available from this source. Keys are field names, values are data types.",
                 "additionalProperties": {
@@ -298,7 +300,7 @@
         },
         "feature_mapping": {
           "type": "object",
-          "description": "Maps logical feature names used in the model to physical source.field paths. Enables abstraction between model logic and data sources.",
+          "description": "Maps model input variables to specific fields in your data sources (key-value pairs). The key is the variable used in the model, the value is the source and field (e.g., 'pam.pam_entropy').",
           "additionalProperties": {
             "type": "string",
             "description": "Source path in format 'source_name.field_name'",
@@ -323,132 +325,96 @@
       ],
       "properties": {
         "assets": {
-          "type": "object",
-          "description": "Defines the asset population being modeled and how criticality is computed.",
-          "properties": {
-            "cardinality": {
-              "type": "integer",
-              "description": "Number of assets in the portfolio. Used for asset-level frequency models.",
-              "minimum": 1,
-              "examples": [
-                100,
-                10000
-              ]
-            },
-            "criticality_index": {
-              "type": "object",
-              "description": "Configuration for computing asset criticality scores (1-5 scale typically).",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "description": "Method for computing criticality index.",
-                  "enum": [
-                    "entropy-weighted",
-                    "manual",
-                    "uniform"
-                  ],
-                  "default": "uniform"
-                },
-                "inputs": {
-                  "type": "object",
-                  "description": "Maps input names to feature_mapping keys for entropy-weighted calculation.",
-                  "additionalProperties": {
-                    "type": "string"
+          "type": "array",
+          "description": "List of asset or asset types being modeled. Each asset (type) has a name, cardinality, and optional criticality index configuration.",
+          "items": {
+            "type": "object",
+            "required": ["name", "cardinality"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name or type of the asset (e.g., 'laptop', 'server')."
+              },
+              "cardinality": {
+                "oneOf": [
+                  {"type": "integer", "minimum": 1},
+                  {"type": "string", "pattern": "^[0-9 ]+$"}
+                ],
+                "description": "Number of assets of this type. Can be a number or a string with spaces for readability (e.g., '10 000').",
+                "examples": [100, "10 000", 50]
+              },
+              "criticality_index": {
+                "type": "object",
+                "description": "Configuration for computing asset criticality scores (1-5 scale typically).",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Method for computing criticality index.",
+                    "enum": ["entropy-weighted", "manual", "uniform"],
+                    "default": "uniform"
+                  },
+                  "inputs": {
+                    "type": "object",
+                    "description": "Maps input names to feature_mapping keys for entropy-weighted calculation.",
+                    "additionalProperties": {"type": "string"}
+                  },
+                  "weights": {
+                    "type": "object",
+                    "description": "Relative weights for each input. Should sum to 1.0.",
+                    "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
+                  },
+                  "transform": {
+                    "type": "string",
+                    "description": "Expression to transform weighted entropy into criticality index. Use 'total_entropy' as the computed sum.",
+                    "examples": ["clip(1 + 4 * total_entropy, 1, 5)"]
                   }
-                },
-                "weights": {
-                  "type": "object",
-                  "description": "Relative weights for each input. Should sum to 1.0.",
-                  "additionalProperties": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
-                  }
-                },
-                "transform": {
-                  "type": "string",
-                  "description": "Expression to transform weighted entropy into criticality index. Use 'total_entropy' as the computed sum.",
-                  "examples": [
-                    "clip(1 + 4 * total_entropy, 1, 5)"
-                  ]
                 }
               }
-            }
+            },
+            "additionalProperties": false
           }
         },
         "frequency": {
           "type": "object",
           "description": "Specifies the distribution for loss event frequency (how often events occur).",
-          "required": [
-            "model"
-          ],
           "properties": {
-            "model": {
-              "type": "string",
-              "description": "Statistical distribution for event frequency.",
-              "enum": [
-                "poisson",
-                "negative_binomial",
-                "hierarchical_gamma_poisson",
-                "zero_inflated_poisson"
-              ],
-              "examples": [
-                "poisson",
-                "hierarchical_gamma_poisson"
-              ]
-            },
             "scope": {
               "type": "string",
-              "description": "Level at which frequency is modeled: 'portfolio' for aggregate, 'asset' for per-asset rates.",
-              "enum": [
-                "portfolio",
-                "asset"
-              ],
+              "description": "Level at which frequency is modeled: 'portfolio' for aggregate, 'asset' for per-asset rates. Default is 'portfolio'.",
+              "enum": ["portfolio", "asset"],
               "default": "portfolio"
+            },
+            "model": {
+              "type": "string",
+              "description": "Statistical distribution for event frequency (used if scope is 'portfolio').",
+              "enum": ["poisson", "negative_binomial", "hierarchical_gamma_poisson", "zero_inflated_poisson"],
+              "examples": ["poisson", "hierarchical_gamma_poisson"]
             },
             "parameters": {
               "type": "object",
-              "description": "Distribution-specific parameters. Can include expressions referencing CI (criticality index).",
+              "description": "Distribution-specific parameters (used if scope is 'portfolio'). Can include expressions referencing CI (criticality index).",
               "properties": {
                 "lambda": {
                   "oneOf": [
-                    {
-                      "type": "number",
-                      "minimum": 0
-                    },
-                    {
-                      "type": "string"
-                    }
+                    {"type": "number", "minimum": 0},
+                    {"type": "string"}
                   ],
                   "description": "Poisson rate parameter. For hierarchical models, can be an expression like '1 + CI * 0.5'.",
-                  "examples": [
-                    1.2,
-                    "1 + CI * 0.5"
-                  ]
+                  "examples": [1.2, "1 + CI * 0.5"]
                 },
                 "alpha_base": {
                   "oneOf": [
-                    {
-                      "type": "number",
-                      "minimum": 0
-                    },
-                    {
-                      "type": "string"
-                    }
+                    {"type": "number", "minimum": 0},
+                    {"type": "string"}
                   ],
                   "description": "Gamma shape parameter for hierarchical_gamma_poisson.",
-                  "examples": [
-                    1.0,
-                    "1 + CI * 0.5"
-                  ]
+                  "examples": [1.0, "1 + CI * 0.5"]
                 },
                 "beta_base": {
                   "type": "number",
                   "description": "Gamma rate parameter for hierarchical_gamma_poisson.",
                   "minimum": 0,
-                  "examples": [
-                    1.5
-                  ]
+                  "examples": [1.5]
                 },
                 "r": {
                   "type": "number",
@@ -462,8 +428,73 @@
                   "maximum": 1
                 }
               }
+            },
+            "models": {
+              "type": "array",
+              "description": "If scope is 'asset', defines frequency model and parameters for each asset type.",
+              "items": {
+                "type": "object",
+                "required": ["asset", "model", "parameters"],
+                "properties": {
+                  "asset": {
+                    "type": "string",
+                    "description": "Name of the asset type (must match an entry in assets[].name)."
+                  },
+                  "model": {
+                    "type": "string",
+                    "description": "Statistical distribution for event frequency.",
+                    "enum": ["poisson", "negative_binomial", "hierarchical_gamma_poisson", "zero_inflated_poisson"]
+                  },
+                  "parameters": {
+                    "type": "object",
+                    "description": "Distribution-specific parameters for this asset type.",
+                    "properties": {
+                      "lambda": {
+                        "oneOf": [
+                          {"type": "number", "minimum": 0},
+                          {"type": "string", "pattern": "^[0-9 ]+$"},
+                          {"type": "string"}
+                        ],
+                        "description": "Poisson rate parameter. Can be a number, a string with spaces (e.g., '1 200'), or an expression like '1 + CI * 0.5'."
+                      },
+                      "alpha_base": {
+                        "oneOf": [
+                          {"type": "number", "minimum": 0},
+                          {"type": "string", "pattern": "^[0-9 ]+$"},
+                          {"type": "string"}
+                        ],
+                        "description": "Gamma shape parameter for hierarchical_gamma_poisson. Can be a number or a string with spaces."
+                      },
+                      "beta_base": {
+                        "type": "number",
+                        "description": "Gamma rate parameter for hierarchical_gamma_poisson.",
+                        "minimum": 0
+                      },
+                      "r": {
+                        "oneOf": [
+                          {"type": "number", "minimum": 0},
+                          {"type": "string", "pattern": "^[0-9 ]+$"}
+                        ],
+                        "description": "Number of successes parameter for negative_binomial. Can be a number or a string with spaces."
+                      },
+                      "p": {
+                        "type": "number",
+                        "description": "Success probability for negative_binomial.",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                },
+                "additionalProperties": false
+              }
             }
-          }
+          },
+          "oneOf": [
+            {"required": ["model", "parameters"]},
+            {"required": ["scope", "models"]}
+          ]
         },
         "severity": {
           "type": "object",
@@ -539,21 +570,11 @@
               "properties": {
                 "median": {
                   "oneOf": [
-                    {
-                      "type": "number",
-                      "minimum": 0
-                    },
-                    {
-                      "type": "string",
-                      "pattern": "^[0-9 ]+$"
-                    }
+                    {"type": "number", "minimum": 0},
+                    {"type": "string", "pattern": "^[0-9 ]+$"}
                   ],
                   "description": "Median loss value for lognormal distribution. RECOMMENDED over mu because it's more intuitive. Accepts space-separated numbers for readability (e.g., '250 000' = 250000). Internally converted to mu = ln(median).",
-                  "examples": [
-                    250000,
-                    "250 000",
-                    "8 100"
-                  ]
+                  "examples": [250000, "250 000", "8 100"]
                 },
                 "currency": {
                   "type": "string",
@@ -592,12 +613,12 @@
                   ]
                 },
                 "scale": {
-                  "type": "number",
-                  "description": "Scale parameter (theta) for gamma/Weibull distributions.",
-                  "minimum": 0,
-                  "examples": [
-                    10000
-                  ]
+                  "oneOf": [
+                    {"type": "number", "minimum": 0},
+                    {"type": "string", "pattern": "^[0-9 ]+$"}
+                  ],
+                  "description": "Scale parameter (theta) for gamma/Weibull distributions. Can be a number or a string with spaces.",
+                  "examples": [10000, "10 000"]
                 },
                 "alpha": {
                   "type": "number",
@@ -609,13 +630,12 @@
                   ]
                 },
                 "x_min": {
-                  "type": "number",
-                  "description": "Minimum value (scale) for Pareto distribution.",
-                  "minimum": 0,
-                  "examples": [
-                    1000,
-                    10000
-                  ]
+                  "oneOf": [
+                    {"type": "number", "minimum": 0},
+                    {"type": "string", "pattern": "^[0-9 ]+$"}
+                  ],
+                  "description": "Minimum value (scale) for Pareto distribution. Can be a number or a string with spaces.",
+                  "examples": [1000, "10 000"]
                 }
               }
             },
@@ -1281,11 +1301,32 @@
         "description": "Basic FAIR-style risk model"
       },
       "model": {
-        "frequency": {
-          "model": "poisson",
-          "parameters": {
-            "lambda": 1.2
+        "assets": [
+          {
+            "name": "laptop",
+            "cardinality": 100,
+            "criticality_index": { "type": "uniform" }
+          },
+          {
+            "name": "server",
+            "cardinality": 50,
+            "criticality_index": { "type": "uniform" }
           }
+        ],
+        "frequency": {
+          "scope": "asset",
+          "models": [
+            {
+              "asset": "laptop",
+              "model": "poisson",
+              "parameters": { "lambda": 0.02 }
+            },
+            {
+              "asset": "server",
+              "model": "poisson",
+              "parameters": { "lambda": 0.05 }
+            }
+          ]
         },
         "severity": {
           "model": "lognormal",

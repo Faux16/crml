@@ -485,7 +485,7 @@ edr (detective)
 ## Examples
 
 See working examples in `spec/examples/`:
-- [ransomware-with-controls.yaml](file:///Users/sanketsarkar/Desktop/RND/crml_full_repo/spec/examples/ransomware-with-controls.yaml) - Comprehensive ransomware defense
+- [ransomware-with-controls.yaml](/spec/examples/ransomware-with-controls.yaml) - Comprehensive ransomware defense
 
 ---
 
@@ -521,7 +521,7 @@ controls:
 
 ## References
 
-- CRML Specification: [crml-1.1.md](file:///Users/sanketsarkar/Desktop/RND/crml_full_repo/spec/crml-1.1.md)
+- CRML Specification: [crml-1.1.md](/spec/crml-1.1.md)
 - NIST Cybersecurity Framework: Control effectiveness guidance
 - FAIR Model: Control strength estimation
 - CIS Controls: Implementation benchmarks

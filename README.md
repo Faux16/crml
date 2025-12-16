@@ -4,8 +4,8 @@
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Version:** 1.1  
-**Maintained by:** Zeron Research Labs  
+**Version:** 1.2
+**Maintained by:** Zeron Research Labs
 
 CRML is an open, declarative, implementation-agnostic language for expressing cyber risk models, telemetry mappings, simulation pipelines, dependencies, and output requirements.
 
@@ -26,6 +26,8 @@ CRML is designed for:
 - **✅ Strict Validation** - JSON Schema validation catches errors before simulation
 - **🎯 Implementation-Agnostic** - Works with any compliant simulation engine
 - **📝 Human-Readable YAML** - Models are easy to read, review, and audit
+
+<img src="/images/simulation.png">
 
 ## 📦 Installation
 
@@ -114,6 +116,8 @@ pip install -e .
 ```
 
 ### Run Validator Directly
+
+<img src="/images/validator.png">
 
 ```bash
 python tools/validator/crml_validator.py spec/examples/qber-enterprise.yaml

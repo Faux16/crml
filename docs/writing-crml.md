@@ -55,7 +55,8 @@ What are you protecting? How many of them?
 ```yaml
 model:
   assets:
-    cardinality: 500  # 500 employees with email
+    - name: employeeWithEmail
+      cardinality: 500  # 500 employees with email
 ```
 
 **Common asset types:**
@@ -72,13 +73,36 @@ How often do bad things happen?
 
 #### **Option A: Poisson (Most Common)**
 
-Use when events are random and independent:
+Use when events are random and independent. 
+
+For a single asset type:
 
 ```yaml
   frequency:
     model: poisson
     parameters:
       lambda: 0.05  # 5% chance per asset per year
+```
+
+For multiple asset types, use per-asset frequency models:
+
+```yaml
+  assets:
+    - name: laptop
+      cardinality: 100
+    - name: server
+      cardinality: 50
+  frequency:
+    scope: asset
+    models:
+      - asset: laptop
+        model: poisson
+        parameters:
+          lambda: 0.02
+      - asset: server
+        model: poisson
+        parameters:
+          lambda: 0.05
 ```
 
 **When to use Poisson:**
@@ -315,9 +339,9 @@ Risk Reduction:                   76.9%
 
 ### Complete Example
 
-See [ransomware-with-controls.yaml](file:///Users/sanketsarkar/Desktop/RND/crml_full_repo/spec/examples/ransomware-with-controls.yaml) for a full working example with 6 layered controls.
+See [ransomware-with-controls.yaml](/spec/examples/ransomware-with-controls.yaml) for a full working example with 6 layered controls.
 
-For detailed guidance, see the [Control Effectiveness Guide](file:///Users/sanketsarkar/Desktop/RND/crml_full_repo/docs/controls-guide.md).
+For detailed guidance, see the [Control Effectiveness Guide](/docs/controls-guide.md).
 
   model: mixture
   components:
@@ -421,7 +445,8 @@ meta:
   
 model:
   assets:
-    cardinality: 500  # 500 employees
+    - name: employee
+      cardinality: 500  # 500 employees
     
   frequency:
     model: poisson
@@ -448,16 +473,26 @@ model:
 
 ### Pattern 1: Simple Per-Asset Risk
 
-**Use case:** Each asset has independent risk
+**Use case:** Each asset has independent risk (multiple asset types):
 
 ```yaml
 model:
   assets:
-    cardinality: 100  # 100 servers
+    - name: laptop
+      cardinality: 100
+    - name: server
+      cardinality: 50
   frequency:
-    model: poisson
-    parameters:
-      lambda: 0.02  # 2% per server
+    scope: asset
+    models:
+      - asset: laptop
+        model: poisson
+        parameters:
+          lambda: 0.02
+      - asset: server
+        model: poisson
+        parameters:
+          lambda: 0.05
   severity:
     model: lognormal
     parameters:
@@ -524,7 +559,7 @@ model:
 1. **Start simple** - Begin with Poisson + Lognormal
 2. **Use industry data** - Check Verizon DBIR, IBM reports
 3. **Document your assumptions** - Add comments explaining parameter choices
-4. **Test with different values** - Use the playground to experiment
+4. **Test with different values** - Use the simulation page to experiment
 5. **Compare to reality** - Does the output match your experience?
 
 ### ❌ DON'T:
@@ -548,7 +583,8 @@ meta:
   
 model:
   assets:
-    cardinality: 50  # 50 databases
+    - name: database
+      cardinality: 50  # 50 databases
   frequency:
     model: poisson
     parameters:
@@ -577,7 +613,8 @@ meta:
   
 model:
   assets:
-    cardinality: 500  # 500 critical servers
+    - name: server
+      cardinality: 500  # 500 critical servers
   frequency:
     model: poisson
     parameters:
@@ -649,7 +686,7 @@ model:
 
 ## Next Steps
 
-1. **Try the examples** - Load them in the playground
+1. **Try the examples** - Load them in the simulation page
 2. **Modify parameters** - See how results change
 3. **Build your own** - Start with your organization's risks
 4. **Read the spec** - For advanced features
@@ -659,7 +696,7 @@ model:
 
 ## Getting Help
 
-- **Playground**: Try examples interactively
+- **Simulation**: Try examples interactively
 - **Validator**: Check your YAML syntax
 - **Examples**: Browse pre-built models
 - **Understanding Parameters**: Deep dive on distributions
@@ -676,7 +713,8 @@ meta:
   name: "my-model"
 model:
   assets:
-    cardinality: N  # Number of assets
+    - name: asset
+      cardinality: N  # Number of assets
   frequency:
     model: poisson
     parameters:

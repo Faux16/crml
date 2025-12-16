@@ -49,20 +49,20 @@ model:
     res_median = run_simulation(median_model, n_runs=n_runs, seed=seed)
     res_mu = run_simulation(mu_model, n_runs=n_runs, seed=seed)
     
-    assert res_median["success"] is True
-    assert res_mu["success"] is True
+    assert res_median.success is True
+    assert res_mu.success is True
     
     # With same seed and large sample, EALs should be very close
-    eal_median = res_median["metrics"]["eal"]
-    eal_mu = res_mu["metrics"]["eal"]
+    eal_median = res_median.metrics.eal
+    eal_mu = res_mu.metrics.eal
     
     # Allow 2% tolerance for Monte Carlo noise
     relative_diff = abs(eal_median - eal_mu) / max(1.0, eal_median)
     assert relative_diff < 0.02, f"EAL difference too large: {eal_median} vs {eal_mu}"
     
     # Check VaR metrics also match
-    var95_median = res_median["metrics"]["var_95"]
-    var95_mu = res_mu["metrics"]["var_95"]
+    var95_median = res_median.metrics.var_95
+    var95_mu = res_mu.metrics.var_95
     var95_diff = abs(var95_median - var95_mu) / max(1.0, var95_median)
     assert var95_diff < 0.03, f"VaR95 difference too large: {var95_median} vs {var95_mu}"
 
@@ -88,8 +88,8 @@ model:
 """
     
     result = run_simulation(conflicting_model, n_runs=100)
-    assert result["success"] is False
-    assert len(result["errors"]) > 0
+    assert result.success is False
+    assert len(result.errors) > 0
 
 
 def test_median_with_space_separator():
@@ -113,9 +113,9 @@ model:
 """
     
     result = run_simulation(model, n_runs=1000, seed=42)
-    assert result["success"] is True
+    assert result.success is True
     # Median should be parsed as 100000
-    assert result["metrics"]["eal"] > 0
+    assert result.metrics.eal > 0
 
 
 def test_missing_median_and_mu_rejected():
@@ -137,6 +137,6 @@ model:
 """
     
     result = run_simulation(missing_model, n_runs=100)
-    assert result["success"] is False
+    assert result.success is False
     assert any("median" in str(err).lower() or "mu" in str(err).lower() 
-               for err in result["errors"])
+               for err in result.errors)

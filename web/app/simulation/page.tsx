@@ -14,17 +14,18 @@ import { Play, RotateCcw, FileText, Settings2, HelpCircle, Info, BookOpen } from
 import Link from "next/link";
 
 const EXAMPLE_MODELS = {
-    "data-breach": {
-        name: "Data Breach (Simple)",
-        description: "50 databases with PII, 5% annual breach probability, $100K median cost",
-        explanation: "This model represents a small-medium organization with customer data. Lambda=0.05 means 5% chance per database per year (industry average). Median=100000 means $100K typical loss per breach.",
-        content: `crml: "1.1"
+"data-breach": {
+    name: "Data Breach (Simple)",
+    description: "50 databases with PII, 5% annual breach probability, $100K median cost",
+    explanation: "This model represents a small-medium organization with customer data. Lambda=0.05 means 5% chance per database per year (industry average). Median=100000 means $100K typical loss per breach.",
+    content: `crml: "1.1"
 meta:
   name: "data-breach-simple"
   description: "Simple data breach risk model"
 model:
   assets:
-    cardinality: 50  # Number of databases with PII
+    - name: "database"
+      cardinality: 50
   frequency:
     model: poisson  # Rare, random events
     parameters:
@@ -46,7 +47,8 @@ meta:
   description: "Ransomware risk based on industry statistics"
 model:
   assets:
-    cardinality: 500  # Critical servers/systems
+    - name: "critical_system"
+      cardinality: 500
   frequency:
     model: poisson
     parameters:
@@ -59,10 +61,10 @@ model:
       sigma: 1.8  # High variability (some pay $50K, others $5M)`
     },
     "fair-baseline": {
-        name: "FAIR Baseline",
-        description: "Simple FAIR-style portfolio model with 1.2 events/year, $8K median loss",
-        explanation: "Basic FAIR model for portfolio-level analysis. Lambda=1.2 means ~1-2 events expected per year across all assets. Median=8100 means $8100 median loss.",
-        content: `crml: "1.1"
+    name: "FAIR Baseline",
+    description: "Simple FAIR-style portfolio model with 1.2 events/year, $8K median loss",
+    explanation: "Basic FAIR model for portfolio-level analysis. Lambda=1.2 means ~1-2 events expected per year across all assets. Median=8100 means $8100 median loss.",
+    content: `crml: "1.1"
 meta:
   name: "fair-baseline"
   description: "Simple FAIR-like Poisson + Lognormal model"
@@ -80,16 +82,17 @@ model:
       sigma: 1.0  # Low variability`
     },
     "qber-simplified": {
-        name: "QBER Simplified",
-        description: "1000 assets, hierarchical Bayesian model with mixture severity",
-        explanation: "Simplified QBER-style model using hierarchical_gamma_poisson for frequency and mixture distributions for severity. Note: Full QBER uses MCMC; this is a Monte Carlo approximation.",
-        content: `crml: "1.1"
+    name: "QBER Simplified",
+    description: "1000 assets, hierarchical Bayesian model with mixture severity",
+    explanation: "Simplified QBER-style model using hierarchical_gamma_poisson for frequency and mixture distributions for severity. Note: Full QBER uses MCMC; this is a Monte Carlo approximation.",
+    content: `crml: "1.1"
 meta:
   name: "qber-simplified"
   description: "Simplified QBER-style model"
 model:
   assets:
-    cardinality: 1000  # Enterprise scale
+    - name: "endpoint"
+      cardinality: 1000
   frequency:
     model: hierarchical_gamma_poisson  # Bayesian hierarchical
     parameters:
@@ -122,7 +125,7 @@ const OUTPUT_CURRENCIES = {
     "AUD": { symbol: "A$", name: "Australian Dollar" },
 };
 
-export default function PlaygroundPage() {
+export default function SimulationPage() {
     const [yamlContent, setYamlContent] = useState(EXAMPLE_MODELS["data-breach"].content);
     const [selectedExample, setSelectedExample] = useState("data-breach");
     const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
@@ -177,7 +180,7 @@ export default function PlaygroundPage() {
             <div className="container mx-auto px-4 py-8">
                 <div className="mb-8">
                     <h1 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">
-                        CRML Playground
+                        CRML Simulation
                     </h1>
                     <p className="text-lg text-muted-foreground">
                         Write CRML models and run Monte Carlo simulations in real-time
@@ -422,9 +425,9 @@ export default function PlaygroundPage() {
                         </div>
                         <div className="mt-4 p-4 border border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800 rounded-lg">
                             <p className="text-sm">
-                                <strong>ℹ️ About Simulation Methods:</strong> This playground uses <strong>Monte Carlo</strong> simulation (random sampling).
+                                <strong>ℹ️ About Simulation Methods:</strong> This simulation uses <strong>Monte Carlo</strong> simulation (random sampling).
                                 Advanced CRML models (like QBER) can specify <strong>MCMC</strong> (Markov Chain Monte Carlo) for full Bayesian inference,
-                                but this requires specialized tools like PyMC3 or Stan. The playground approximates these models using Monte Carlo for speed and simplicity.
+                                but this requires specialized tools like PyMC3 or Stan. This page approximates these models using Monte Carlo for speed and simplicity.
                             </p>
                         </div>
                     </CardContent>

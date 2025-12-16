@@ -68,34 +68,34 @@ data:
   sources:
     pam:
       type: pam
-      schema:
+      data_schema:
         priv_escalations: int
         failed_sudo: int
         vault_access: int
         rotation_failures: int
     dlp:
       type: dlp
-      schema:
+      data_schema:
         usb_alerts: int
         dpi_hits: int
         exfil_attempts: int
         channel_entropy: float
     iam:
       type: iam
-      schema:
+      data_schema:
         mfa_failures: int
         role_drift: int
         privilege_anomalies: int
         identity_graph_entropy: float
     xdr:
       type: xdr
-      schema:
+      data_schema:
         malware_detections: int
         lateral_movement: int
         process_tree_entropy: float
     waf:
       type: waf
-      schema:
+      data_schema:
         sqli_attempts: int
         rce_attempts: int
         bot_traffic: int

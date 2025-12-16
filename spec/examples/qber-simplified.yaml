@@ -17,7 +17,8 @@ meta:
     countries: ["US"]
 model:
   assets:
-    cardinality: 1000  # Enterprise scale
+    - name: "endpoint"
+      cardinality: 1000  # Enterprise scale
   frequency:
     model: hierarchical_gamma_poisson  # Bayesian hierarchical model
     parameters:

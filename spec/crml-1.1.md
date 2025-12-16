@@ -174,7 +174,7 @@ The `data` block describes telemetry sources and derived feature mappings that m
 `data.sources` is an object whose keys are source names (e.g., `pam`, `dlp`). Each source SHOULD contain:
 
 - `type`: a string indicating the source type (e.g., `pam`, `dlp`, `iam`, `siem`, `custom`).
-- `schema`: an object mapping field names to primitive types (`int`, `float`, `string`, `bool`, `datetime`).
+- `data_schema`: an object mapping field names to primitive types (`int`, `float`, `string`, `bool`, `datetime`).
 
 Example:
 
@@ -183,7 +183,7 @@ data:
   sources:
     pam:
       type: pam
-      schema:
+      data_schema:
         priv_escalations: int
         failed_sudo: int
         vault_access: int
@@ -216,7 +216,7 @@ data:
   sources:
     pam:
       type: pam
-      schema:
+      data_schema:
         priv_escalations: int
         vault_access: int
 
@@ -240,11 +240,11 @@ data:
   sources:
     pam:
       type: pam
-      schema:
+      data_schema:
         pam_entropy: float
     dlp:
       type: dlp
-      schema:
+      data_schema:
         channel_entropy: float
 
   feature_mapping:

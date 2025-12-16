@@ -25,34 +25,34 @@ data:
   sources:
     pam:
       type: pam
-      schema:
+      data_schema:
         priv_escalations: int
         failed_sudo: int
         vault_access: int
         rotation_failures: int
     dlp:
       type: dlp
-      schema:
+      data_schema:
         usb_alerts: int
         dpi_hits: int
         exfil_attempts: int
         channel_entropy: float
     iam:
       type: iam
-      schema:
+      data_schema:
         mfa_failures: int
         role_drift: int
         privilege_anomalies: int
         identity_graph_entropy: float
     xdr:
       type: xdr
-      schema:
+      data_schema:
         malware_detections: int
         lateral_movement: int
         process_tree_entropy: float
     waf:
       type: waf
-      schema:
+      data_schema:
         sqli_attempts: int
         rce_attempts: int
         bot_traffic: int
@@ -65,14 +65,15 @@ data:
     waf_entropy: waf.request_entropy
 model:
   assets:
-    cardinality: 10000
-    criticality_index:
-      type: entropy-weighted
-      inputs:
-        pam_entropy: pam_entropy
-        dlp_entropy: dlp_entropy
-        iam_entropy: iam_entropy
-        xdr_entropy: xdr_entropy
+    - name: "endpoint"
+      cardinality: "10 000"
+      criticality_index:
+        type: entropy-weighted
+        inputs:
+          pam_entropy: pam_entropy
+          dlp_entropy: dlp_entropy
+          iam_entropy: iam_entropy
+          xdr_entropy: xdr_entropy
         waf_entropy: waf_entropy
       weights:
         pam_entropy: 0.2

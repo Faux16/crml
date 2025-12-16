@@ -30,10 +30,10 @@ meta:
 
 model:
   assets:
-    description: "PII databases across EU and US operations"
-    eu_databases: 45      # Customer databases in Germany
-    us_databases: 120     # Customer databases in California
-    cardinality: 165      # Total databases with PII
+    - name: "eu_database"
+      cardinality: 45 # Customer databases in Germany
+    - name: "us_database"   
+      cardinality: 120  # Customer databases in California
 
   frequency:
     model: poisson

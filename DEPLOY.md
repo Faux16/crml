@@ -41,7 +41,7 @@ crml_full_repo/
 
 ## Features
 
-- 🎯 **Interactive Playground** - Real-time CRML modeling with Monaco editor
+- 🎯 **Interactive Simulation** - Real-time CRML modeling with Monaco editor
 - ✅ **Validator** - YAML validation with detailed error reporting
 - 📚 **Examples Browser** - Pre-built models with explanations
 - 📊 **Simulation Engine** - Monte Carlo simulation with visualization

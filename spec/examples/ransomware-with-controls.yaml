@@ -6,8 +6,10 @@ meta:
   description: "Ransomware risk model with layered security controls demonstrating defense-in-depth"
   author: "CRML Team"
   tags: ["ransomware", "controls", "defense-in-depth"]
-  industry: ["all"]
-  region: ["world"]
+  industries: ["all"]
+  locale:
+    regions: ["world"]
+    countries: []
   company_size: ["enterprise"]
 
 model:

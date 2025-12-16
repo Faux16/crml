@@ -22,23 +22,23 @@ def explain_crml(file_path):
     print("=== CRML Model Explanation ===")
     print(f"Name:        {meta.get('name', 'N/A')}")
     print(f"Description: {meta.get('description', 'N/A')}")
-    print(f"Version:     {data.get('crml', 'N/A')}")
+    print(f"Version:     {meta.get('version', data.get('crml', 'N/A'))}")
     print("-" * 30)
     
-    assets = model.get('assets', {})
-    print(f"Assets:      {assets.get('cardinality', 'N/A')} entities")
-    
+    entities = model.get('entities', {})
+    print(f"Entities:    {entities.get('count', 'N/A')}")
+
     freq = model.get('frequency', {})
-    print(f"Frequency:   {freq.get('model', 'N/A')}")
-    if 'parameters' in freq:
-        for k, v in freq['parameters'].items():
-            print(f"  - {k}: {v}")
+    print(f"Frequency:   {freq.get('type', 'N/A')}")
+    params = freq.get('params', {})
+    for k, v in params.items():
+        print(f"  - {k}: {v}")
 
     sev = model.get('severity', {})
-    print(f"Severity:    {sev.get('model', 'N/A')}")
-    if 'parameters' in sev:
-        for k, v in sev['parameters'].items():
-            print(f"  - {k}: {v}")
-            
+    print(f"Severity:    {sev.get('type', 'N/A')}")
+    params = sev.get('params', {})
+    for k, v in params.items():
+        print(f"  - {k}: {v}")
+
     print("==============================")
     return True

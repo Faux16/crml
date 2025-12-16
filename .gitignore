@@ -26,3 +26,4 @@ web/out/
 web/.turbo/
 web/package-lock.json
 package-lock.json
+vercel.json

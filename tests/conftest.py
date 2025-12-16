@@ -1,5 +1,4 @@
 import pytest
-import os
 
 @pytest.fixture
 def valid_crml_content():
@@ -10,7 +9,8 @@ meta:
   description: "A test model"
 model:
   assets:
-    cardinality: 100
+    - name: "Servers"
+      cardinality: 100
   frequency:
     model: poisson
     parameters:

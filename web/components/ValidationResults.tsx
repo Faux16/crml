@@ -141,11 +141,6 @@ export default function ValidationResults({ result, isValidating }: ValidationRe
                                         <span className="font-medium">Regulatory Frameworks:</span> {Array.isArray(result.info.regulatory_frameworks) ? result.info.regulatory_frameworks.join(", ") : result.info.regulatory_frameworks}
                                     </p>
                                 )}
-                                {result.info.tags && result.info.tags.length > 0 && (
-                                    <p>
-                                        <span className="font-medium">Tags:</span> {Array.isArray(result.info.tags) ? result.info.tags.join(", ") : result.info.tags}
-                                    </p>
-                                )}
                                 {result.info.regions && result.info.regions.length > 0 && (
                                     <p>
                                         <span className="font-medium">Regions:</span> {Array.isArray(result.info.regions) ? result.info.regions.join(", ") : result.info.regions}
@@ -154,6 +149,11 @@ export default function ValidationResults({ result, isValidating }: ValidationRe
                                 {Array.isArray(result.info.countries) && result.info.countries.length > 0 && (
                                     <p>
                                         <span className="font-medium">Countries:</span> {result.info.countries.join(", ")}
+                                    </p>
+                                )}
+                                {result.info.tags && result.info.tags.length > 0 && (
+                                    <p>
+                                        <span className="font-medium">Tags:</span> {Array.isArray(result.info.tags) ? result.info.tags.join(", ") : result.info.tags}
                                     </p>
                                 )}
                             </div>

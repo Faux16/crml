@@ -119,12 +119,37 @@ frequency:
 **Use when:** Losses are typically small but can be extremely large (most cyber losses)
 
 **Parameters:**
-- `median`: The typical (median) loss amount in real currency
+- `median`: The typical (median) loss amount in real currency. Accepts numbers or strings with spaces (e.g., `"100 000"`).
 - `currency`: The currency code for the median value (e.g., USD, EUR)
 - `sigma`: Controls the variability (how spread out losses are)
 - `mu`: Alternative to median - log-space mean (advanced users only)
+- `single_losses`: List of observed or estimated single-event loss amounts for auto-calibration (do not combine with median/mu/sigma). Each value can be a number or a string with spaces.
+- `cardinality`: Number of assets of this type. Accepts numbers or strings with spaces (e.g., `"10 000"`).
+- `lambda`: Poisson rate parameter. Accepts numbers or strings with spaces (e.g., `"1 200"`).
+- `alpha_base`: Gamma shape parameter for hierarchical_gamma_poisson. Accepts numbers, strings with spaces, or expressions (e.g., `"1 000"`, `"CI * 2 + 1"`).
+- `beta_base`: Gamma rate parameter for hierarchical_gamma_poisson. Accepts numbers or strings with spaces (e.g., `"10 000"`).
 
 **Number Format:** Large numbers support ISO 80000-1 style space separators for readability. Both `100000` and `"100 000"` are valid.
+This applies to all relevant parameters, including `median`, `cardinality`, `lambda`, `alpha_base`, `beta_base`, `shape`, `scale`, and `single_losses`. For example:
+
+```yaml
+assets:
+  - name: Laptops
+    cardinality: "10 000"  # 10,000 laptops
+  - name: Servers
+    cardinality: 500
+
+frequency:
+  model: poisson
+  parameters:
+    lambda: "1 200"  # 1,200 expected events
+
+  # Hierarchical example
+  model: hierarchical_gamma_poisson
+  parameters:
+    alpha_base: "1 000"
+    beta_base: "10 000"
+```
 
 **How to choose median:**
 
@@ -132,7 +157,7 @@ Simply use the typical loss amount directly from industry reports, own historica
 
 | Median | Use Case |
 |--------|----------|
-| 8000 | Minor incidents (laptop theft) |
+| 8 000 | Minor incidents (laptop theft) |
 | "100 000" | Data breaches (small) |
 | "700 000" | Ransomware (medium enterprise) |
 | "9 000 000" | Major data breach (large enterprise) |
@@ -362,7 +387,7 @@ model:
 
 ## Next Steps
 
-1. **Start with examples**: Use the pre-built models in the playground
+1. **Start with examples**: Use the pre-built models in the simulation page
 2. **Modify one parameter at a time**: See how it affects results
 3. **Compare to your budget**: Does the EAL match your cyber spend?
 4. **Iterate**: Refine based on your organization's data

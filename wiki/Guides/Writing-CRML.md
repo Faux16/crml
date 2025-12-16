@@ -200,7 +200,7 @@ severity:
 
 ## Security Control Effectiveness
 
-**New in CRML 1.1:** Model how security controls reduce cyber risk.
+Model how security controls reduce cyber risk.
 
 ### Why Model Controls?
 

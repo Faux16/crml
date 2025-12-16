@@ -1,8 +1,7 @@
 # CRML 1.1 — Cyber Risk Modeling Language
 
-**Status:** Draft
 **Spec Version:** 1.1
-**Scope:** This document defines the CRML 1.1 standard. CRML 1.1 is defined as the CRML 1.0 core, plus the additions/clarifications enumerated in “Changes from 1.0”.
+**Scope:** This document defines the CRML 1.1 standard.
 
 CRML (Cyber Risk Modeling Language) is a declarative, implementation-agnostic language for defining cyber risk models and their execution configuration. A CRML document is written in YAML or JSON and is designed to be consumed by different execution engines (e.g., FAIR-style Monte Carlo, QBER-style Bayesian engines).
 

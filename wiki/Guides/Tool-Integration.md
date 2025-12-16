@@ -304,7 +304,7 @@ jobs:
           python-version: '3.9'
       
       - name: Install CRML
-        run: pip install crml-lang
+                run: pip install crml-engine
       
       - name: Run Simulation
         run: |
@@ -337,7 +337,7 @@ risk-assessment:
   stage: security
   image: python:3.9
   script:
-    - pip install crml-lang
+        - pip install crml-engine
     - crml simulate models/risk.yaml --format json > results.json
     - python scripts/upload-results.py
   artifacts:

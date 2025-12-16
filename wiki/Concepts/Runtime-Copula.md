@@ -49,14 +49,10 @@ model:
 
 Runtime prototype:
 
-```python
-from crml.copula import gaussian_copula_samples
+In CRML 1.1, dependencies are expressed via `model.dependency` (see the specification).
+Different engines may implement this with different copula mechanisms.
 
-u = gaussian_copula_samples(rho=0.65, dim=4, n=10000)
-```
-
-`u` is a `(n, dim)` matrix of uniforms; each column can be mapped through an
-inverse CDF to produce correlated losses.
+The reference engine (`crml_engine`) currently supports correlation across scenarios using an engine-specific `model.correlations` list (correlated uniforms applied to frequency sampling).
 
 ---
 

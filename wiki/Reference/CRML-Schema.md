@@ -1,7 +1,8 @@
 # CRML Schema
 
 The CRML schema is implemented in JSON Schema (2020-12 draft) and is used by
-the `crml.validator` module and `crml validate` CLI command.
+the `crml_lang` validator. The `crml validate` CLI command (from `crml_engine`)
+delegates validation to `crml_lang`.
 
 At a high level, the schema enforces:
 
@@ -12,7 +13,7 @@ At a high level, the schema enforces:
 The canonical schema lives in:
 
 ```text
-crml/schema/crml_schema.json
+crml_lang/src/crml_lang/schema/crml-schema.json
 ```
 
 Example (truncated):
@@ -50,11 +51,11 @@ Example (truncated):
 To validate a model programmatically:
 
 ```python
-from crml.loader import load_crml
-from crml.validator import validate_crml
+from crml_lang import validate
 
-model = load_crml("model.yaml")
-validate_crml(model)  # raises jsonschema.ValidationError on failure
+report = validate("model.yaml", source_kind="path")
+if not report.ok:
+  raise SystemExit(report.render_text(source_label="model.yaml"))
 ```
 
-For exact field-by-field constraints, open `crml_schema.json` directly.
+For exact field-by-field constraints, open `crml-schema.json` directly.

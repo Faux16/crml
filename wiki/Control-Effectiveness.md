@@ -1,6 +1,11 @@
 # Control Effectiveness Modeling
 
-**New in CRML 1.2.0:** Quantify how security controls reduce cyber risk with defense-in-depth calculations.
+This guide explains how to represent security controls in CRML and how the reference engine applies them during simulation.
+
+Notes:
+- Controls are part of the CRML document model.
+- The reference engine (`crml_engine`) applies control effectiveness when running simulations.
+- In the current reference engine, control effectiveness is applied to **Poisson** frequency via an adjusted effective `lambda`.
 
 ---
 
@@ -448,7 +453,6 @@ ROI = ($100,000 - $24,000) / $390,000 = 0.195 (19.5%)
 ## Next Steps
 
 - **[Examples](Examples)** - See more control modeling examples
-- **[Roadmap](Roadmap)** - Future control features (degradation, failure scenarios)
 - **[API Reference](API-Reference)** - Use controls in Python code
 
 ---

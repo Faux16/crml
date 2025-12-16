@@ -13,7 +13,7 @@ Common issues and how to fix them.
 1. **Check if Python's bin directory is in PATH:**
    ```bash
    # Find where crml was installed
-   pip show crml-lang
+   pip show crml-engine
    
    # Add to PATH (macOS/Linux)
    export PATH="$PATH:$HOME/.local/bin"
@@ -24,19 +24,19 @@ Common issues and how to fix them.
 
 2. **Use Python module directly:**
    ```bash
-   python -m crml.cli --help
+   python -m crml_engine.cli --help
    ```
 
 3. **Reinstall with user flag:**
    ```bash
-   pip install --user crml-lang
+   pip install --user crml-engine
    ```
 
 ---
 
-### "No module named 'crml'"
+### "No module named 'crml_lang'" / "No module named 'crml_engine'"
 
-**Problem:** Python can't find the CRML module.
+**Problem:** Python can't find the CRML packages.
 
 **Solutions:**
 
@@ -49,12 +49,12 @@ Common issues and how to fix them.
    ```bash
    # If using virtual environment
    source venv/bin/activate  # or venv\Scripts\activate on Windows
-   pip install crml-lang
+   pip install crml-engine
    ```
 
 3. **Check Python version:**
    ```bash
-   python --version  # Must be 3.8+
+   python --version  # Must be 3.9+
    ```
 
 ---
@@ -265,11 +265,11 @@ model:  # Model section (required)
 
 ---
 
-## Web Platform Issues
+## CRML Studio Issues
 
 ### "Cannot connect to localhost:3000"
 
-**Problem:** Web platform won't load.
+**Problem:** CRML Studio won't load.
 
 **Solutions:**
 
@@ -306,7 +306,7 @@ model:  # Model section (required)
 
 2. **Install CRML package:**
    ```bash
-   pip install crml-lang
+   pip install crml-engine
    ```
 
 3. **Check API logs:**
@@ -317,7 +317,7 @@ model:  # Model section (required)
 
 4. **Test Python directly:**
    ```bash
-   python3 -m crml.cli simulate examples/data-breach-simple.yaml
+   python3 -m crml_engine.cli simulate examples/data-breach-simple.yaml
    ```
 
 ---
@@ -468,23 +468,24 @@ model:  # Model section (required)
 1. **Check import:**
    ```python
    try:
-       from crml import CRMLModel
-       print("Import successful!")
+      from crml_lang import CRModel
+      print("Import successful!")
    except ImportError as e:
-       print(f"Error: {e}")
+      print(f"Error: {e}")
    ```
 
 2. **Check installation:**
    ```bash
    pip show crml-lang
+   pip show crml-engine
    ```
 
 3. **Use correct syntax:**
    ```python
-   from crml.runtime import run_simulation
+   from crml_engine.runtime import run_simulation
    
    result = run_simulation("model.yaml", n_runs=10000)
-   print(result["metrics"]["eal"])
+   print(result.metrics.eal)
    ```
 
 ---
@@ -494,7 +495,7 @@ model:  # Model section (required)
 ### Before asking for help:
 
 1. ✅ Check this troubleshooting guide
-2. ✅ Read the [FAQ](faq.md)
+2. ✅ Read the [FAQ](FAQ)
 3. ✅ Try the examples in `examples/`
 4. ✅ Validate your YAML: `crml validate model.yaml`
 5. ✅ Check GitHub issues for similar problems
@@ -507,7 +508,7 @@ model:  # Model section (required)
 
 ### When reporting issues, include:
 
-1. CRML version: `crml --version`
+1. Package versions: `pip show crml-engine` and/or `pip show crml-lang`
 2. Python version: `python --version`
 3. Operating system
 4. Full error message

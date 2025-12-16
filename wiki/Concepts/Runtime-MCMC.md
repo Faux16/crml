@@ -1,11 +1,11 @@
 # MCMC & Inference
 
-While the reference CRML runtime focuses on Monte Carlo simulation, it also
-provides a lightweight **Metropolis–Hastings (MH)** engine for 1D parameters.
+CRML is an implementation-agnostic language: a CRML document can be executed by different engines.
 
----
+The reference engine in this repository (`crml_engine`) currently focuses on Monte Carlo simulation.
+Bayesian inference (MCMC/HMC/NUTS) is typically provided by separate probabilistic programming systems.
 
-## 1. Metropolis–Hastings in one dimension
+## Metropolis–Hastings (conceptual)
 
 We want to sample from a posterior distribution:
 
@@ -13,11 +13,11 @@ We want to sample from a posterior distribution:
 p(\theta \mid \mathcal{D}) \propto p(\mathcal{D} \mid \theta) p(\theta)
 \]
 
-MH constructs a Markov chain:
+Metropolis–Hastings constructs a Markov chain:
 
 1. Start at \(\theta^{(0)}\).
-2. At step \(s\), propose \(\theta^* \sim q(\theta^* \mid \theta^{(s-1)})\).
-3. Compute the acceptance probability:
+2. Propose \(\theta^* \sim q(\theta^* \mid \theta^{(s-1)})\).
+3. Accept \(\theta^*\) with probability
 
 \[
 \alpha = \min\left(1,
@@ -26,50 +26,12 @@ MH constructs a Markov chain:
 \right)
 \]
 
-4. Accept with probability \(\alpha\).
+## How this relates to CRML
 
-In the reference runtime, the proposal is symmetric (normal), so \(q\) cancels.
+CRML documents encode:
 
----
-
-## 2. Reference implementation
-
-```python
-from crml.mcmc import metropolis_hastings_1d
-import numpy as np
-
-def log_posterior(theta):
-    # Example: Normal prior N(0, 10^2) and Normal likelihood around 5
-    lp_prior = -0.5 * (theta / 10.0) ** 2
-    lp_like = -0.5 * ((theta - 5.0) / 2.0) ** 2
-    return lp_prior + lp_like
-
-samples = metropolis_hastings_1d(
-    log_posterior,
-    initial=0.0,
-    steps=5000,
-    proposal_std=0.5,
-    burn_in=1000,
-)
-```
-
----
-
-## 3. How MCMC fits into QBER-style CRML
-
-In a full QBER implementation:
-
-- \(\theta\) could be:
-  - a frequency hyperparameter (e.g., \(\alpha\), \(\beta\))
-  - a mixture weight
-  - a tail index
-- The likelihood \(p(\mathcal{D}\mid\theta)\) is computed from observed
-  loss data or incident counts.
-
-CRML does not encode the full Bayesian graph; it encodes:
-
-- the *structure* of frequency and severity models
-- hyperparameters that a Bayesian runtime could treat as priors
+- the structure of frequency/severity models
+- parameters and hyperparameters that an inference engine may interpret as priors
 
 A more advanced runtime can:
 

@@ -1,17 +1,7 @@
-# CRML Roadmap
+# Roadmap (short)
 
-## v1.x
+Roadmap items are tracked outside of the documentation.
 
-- Finalize CRML 1.1 spec based on community feedback
-- Add richer JSON Schema with stricter validation
-- Publish reference Python runtime for QBER-style models
-- Add examples for industry verticals (banking, healthcare, telecom)
-- Add GitHub Actions for validation and CI
-
-## v2.0 (planned)
-
-- Calibration block (data-driven parameter learning)
-- Formal temporal modeling spec
-- Richer dependency structures (graph-based, factor models)
-- Multi-language SDKs (Python, Rust, Go)
-- VS Code extension for CRML syntax highlighting and validation
+- For current capabilities, see the Language/Engine sections.
+- For historical changes, see the package changelogs.
+- For forward looking features, see the issues/discussions.

@@ -1,16 +1,28 @@
 # Installation Guide
 
-Complete guide to installing CRML on different platforms.
+CRML is split into two Python packages:
 
-## Quick Install (Recommended)
+- `crml-lang` (language/spec): models + schema + validation + YAML IO
+- `crml-engine` (engine): simulation runtime + `crml` CLI
+
+## Quick install
+
+If you want the CLI:
+
+```bash
+pip install crml-engine
+```
+
+If you only want the language library:
 
 ```bash
 pip install crml-lang
 ```
 
-That's it! Verify with:
+Verify the CLI install with:
+
 ```bash
-crml --version
+crml --help
 ```
 
 ---
@@ -21,14 +33,14 @@ crml --version
 
 **Option 1: Using pip (Recommended)**
 ```bash
-# Install Python 3.8+ if needed
+# Install Python 3.9+ if needed
 brew install python3
 
-# Install CRML
-pip3 install crml-lang
+# Install CRML engine + CLI
+pip3 install crml-engine
 
 # Verify
-crml --version
+crml --help
 ```
 
 **Option 2: Using pipx (Isolated)**
@@ -37,11 +49,11 @@ crml --version
 brew install pipx
 pipx ensurepath
 
-# Install CRML
-pipx install crml-lang
+# Install CRML engine + CLI
+pipx install crml-engine
 
 # Verify
-crml --version
+crml --help
 ```
 
 ---
@@ -52,18 +64,18 @@ crml --version
 # Update package list
 sudo apt update
 
-# Install Python 3.8+
+# Install Python 3.9+
 sudo apt install python3 python3-pip
 
-# Install CRML
-pip3 install crml-lang
+# Install CRML engine + CLI
+pip3 install crml-engine
 
 # Add to PATH if needed
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 
 # Verify
-crml --version
+crml --help
 ```
 
 ---
@@ -72,25 +84,25 @@ crml --version
 
 **Option 1: Using pip**
 ```powershell
-# Install Python 3.8+ from python.org
+# Install Python 3.9+ from python.org
 
-# Install CRML
-pip install crml-lang
+# Install CRML engine + CLI
+pip install crml-engine
 
 # Verify
-crml --version
+crml --help
 ```
 
 **Option 2: Using Windows Terminal**
 ```powershell
 # Install Python from Microsoft Store
 # Then:
-pip install crml-lang
+pip install crml-engine
 ```
 
 ---
 
-## Web Platform Setup
+## CRML Studio Setup
 
 ### Prerequisites
 - Node.js 18+ and npm
@@ -111,18 +123,6 @@ npm run dev
 ```
 
 Visit http://localhost:3000
-
----
-
-## Docker Installation
-
-```bash
-# Pull image (when available)
-docker pull ghcr.io/faux16/crml:latest
-
-# Run
-docker run -it ghcr.io/faux16/crml:latest crml --version
-```
 
 ---
 

@@ -27,15 +27,6 @@ model:
     parameters:
       lambda: 0.3
 ```
-
-Runtime mapping (reference implementation):
-
-```python
-from crml.frequency import sample_poisson_frequency
-
-freq = sample_poisson_frequency({"lambda": 0.3}, size=n_assets)
-```
-
 ---
 
 ## 2. Gamma–Poisson (Negative Binomial)
@@ -62,12 +53,7 @@ model:
 
 Reference runtime:
 
-```python
-from crml.frequency import sample_gamma_poisson_frequency
-
-params = {"alpha": 1.2, "beta": 1.5}
-freq = sample_gamma_poisson_frequency(params, size=n_assets)
-```
+In the reference engine, this corresponds to sampling a latent rate per run and then sampling Poisson counts from that rate.
 
 ---
 
@@ -101,8 +87,7 @@ model:
       beta_base: 1.3
 ```
 
-The reference runtime currently interprets this similarly to `gamma_poisson` but
-can be extended to use CI-dependent parameters.
+The reference engine currently interprets this similarly to `gamma_poisson`.
 
 ---
 

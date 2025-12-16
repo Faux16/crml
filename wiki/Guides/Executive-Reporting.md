@@ -52,7 +52,7 @@ Conservative estimates used throughout
 
 ### 1. Use the Distribution Chart
 
-From the web platform, export the loss distribution chart:
+From CRML Studio, export the loss distribution chart:
 
 ```
 [Include histogram showing most losses are small, few are large]
@@ -285,7 +285,7 @@ crml simulate model.yaml --format json | \
 ```
 
 **Export charts:**
-- Use web platform at http://localhost:3000/simulation
+- Use CRML Studio at http://localhost:3000/simulation
 - Run simulation
 - Right-click chart → "Save image as..."
 

@@ -1,6 +1,6 @@
-# CRML Web Platform
+# CRML Studio
 
-A modern, interactive web platform for validating and exploring CRML (Cyber Risk Modeling Language) models. Built with Next.js and shadcn/ui.
+A modern, interactive web UI for validating and exploring CRML (Cyber Risk Modeling Language) models. Built with Next.js and shadcn/ui.
 
 ## Features
 
@@ -17,8 +17,8 @@ A modern, interactive web platform for validating and exploring CRML (Cyber Risk
 
 - Node.js 18+ 
 - npm or yarn
-- Python 3.7+ (for validation backend)
-- CRML package installed (`pip install crml-lang`)
+- Python 3.9+ (for the backend API routes)
+- CRML engine installed (`pip install crml-engine`)
 
 ### Installation
 
@@ -142,7 +142,7 @@ Create a `.env.local` file for local development:
 
 ## Deployment
 
-The web platform can be deployed to:
+CRML Studio can be deployed to:
 
 - **Vercel** (recommended for Next.js)
 - **Netlify**

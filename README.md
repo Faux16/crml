@@ -1,149 +1,94 @@
 # CRML — Cyber Risk Modeling Language
 
-[![PyPI version](https://badge.fury.io/py/crml-lang.svg)](https://badge.fury.io/py/crml-lang)
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![crml-lang](https://badge.fury.io/py/crml-lang.svg)](https://pypi.org/project/crml-lang/)
+[![crml-engine](https://badge.fury.io/py/crml-engine.svg)](https://pypi.org/project/crml-engine/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Version:** 1.2
-**Maintained by:** Zeron Research 
-**Status:** draft
+CRML is a declarative YAML/JSON format for describing cyber risk models.
 
-IMPORTANT: The CRML language standard/specification is in active development and is currently in Draft status. All syntax, semantics, and examples are subject to change without notice!
+This repository ships two Python packages and a web UI:
 
-CRML is an open, declarative, implementation-agnostic language for expressing cyber risk models, telemetry mappings, simulation pipelines, dependencies, and output requirements.
+- `crml-lang`: language/spec models + schema validation + YAML IO
+- `crml-engine`: reference runtime + `crml` CLI (depends on `crml-lang`)
+- `web/`: **CRML Studio** — browser UI for validation and simulation (Next.js)
 
-CRML is designed for:
+## Installation
 
-- **Bayesian cyber risk models** (QBER, MCMC-based)
-- **FAIR-style Monte Carlo engines**
-- **Insurance actuarial risk systems**
-- **Enterprise cyber risk quantification platforms**
-- **Regulatory or audit-ready risk engines**
+If you want the CLI:
 
-## ✨ Key Features
+```bash
+pip install crml-engine
+```
 
-- **🛡️ Control Effectiveness Modeling** - Quantify how security controls reduce risk with defense-in-depth calculations
-- **📊 Intuitive Median-Based Parameterization** - Use `median` directly instead of log-space `mu` for lognormal distributions
-- **💱 Multi-Currency Support** - Model risks across different currencies with automatic conversion (15+ currencies supported)
-- **🔄 Auto-Calibration** - Provide raw loss data and let CRML calibrate distributions automatically
-- **✅ Strict Validation** - JSON Schema validation catches errors before simulation
-- **🎯 Implementation-Agnostic** - Works with any compliant simulation engine
-- **📝 Human-Readable YAML** - Models are easy to read, review, and audit
-
-<img src="/images/simulation.png">
-
-## 📦 Installation
-
-Install CRML from PyPI:
+If you only want the language library:
 
 ```bash
 pip install crml-lang
 ```
 
-## 🚀 Quick Start
-
-### Validate a CRML File
-
-```bash
-crml validate path/to/your/model.yaml
-```
-
-### Example
+## Quick start (CLI)
 
 ```bash
 crml validate examples/qber-enterprise.yaml
+crml simulate examples/data-breach-simple.yaml --runs 10000
 ```
 
-Output:
-```
-[OK] examples/qber-enterprise.yaml is a valid CRML 1.1 document.
-```
+## Quick start (Python)
 
-### Model Security Controls
+Load and validate:
 
-**New in CRML 1.1:** Quantify how security controls reduce cyber risk.
+```python
+from crml_lang import CRModel, validate
 
-```yaml
-model:
-  frequency:
-    model: poisson
-    parameters:
-      lambda: 0.15  # 15% baseline probability
-  
-  controls:
-    layers:
-      - name: "email_security"
-        controls:
-          - id: "email_filtering"
-            type: "preventive"
-            effectiveness: 0.90  # Blocks 90% of attacks
-            coverage: 1.0
-            reliability: 0.95
-      
-      - name: "endpoint_protection"
-        controls:
-          - id: "edr"
-            type: "detective"
-            effectiveness: 0.80
-            coverage: 0.98
-  
-  severity:
-    model: lognormal
-    parameters:
-      median: "700 000"
-      currency: USD
-      sigma: 1.8
+model = CRModel.load_from_yaml("examples/data-breach-simple.yaml")
+report = validate(model.dump_to_yaml_str(), source_kind="text")
+print(report.ok)
 ```
 
-**Result:** Risk reduced from 15% to ~3.5% (76% reduction!)
+Run a simulation:
 
-See the wiki page [Control-Effectiveness](https://github.com/Faux16/crml/wiki/Control-Effectiveness) for detailed guidance.
+```python
+from crml_engine.runtime import run_simulation
 
+result = run_simulation("examples/data-breach-simple.yaml", n_runs=10000)
+print(result.metrics.eal)
+```
 
-## 📁 Repository Layout
+## Repository layout
 
-- **`spec/`** — CRML specification and example models
-- **`src/crml/`** — Python package source code (validator, CLI)
-- **`src/crml/schema`** CRML json schema
-- **`wiki/`** — Wiki content (mirrors GitHub Wiki pages)
+- `crml_lang/` — language/spec package
+- `crml_engine/` — reference engine package
+- `web/` — web UI (Next.js)
+- `examples/` — example CRML YAML models and FX config
+- `wiki/` — documentation source (MkDocs)
 
-## 🛠️ Development
+## CRML Studio
 
-### Install from Source
+CRML Studio lives in `web/`.
+
+Run it locally:
 
 ```bash
-git clone https://github.com/Faux16/crml.git
-cd crml
-pip install -e .
+pip install crml-engine
+cd web
+npm install
+npm run dev
 ```
 
-### Run Validator
+Open http://localhost:3000
 
-<img src="/images/validator.png">
+## Screenshots
 
-```bash
-crml validate examples/qber-enterprise.yaml
-```
+![Simulation](images/simulation.png)
 
-## 📖 Documentation
+![Validator](images/validator.png)
 
-For documentation and examples, use the GitHub Wiki (source lives in `wiki/`) and the [specification](wiki/Reference/CRML-1.1.md).
+## Documentation
 
-## 🤝 Contributing
+See the docs under `wiki/` and the CRML 1.1 specification at [wiki/Reference/CRML-1.1.md](wiki/Reference/CRML-1.1.md).
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+## License
 
-## 📄 License
-
-MIT License — see [`LICENSE`](LICENSE) for details.
-
-## 🔗 Links
-
-- **PyPI Package:** https://pypi.org/project/crml-lang/
-- **GitHub Repository:** https://github.com/Faux16/crml
-- **Specification:** [CRML 1.1](wiki/Reference/CRML-1.1.md)
-
----
-
-**Maintained by Zeron Research Labs** | [Website](https://zeron.one) | [Contact](mailto:research@zeron.one)
+MIT License — see [LICENSE](LICENSE).
 

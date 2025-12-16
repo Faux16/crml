@@ -4,18 +4,20 @@ Get up and running with CRML in just 5 minutes!
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - pip package manager
 
 ## Step 1: Install CRML (30 seconds)
 
+Install the engine package to get the `crml` CLI:
+
 ```bash
-pip install crml-lang
+pip install crml-engine
 ```
 
 Verify installation:
 ```bash
-crml --version
+crml --help
 ```
 
 ---
@@ -87,9 +89,9 @@ Simulation completed in 1.2s
 
 ---
 
-## Step 5: Try the Web Platform (1 minute)
+## Step 5: Try CRML Studio (1 minute)
 
-Want a visual interface? Try the interactive simulation page:
+Want a visual interface? Try CRML Studio:
 
 ```bash
 # Clone the repo (if you haven't)
@@ -129,7 +131,8 @@ Visit http://localhost:3000/simulation
 
 ### Advanced Features
 - Export results: `crml simulate model.yaml --format json > results.json`
-- Use in Python: `from crml import CRMLModel`
+- Use in Python (language API): `from crml_lang import CRModel`
+- Use in Python (engine runtime): `from crml_engine.runtime import run_simulation`
 - Build complex models with mixture distributions
 
 ---
@@ -138,7 +141,7 @@ Visit http://localhost:3000/simulation
 
 **"Command not found: crml"**
 - Make sure Python's bin directory is in your PATH
-- Try: `python -m crml.cli --help`
+- Try: `python -m crml_engine.cli --help`
 
 **"Invalid YAML"**
 - Check indentation (use spaces, not tabs)

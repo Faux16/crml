@@ -166,29 +166,47 @@ mu = ln(median_loss)
 
 ### Can I model multiple risk scenarios in one file?
 
-Not directly in a single CRML model, but you can:
-
 **Option 1: Separate files**
-```
+
+```text
 phishing-risk.yaml
 ransomware-risk.yaml
 data-breach-risk.yaml
 ```
 
-**Option 2: Aggregate in code**
-```python
-from crml import CRMLModel
+**Option 2: Multi-scenario within one CRML document**
 
-phishing = CRMLModel("phishing.yaml")
-ransomware = CRMLModel("ransomware.yaml")
+CRML supports asset/scenario-specific models via `model.frequency.models` and `model.severity.models`.
 
-total_risk = phishing.eal + ransomware.eal
+```yaml
+crml: "1.1"
+meta: {name: portfolio}
+
+model:
+  assets:
+    - name: "phishing"
+      cardinality: 100
+    - name: "ransomware"
+      cardinality: 1
+
+  frequency:
+    models:
+      - asset: "phishing"
+        model: poisson
+        parameters: {lambda: 0.10}
+      - asset: "ransomware"
+        model: poisson
+        parameters: {lambda: 0.02}
+
+  severity:
+    models:
+      - asset: "phishing"
+        model: lognormal
+        parameters: {median: "20 000", currency: USD, sigma: 1.0}
+      - asset: "ransomware"
+        model: lognormal
+        parameters: {median: "500 000", currency: USD, sigma: 1.8}
 ```
-
-**Option 3: Portfolio model** (coming soon)
-- Model organization-wide risk
-- Account for correlations
-- Planned for CRML 2.0
 
 ---
 
@@ -218,7 +236,7 @@ Worst-Case Scenario (99%): $650,000
 Recommendation: Invest $50K in MFA to reduce EAL by 60%
 ```
 
-**Tip:** Use the web platform's charts for visual impact!
+**Tip:** Use CRML Studio's charts for visual impact!
 
 ---
 
@@ -286,16 +304,16 @@ crml simulate model.yaml --format json > results.json
 
 **2. Python API:**
 ```python
-from crml import CRMLModel
+from crml_engine.runtime import run_simulation
 
-model = CRMLModel("model.yaml")
-results = model.simulate(runs=10000)
+result = run_simulation("model.yaml", n_runs=10000)
+payload = result.model_dump()
 
 # Send to your GRC platform
-grc_api.upload_risk_assessment(results)
+grc_api.upload_risk_assessment(payload)
 ```
 
-**3. REST API** (via web platform):
+**3. REST API** (via CRML Studio):
 ```bash
 curl -X POST http://localhost:3000/api/simulate \
   -H "Content-Type: application/json" \
@@ -393,28 +411,18 @@ crml validate model.yaml
 
 ### Can I model correlated risks?
 
-Not yet in CRML 1.1, but it's on the roadmap!
+CRML 1.1 includes an optional dependency block (copula-style) for engines that implement it.
 
-**Current workaround:**
-```python
-# Use Python to combine models with correlation
-import numpy as np
-from crml import CRMLModel
+The reference engine (`crml_engine`) currently supports a simpler engine-specific mechanism:
 
-model1 = CRMLModel("ransomware.yaml")
-model2 = CRMLModel("data-breach.yaml")
-
-# Apply correlation factor
-correlation = 0.7
-combined_loss = model1.simulate() + correlation * model2.simulate()
-```
-
-**Coming in CRML 2.0:**
 ```yaml
-correlations:
-  - events: ["ransomware", "data_breach"]
-    correlation: 0.7
+model:
+  correlations:
+    - assets: ["ransomware", "data_breach"]
+      value: 0.7
 ```
+
+This affects how the reference engine generates correlated randomness across scenarios.
 
 ---
 

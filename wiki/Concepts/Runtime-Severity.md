@@ -25,17 +25,12 @@ model:
   severity:
     model: lognormal
     parameters:
-      mu: 12.0
+      median: "162 755"
+      currency: USD
       sigma: 1.25
 ```
 
-Runtime:
-
-```python
-from crml.severity import sample_lognormal
-
-sev = sample_lognormal({"mu": 12.0, "sigma": 1.25}, size=n_events)
-```
+The reference engine (`crml_engine`) samples lognormal losses during simulation.
 
 ---
 
@@ -90,11 +85,7 @@ model:
 
 Runtime implementation (simplified):
 
-```python
-from crml.severity import sample_mixture
-
-sev = sample_mixture(components, size=n_events)
-```
+The reference engine implements mixture sampling as part of its simulation runtime.
 
 ---
 

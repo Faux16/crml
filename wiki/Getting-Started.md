@@ -11,6 +11,12 @@ For platform-specific install steps, see:
 - [Installation](Installation)
 - [Quickstart](Quickstart)
 
+If you want the CLI, install:
+
+```bash
+pip install crml-engine
+```
+
 ---
 
 ## Your First Model
@@ -177,10 +183,10 @@ model:
           sigma: 1.5
 ```
 
-Specify output currency:
+Specify output currency via an FX config file:
 
 ```bash
-crml simulate model.yaml --output-currency EUR
+crml simulate model.yaml --fx-config examples/fx-config.yaml
 ```
 
 ---
@@ -231,7 +237,7 @@ Make sure Python's bin directory is in your PATH:
 export PATH="$PATH:$HOME/.local/bin"
 
 # Or use python -m
-python3 -m crml.cli validate model.yaml
+python -m crml_engine.cli validate model.yaml
 ```
 
 ### "Invalid CRML document"
@@ -241,15 +247,6 @@ Check that:
 2. `crml: "1.1"` is specified at the top
 3. All required fields are present
 4. Parameter values are in valid ranges
-
-### "ModuleNotFoundError"
-
-Reinstall CRML:
-
-```bash
-pip uninstall crml-lang
-pip install crml-lang
-```
 
 ---
 

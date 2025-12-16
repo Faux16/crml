@@ -1,77 +1,15 @@
-# CRML Roadmap
+# Roadmap
 
-This roadmap outlines the planned features and enhancements for CRML. Items are organized by release version and priority.
+This documentation set intentionally avoids embedding forward-looking roadmaps.
 
----
+For current capabilities, use:
 
-## Draft
+- the language and engine pages in the navigation
+- the package changelogs for historical changes
 
-### v1.2.0 - Control Effectiveness Modeling
+For discussions, suggestions, ideas and work tracking, use the repository issue tracker.
 
-**Status:** Draft
-
-Comprehensive security control effectiveness modeling to quantify how controls reduce cyber risk.
-
-**Features:**
-- ✅ Control layers (preventive, detective, recovery)
-- ✅ Effectiveness, coverage, and reliability parameters
-- ✅ Defense-in-depth calculations
-- ✅ Control dependencies and correlations
-- ✅ ROI calculations
-- ✅ Web UI integration
-- ✅ 19 comprehensive tests
-- ✅ Full documentation
-
-**Example:**
-```yaml
-controls:
-  layers:
-    - name: "email_security"
-      controls:
-        - id: "email_filtering"
-          effectiveness: 0.90
-          coverage: 1.0
-          reliability: 0.95
-```
-
-**Impact:** Enables quantifying security investments and optimizing control portfolios.
-
----
-
-### v1.1.0 - Enhanced Usability
-
-**Status:** Draft
-
-- ✅ Median-based parameterization for lognormal distributions
-- ✅ Multi-currency support (15+ currencies)
-- ✅ Auto-calibration from raw loss data
-- ✅ JSON Schema validation
-- ✅ CRML CLI tool
-- ✅ Web playground
-
----
-
-## 📌 Legacy Roadmap Notes
-
-These items were previously tracked as a shorter high-level roadmap:
-
-### v1.x
-
-- Finalize CRML 1.1 spec based on community feedback
-- Add richer JSON Schema with stricter validation
-- Publish reference Python runtime for QBER-style models
-- Add examples for industry verticals (banking, healthcare, telecom)
-- Add GitHub Actions for validation and CI
-
-### v2.0 (planned)
-
-- Calibration block (data-driven parameter learning)
-- Formal temporal modeling spec
-- Richer dependency structures (graph-based, factor models)
-- Multi-language SDKs (Python, Rust, Go)
-- VS Code extension for CRML syntax highlighting and validation
-
----
+This information is just being kept here for retention reasons and might be deleted later:
 
 ## Draft (In Progress)
 
@@ -426,6 +364,4 @@ Want to help implement these features?
 
 ---
 
-**Last Updated:** December 15, 2024  
-**Current Version:** 1.2.0  
-**Next Release:** 1.3.0
+**Last Updated:** December 15, 2024

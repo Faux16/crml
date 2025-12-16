@@ -23,14 +23,9 @@ H = - \sum_{k=1}^K p_k \log_2 p_k
 - Higher \(H\) = more *uncertainty* / *disorder* in the signal.
 - Lower \(H\) = more concentrated behavior.
 
-Reference runtime:
+Engines may compute entropy features as part of data binding / preprocessing.
 
-```python
-from crml.entropy import entropy_from_counts
-
-counts = {"normal": 900, "failed": 80, "anomalous": 20}
-H = entropy_from_counts(counts)
-```
+The reference engine (`crml_engine`) focuses on simulation and does not provide a dedicated entropy module. Support of Shannon Entropy is planned however.
 
 ---
 

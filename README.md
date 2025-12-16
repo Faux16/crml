@@ -27,7 +27,7 @@ CRML is designed for:
 - **🎯 Implementation-Agnostic** - Works with any compliant simulation engine
 - **📝 Human-Readable YAML** - Models are easy to read, review, and audit
 
-[<img src="/images/simulation.png.png">]
+<img src="/images/simulation.png">
 
 ## 📦 Installation
 
@@ -117,7 +117,7 @@ pip install -e .
 
 ### Run Validator Directly
 
-[<img src="/images/validator.png">]
+<img src="/images/validator.png">
 
 ```bash
 python tools/validator/crml_validator.py spec/examples/qber-enterprise.yaml

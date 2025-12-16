@@ -202,7 +202,7 @@ model:  # Model section (required)
 4. **Test with known example:**
    ```bash
    # Use a validated example
-   crml simulate examples/crml-1.1/data-breach-simple.yaml
+   crml simulate examples/scenarios/data-breach-simple.yaml
    ```
 
 ---
@@ -317,7 +317,7 @@ model:  # Model section (required)
 
 4. **Test Python directly:**
    ```bash
-   python3 -m crml_engine.cli simulate examples/crml-1.1/data-breach-simple.yaml
+   python3 -m crml_engine.cli simulate examples/scenarios/data-breach-simple.yaml
    ```
 
 ---

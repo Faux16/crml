@@ -8,9 +8,9 @@ portfolio:
       require_paths_exist: true
       validate_scenarios: true
   control_catalogs:
-    - control-catalog.yaml
+    - ../control_cataloges/control-catalog.yaml
   control_assessments:
-    - control-assessment.yaml
+    - ../control_assessments/control-assessment.yaml
   scenarios:
     - id: phishing
-      path: scenario-phishing.yaml
+      path: ../scenarios/scenario-phishing.yaml

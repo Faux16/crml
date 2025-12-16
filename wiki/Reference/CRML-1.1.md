@@ -567,7 +567,7 @@ rates:
 and the CLI flag:
 
 ```bash
-crml simulate model.yaml --fx-config examples/fx/fx-config.yaml
+crml simulate model.yaml --fx-config examples/fx_configs/fx-config.yaml
 ```
 
 Implementation note (reference runtime): rates are interpreted using the convention “1 unit of currency = X USD (as base)”.
@@ -579,7 +579,7 @@ CRML 1.1 documents SHOULD validate against the JSON Schema shipped with this rep
 Example:
 
 ```bash
-crml validate examples/crml-1.1/data-breach-simple.yaml
+crml validate examples/scenarios/data-breach-simple.yaml
 ```
 
 ## 11. Migration Guide (CRML 1.0 → 1.1)

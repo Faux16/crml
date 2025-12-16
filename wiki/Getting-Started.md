@@ -186,7 +186,7 @@ model:
 Specify output currency via an FX config file:
 
 ```bash
-crml simulate model.yaml --fx-config examples/fx/fx-config.yaml
+crml simulate model.yaml --fx-config examples/fx_configs/fx-config.yaml
 ```
 
 ---

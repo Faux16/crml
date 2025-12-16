@@ -339,7 +339,7 @@ Risk Reduction:                   76.9%
 
 ### Complete Example
 
-See [ransomware-with-controls.yaml](https://github.com/Faux16/crml/blob/main/examples/crml-1.1/ransomware-with-controls.yaml) for a full working example with layered controls.
+See [ransomware-with-controls.yaml](https://github.com/Faux16/crml/blob/main/examples/scenarios/ransomware-with-controls.yaml) for a full working example with layered controls.
 
 For detailed guidance, see the [Control Effectiveness Guide](../Control-Effectiveness).
 
@@ -362,7 +362,7 @@ For detailed guidance, see the [Control Effectiveness Guide](../Control-Effectiv
 Create an FX config file to control currency conversion:
 
 ```yaml
-# examples/fx/fx-config.yaml
+# examples/fx_configs/fx-config.yaml
 base_currency: USD      # Internal simulation currency
 output_currency: EUR    # Report results in EUR
 rates:
@@ -374,7 +374,7 @@ as_of: "2025-12-15"  # For documentation
 
 Then run with:
 ```bash
-crml simulate model.yaml --fx-config examples/fx/fx-config.yaml
+crml simulate model.yaml --fx-config examples/fx_configs/fx-config.yaml
 ```
 
 **Supported Currencies:**

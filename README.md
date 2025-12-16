@@ -30,8 +30,8 @@ pip install crml-lang
 ## Quick start (CLI)
 
 ```bash
-crml validate examples/crml-1.1/qber-enterprise.yaml
-crml simulate examples/crml-1.1/data-breach-simple.yaml --runs 10000
+crml validate examples/scenarios/qber-enterprise.yaml
+crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
 ```
 
 ## Quick start (Python)
@@ -41,7 +41,7 @@ Load and validate:
 ```python
 from crml_lang import CRModel, validate
 
-model = CRModel.load_from_yaml("examples/crml-1.1/data-breach-simple.yaml")
+model = CRModel.load_from_yaml("examples/scenarios/data-breach-simple.yaml")
 report = validate(model.dump_to_yaml_str(), source_kind="text")
 print(report.ok)
 ```
@@ -51,7 +51,7 @@ Run a simulation:
 ```python
 from crml_engine.runtime import run_simulation
 
-result = run_simulation("examples/crml-1.1/data-breach-simple.yaml", n_runs=10000)
+result = run_simulation("examples/scenarios/data-breach-simple.yaml", n_runs=10000)
 print(result.metrics.eal)
 ```
 

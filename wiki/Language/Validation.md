@@ -17,9 +17,9 @@ If you only need validation in a pipeline, you can install `crml-lang` and call 
 ```python
 from crml_lang import validate
 
-report = validate("examples/crml-1.1/data-breach-simple.yaml", source_kind="path")
+report = validate("examples/scenarios/data-breach-simple.yaml", source_kind="path")
 if not report.ok:
-    raise SystemExit(report.render_text(source_label="examples/crml-1.1/data-breach-simple.yaml"))
+    raise SystemExit(report.render_text(source_label="examples/scenarios/data-breach-simple.yaml"))
 ```
 
 ## Numeric fields (wire vs in-memory)

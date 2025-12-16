@@ -1,8 +1,8 @@
-crml: "1.1"
+crml_scenario: "1.0"
 meta:
-  name: "Multi-Scenario Demo"
+  name: "Multi-Asset Demo"
   version: "1.0"
-  description: "A model demonstrating aggregation of distinct risk scenarios."
+  description: "A single-scenario model with multiple assets and per-asset frequency/severity."
 model:
   assets:
     - name: "Database_Server"

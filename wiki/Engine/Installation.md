@@ -17,5 +17,5 @@ crml --help
 ## Run a quick simulation
 
 ```bash
-crml simulate examples/crml-1.1/data-breach-simple.yaml --runs 10000
+crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
 ```

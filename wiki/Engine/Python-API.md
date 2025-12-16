@@ -7,7 +7,7 @@ Use `crml_engine` when you want to **execute** CRML documents.
 ```python
 from crml_engine.runtime import run_simulation
 
-result = run_simulation("examples/crml-1.1/data-breach-simple.yaml", n_runs=10000, seed=123)
+result = run_simulation("examples/scenarios/data-breach-simple.yaml", n_runs=10000, seed=123)
 print(result.success)
 print(result.metrics)
 ```
@@ -18,8 +18,8 @@ print(result.metrics)
 from crml_engine.runtime import run_simulation
 from crml_engine.models.fx_model import load_fx_config
 
-fx = load_fx_config("examples/fx/fx-config.yaml")
-result = run_simulation("examples/crml-1.1/multi-currency-example.yaml", n_runs=10000, fx_config=fx)
+fx = load_fx_config("examples/fx_configs/fx-config.yaml")
+result = run_simulation("examples/scenarios/multi-currency-example.yaml", n_runs=10000, fx_config=fx)
 ```
 
 If you prefer the lower-level entrypoint, use:

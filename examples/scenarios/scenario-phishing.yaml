@@ -1,4 +1,4 @@
-crml_scenario: "1.2"
+crml_scenario: "1.0"
 meta:
   name: "Phishing -> account takeover"
 scenario:

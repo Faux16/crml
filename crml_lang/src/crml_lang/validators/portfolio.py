@@ -17,6 +17,7 @@ from .common import (
 )
 from .control_catalog import validate_control_catalog
 from .control_assessment import validate_control_assessment
+from .control_relationships import validate_control_relationships
 
 
 _PATH_PORTFOLIO_CONTROLS_ID = "portfolio -> controls -> id"
@@ -199,6 +200,72 @@ def _validate_cataloge_references(
         catalog_paths=catalog_paths,
     )
     return catalog_paths, assessment_paths, [*cat_messages, *assess_messages]
+
+
+def _validate_control_relationships_references(
+    *,
+    portfolio: dict[str, Any],
+    base_dir: str | None,
+) -> tuple[list[str], list[ValidationMessage]]:
+    sources = portfolio.get("control_relationships")
+    if sources is None:
+        return [], []
+    if not isinstance(sources, list):
+        return (
+            [],
+            [
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path="portfolio -> control_relationships",
+                    message="portfolio.control_relationships must be a list of file paths.",
+                )
+            ],
+        )
+
+    paths: list[str] = []
+    messages: list[ValidationMessage] = []
+    for idx, p in enumerate(sources):
+        if not isinstance(p, str) or not p:
+            messages.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"portfolio -> control_relationships -> {idx}",
+                    message="control relationships pack path must be a non-empty string.",
+                )
+            )
+            continue
+
+        resolved = _resolve_path(base_dir, p)
+        if not os.path.exists(resolved):
+            messages.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"portfolio -> control_relationships -> {idx}",
+                    message=f"Control relationships file not found at path: {resolved}",
+                )
+            )
+            paths.append(resolved)
+            continue
+
+        rel_report = validate_control_relationships(resolved, source_kind="path")
+        if not rel_report.ok:
+            for e in rel_report.errors:
+                messages.append(
+                    ValidationMessage(
+                        level=e.level,
+                        source=e.source,
+                        path=f"portfolio -> control_relationships -> {idx} -> {e.path}",
+                        message=e.message,
+                        validator=e.validator,
+                    )
+                )
+
+        paths.append(resolved)
+
+    return paths, messages
 
 
 def _validate_catalog_references(
@@ -1121,6 +1188,12 @@ def _portfolio_semantic_checks(data: dict[str, Any], *, base_dir: str | None = N
 
     catalog_paths, assessment_paths, cataloge_messages = _validate_cataloge_references(portfolio=portfolio, base_dir=base_dir)
     messages.extend(cataloge_messages)
+
+    _, relationship_messages = _validate_control_relationships_references(
+        portfolio=portfolio,
+        base_dir=base_dir,
+    )
+    messages.extend(relationship_messages)
 
     messages.extend(
         _require_catalogs_for_assessments(

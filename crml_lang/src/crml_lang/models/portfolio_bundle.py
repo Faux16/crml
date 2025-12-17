@@ -8,6 +8,7 @@ from .crml_model import CRScenarioSchema
 from .portfolio_model import CRPortfolioSchema
 from .control_catalog_model import CRControlCatalogSchema
 from .control_assessment_model import CRControlAssessmentSchema
+from .control_relationships_model import CRControlRelationshipsSchema
 
 
 class BundleMessage(BaseModel):
@@ -46,6 +47,11 @@ class PortfolioBundlePayload(BaseModel):
     control_assessments: List[CRControlAssessmentSchema] = Field(
         default_factory=list,
         description="Optional inlined control assessment packs referenced by the portfolio.",
+    )
+
+    control_relationships: List[CRControlRelationshipsSchema] = Field(
+        default_factory=list,
+        description="Optional inlined control relationships packs referenced by the portfolio.",
     )
 
     warnings: List[BundleMessage] = Field(default_factory=list, description="Non-fatal bundle warnings.")

@@ -54,11 +54,11 @@ Engines are expected to return results using the **language-owned result envelop
 flowchart LR
     TI["Threat intelligence<br/>feeds"] -->|publish| S["Scenario documents<br/>CRScenario"]
 
-    ORG["Organization asset inventory<br/>(relatively static)"] --> P["Portfolio document<br/>CRPortfolio"]
-    TOOL["Tooling (e.g. SIEM)<br/>imports and updates"] -.->|optional| P
+    ORG["Organization asset inventory<br/>(relatively static)"] -->|generate| P["Portfolio document<br/>CRPortfolio"]
+    TOOL["Tooling (e.g. SIEM)<br/>imports and updates assets"] -.->|optional| P
 
     AUTH["Recognized authorities<br/>NIS, CIS"] -->|publish| CC["Control cataloge<br/>CRControlCatalog"]
-    SCAN["Assessment and scan tools"] --> CA["Control assessment cataloge<br/>CRControlAssessment"]
+    SCAN["Assessment and scan tools"] -->|generate| CA["Control assessment cataloge<br/>CRControlAssessment"]
 
     CC -.->|basis| CA
 

@@ -82,6 +82,32 @@
           "description": "Which loss component this control affects. Default is 'frequency' (frequency-first). Note: the current reference engine primarily applies controls to frequency (lambda).",
           "title": "Affects"
         },
+        "question": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional assessment prompt/question text for this control (tool/community-defined). Useful for questionnaires and evidence collection.",
+          "title": "Question"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional additional description for this assessment entry (tool/community-defined). Avoid embedding copyrighted standard text unless you have rights.",
+          "title": "Description"
+        },
         "notes": {
           "anyOf": [
             {

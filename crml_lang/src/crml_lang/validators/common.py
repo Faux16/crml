@@ -15,6 +15,7 @@ SCENARIO_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-scenario-schema.json")
 PORTFOLIO_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-portfolio-schema.json")
 CONTROL_ASSESSMENT_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-control-assessment-schema.json")
 CONTROL_CATALOG_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-control-catalog-schema.json")
+CONTROL_RELATIONSHIPS_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-control-relationships-schema.json")
 
 
 @dataclass(frozen=True)
@@ -75,6 +76,10 @@ def _load_control_assessment_schema() -> dict[str, Any]:
 
 def _load_control_catalog_schema() -> dict[str, Any]:
     return _load_schema(CONTROL_CATALOG_SCHEMA_PATH)
+
+
+def _load_control_relationships_schema() -> dict[str, Any]:
+    return _load_schema(CONTROL_RELATIONSHIPS_SCHEMA_PATH)
 
 
 def _looks_like_yaml_text(s: str) -> bool:

@@ -15,6 +15,7 @@ from .result_envelope import (
 from .crml_model import CRScenarioSchema
 from .control_assessment_model import CRControlAssessmentSchema
 from .control_catalog_model import CRControlCatalogSchema
+from .control_relationships_model import CRControlRelationshipsSchema
 from .portfolio_model import CRPortfolioSchema
 
 __all__ = [
@@ -33,4 +34,5 @@ __all__ = [
 	"CRPortfolioSchema",
 	"CRControlAssessmentSchema",
 	"CRControlCatalogSchema",
+	"CRControlRelationshipsSchema",
 ]

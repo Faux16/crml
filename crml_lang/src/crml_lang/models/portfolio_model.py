@@ -212,6 +212,14 @@ class Portfolio(BaseModel):
         None, description="Optional list of file paths to referenced control assessment cataloges."
     )
 
+    control_relationships: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Optional list of file paths to referenced control relationships packs (control-to-control mappings). "
+            "These can be used by tools/engines to resolve scenario control ids to implemented portfolio controls with quantitative overlap metadata."
+        ),
+    )
+
     scenarios: List[ScenarioRef] = Field(..., description="List of scenario references included in the portfolio.")
     semantics: PortfolioSemantics = Field(..., description="Portfolio aggregation semantics and constraints.")
     relationships: Optional[List[Relationship]] = Field(

@@ -7,7 +7,7 @@
 
 > **Status:** Draft. This project is under heavy development and may change without notice.
 
-CRML is a declarative YAML/JSON format for describing cyber risk models.
+CRML is an open, declarative YAML/JSON format for describing cyber risk models, whith a focus on supporting risk quantification engines.
 
 This repository ships two Python packages and a web UI:
 

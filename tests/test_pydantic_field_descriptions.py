@@ -12,6 +12,7 @@ _MODULES_TO_CHECK = [
     "crml_lang.models.portfolio_model",
     "crml_lang.models.control_assessment_model",
     "crml_lang.models.control_catalog_model",
+    "crml_lang.models.control_relationships_model",
     "crml_lang.models.control_ref",
     "crml_lang.models.coverage_model",
     "crml_lang.models.result_envelope",

@@ -3,7 +3,8 @@ meta:
   name: "Phishing -> account takeover"
 scenario:
   controls:
-    - "org:iam.mfa"
+    - id: "org:iam.mfa"
+      potency: 0.85
   frequency:
     basis: per_organization_per_year
     model: poisson

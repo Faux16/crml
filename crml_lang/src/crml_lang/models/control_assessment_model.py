@@ -63,6 +63,22 @@ class ControlAssessment(BaseModel):
         ),
     )
 
+    question: Optional[str] = Field(
+        None,
+        description=(
+            "Optional assessment prompt/question text for this control (tool/community-defined). "
+            "Useful for questionnaires and evidence collection."
+        ),
+    )
+
+    description: Optional[str] = Field(
+        None,
+        description=(
+            "Optional additional description for this assessment entry (tool/community-defined). "
+            "Avoid embedding copyrighted standard text unless you have rights."
+        ),
+    )
+
     notes: Optional[str] = Field(None, description="Free-form notes about this assessment entry.")
 
 

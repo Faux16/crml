@@ -35,9 +35,16 @@ from typing import Any, Mapping
 from .models.crml_model import CRScenarioSchema as _CRScenarioSchema
 from .models.control_assessment_model import CRControlAssessmentSchema as _CRControlAssessmentSchema
 from .models.control_catalog_model import CRControlCatalogSchema as _CRControlCatalogSchema
+from .models.control_relationships_model import CRControlRelationshipsSchema as _CRControlRelationshipsSchema
 from .models.portfolio_model import CRPortfolioSchema as _CRPortfolioSchema
 from .models.portfolio_bundle import CRPortfolioBundle as _CRPortfolioBundle
 from .validators import ValidationMessage, ValidationReport, validate, validate_portfolio
+
+
+_ERR_PYYAML_LOAD_FILE = "PyYAML is required to load YAML files: pip install pyyaml"
+_ERR_PYYAML_LOAD_STR = "PyYAML is required to load YAML strings: pip install pyyaml"
+_ERR_PYYAML_WRITE_FILE = "PyYAML is required to write YAML files: pip install pyyaml"
+_ERR_PYYAML_WRITE_STR = "PyYAML is required to write YAML: pip install pyyaml"
 
 
 class CRScenario(_CRScenarioSchema):
@@ -52,7 +59,7 @@ class CRScenario(_CRScenarioSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_FILE) from e
 
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -63,7 +70,7 @@ class CRScenario(_CRScenarioSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML strings: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_STR) from e
 
         data = yaml.safe_load(yaml_text)
         return cls.model_validate(data)
@@ -73,7 +80,7 @@ class CRScenario(_CRScenarioSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_FILE) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         with open(path, "w", encoding="utf-8") as f:
@@ -84,7 +91,7 @@ class CRScenario(_CRScenarioSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_STR) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
@@ -103,7 +110,7 @@ class CRPortfolioBundle(_CRPortfolioBundle):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_FILE) from e
 
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -114,7 +121,7 @@ class CRPortfolioBundle(_CRPortfolioBundle):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML strings: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_STR) from e
 
         data = yaml.safe_load(yaml_text)
         return cls.model_validate(data)
@@ -124,7 +131,7 @@ class CRPortfolioBundle(_CRPortfolioBundle):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_FILE) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         with open(path, "w", encoding="utf-8") as f:
@@ -135,7 +142,7 @@ class CRPortfolioBundle(_CRPortfolioBundle):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_STR) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
@@ -156,7 +163,7 @@ def dump_to_yaml(model: CRScenario | Mapping[str, Any], path: str, *, sort_keys:
     try:
         import yaml
     except Exception as e:
-        raise ImportError("PyYAML is required to write YAML files: pip install pyyaml") from e
+        raise ImportError(_ERR_PYYAML_WRITE_FILE) from e
 
     with open(path, "w", encoding="utf-8") as f:
         yaml.safe_dump(dict(model), f, sort_keys=sort_keys, allow_unicode=True)
@@ -169,7 +176,7 @@ def dump_to_yaml_str(model: CRScenario | Mapping[str, Any], *, sort_keys: bool =
     try:
         import yaml
     except Exception as e:
-        raise ImportError("PyYAML is required to write YAML: pip install pyyaml") from e
+        raise ImportError(_ERR_PYYAML_WRITE_STR) from e
 
     return yaml.safe_dump(dict(model), sort_keys=sort_keys, allow_unicode=True)
 
@@ -182,7 +189,7 @@ class CRPortfolio(_CRPortfolioSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_FILE) from e
 
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -193,7 +200,7 @@ class CRPortfolio(_CRPortfolioSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML strings: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_STR) from e
 
         data = yaml.safe_load(yaml_text)
         return cls.model_validate(data)
@@ -202,7 +209,7 @@ class CRPortfolio(_CRPortfolioSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_FILE) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         with open(path, "w", encoding="utf-8") as f:
@@ -212,7 +219,7 @@ class CRPortfolio(_CRPortfolioSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_STR) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
@@ -226,7 +233,7 @@ class CRControlCatalog(_CRControlCatalogSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_FILE) from e
 
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -237,7 +244,7 @@ class CRControlCatalog(_CRControlCatalogSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML strings: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_STR) from e
 
         data = yaml.safe_load(yaml_text)
         return cls.model_validate(data)
@@ -246,7 +253,7 @@ class CRControlCatalog(_CRControlCatalogSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_FILE) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         with open(path, "w", encoding="utf-8") as f:
@@ -256,7 +263,7 @@ class CRControlCatalog(_CRControlCatalogSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_STR) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
@@ -270,7 +277,7 @@ class CRControlAssessment(_CRControlAssessmentSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_FILE) from e
 
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -281,7 +288,7 @@ class CRControlAssessment(_CRControlAssessmentSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to load YAML strings: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_LOAD_STR) from e
 
         data = yaml.safe_load(yaml_text)
         return cls.model_validate(data)
@@ -290,7 +297,7 @@ class CRControlAssessment(_CRControlAssessmentSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML files: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_FILE) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         with open(path, "w", encoding="utf-8") as f:
@@ -300,7 +307,51 @@ class CRControlAssessment(_CRControlAssessmentSchema):
         try:
             import yaml
         except Exception as e:
-            raise ImportError("PyYAML is required to write YAML: pip install pyyaml") from e
+            raise ImportError(_ERR_PYYAML_WRITE_STR) from e
+
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
+
+
+class CRControlRelationships(_CRControlRelationshipsSchema):
+    """Root CRML Control Relationships document model."""
+
+    @classmethod
+    def load_from_yaml(cls, path: str) -> "CRControlRelationships":
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError(_ERR_PYYAML_LOAD_FILE) from e
+
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return cls.model_validate(data)
+
+    @classmethod
+    def load_from_yaml_str(cls, yaml_text: str) -> "CRControlRelationships":
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError(_ERR_PYYAML_LOAD_STR) from e
+
+        data = yaml.safe_load(yaml_text)
+        return cls.model_validate(data)
+
+    def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError(_ERR_PYYAML_WRITE_FILE) from e
+
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        with open(path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(data, f, sort_keys=sort_keys, allow_unicode=True)
+
+    def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
+        try:
+            import yaml
+        except Exception as e:
+            raise ImportError(_ERR_PYYAML_WRITE_STR) from e
 
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return yaml.safe_dump(data, sort_keys=sort_keys, allow_unicode=True)
@@ -311,6 +362,7 @@ __all__ = [
     "CRPortfolioBundle",
     "CRControlCatalog",
     "CRControlAssessment",
+    "CRControlRelationships",
     "load_from_yaml",
     "load_from_yaml_str",
     "dump_to_yaml",

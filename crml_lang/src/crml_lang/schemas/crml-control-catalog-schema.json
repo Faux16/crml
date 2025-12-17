@@ -109,32 +109,19 @@
       "type": "object"
     },
     "ControlStructuredRef": {
-      "description": "Standard-independent structured control locator.\n\nThis is optional metadata that can be used by tools/UI to help users map\ncontrols, but *referencing* in scenarios/portfolios should be done via\n`ControlId`.\n\nExample:\n    {standard: \"CIS\", version: \"v8\", control: \"2\", safeguard: \"3\"}",
+      "description": "Standard-independent structured control locator.\n\nThis is optional metadata that can be used by tools/UI to help users map\ncontrols, but *referencing* in scenarios/portfolios should be done via\n`ControlId`.\n\nExample:\n    {standard: \"CIS\", control: \"2\", requirement: \"Ensure X is implemented\"}",
       "properties": {
         "standard": {
           "description": "Standard identifier (e.g. CISv8, ISO27001).",
           "title": "Standard",
           "type": "string"
         },
-        "version": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional standard version string.",
-          "title": "Version"
-        },
         "control": {
           "description": "Control identifier within the referenced standard.",
           "title": "Control",
           "type": "string"
         },
-        "safeguard": {
+        "requirement": {
           "anyOf": [
             {
               "type": "string"
@@ -144,8 +131,8 @@
             }
           ],
           "default": null,
-          "description": "Optional sub-control/safeguard identifier.",
-          "title": "Safeguard"
+          "description": "Optional requirement text (what the requirement specifies) within the referenced standard (if applicable and not copyrighted).",
+          "title": "Requirement"
         }
       },
       "required": [

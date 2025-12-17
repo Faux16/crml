@@ -44,15 +44,17 @@ class ControlStructuredRef(BaseModel):
     `ControlId`.
 
     Example:
-        {standard: "CIS", version: "v8", control: "2", safeguard: "3"}
+        {standard: "CIS", control: "2", requirement: "Ensure X is implemented"}
     """
 
     standard: str = Field(..., description="Standard identifier (e.g. CISv8, ISO27001).")
-    version: Optional[str] = Field(None, description="Optional standard version string.")
     control: str = Field(..., description="Control identifier within the referenced standard.")
-    safeguard: Optional[str] = Field(None, description="Optional sub-control/safeguard identifier.")
+    requirement: Optional[str] = Field(
+        None,
+        description="Optional requirement text (what the requirement specifies) within the referenced standard (if applicable and not copyrighted).",
+    )
 
-    @field_validator("standard", "version", "control", "safeguard", mode="before")
+    @field_validator("standard", "control", "requirement", mode="before")
     @classmethod
     def _coerce_to_str(cls, v):
         if v is None:
@@ -78,5 +80,5 @@ def control_ref_to_id(ref: ControlRef) -> str:
         return ref
 
     # Composite key that tolerates arbitrary characters.
-    parts = [ref.standard, ref.version or "", ref.control, ref.safeguard or ""]
+    parts = [ref.standard, ref.control, ref.requirement or ""]
     return "|".join(parts)

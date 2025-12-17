@@ -19,13 +19,13 @@ crml_lang/src/crml_lang/schemas/
 
 Specifically:
 
-- `crml-scenario-schema.json` (`crml_scenario: "1.0"`)
-- `crml-portfolio-schema.json` (`crml_portfolio: "1.0"`)
-- `crml-control-catalog-schema.json` (`crml_control_catalog: "1.0"`)
-- `crml-assessment-schema.json` (`crml_assessment: "1.0"`)
-- `crml-control-relationships-schema.json` (`crml_control_relationships: "1.0"`)
-- `crml-portfolio-bundle-schema.json` (`crml_portfolio_bundle: "1.0"`)
-- `crml-simulation-result-schema.json` (`crml_simulation_result: "1.0"`)
+- `crml-scenario-schema.json` (`crml_scenario: "1.0"`) — usage: [Schemas/Scenario](Schemas/Scenario)
+- `crml-portfolio-schema.json` (`crml_portfolio: "1.0"`) — usage: [Schemas/Portfolio](Schemas/Portfolio)
+- `crml-control-catalog-schema.json` (`crml_control_catalog: "1.0"`) — usage: [Schemas/Control-Catalog](Schemas/Control-Catalog)
+- `crml-assessment-schema.json` (`crml_assessment: "1.0"`) — usage: [Schemas/Assessment](Schemas/Assessment)
+- `crml-control-relationships-schema.json` (`crml_control_relationships: "1.0"`) — usage: [Schemas/Control-Relationships](Schemas/Control-Relationships)
+- `crml-portfolio-bundle-schema.json` (`crml_portfolio_bundle: "1.0"`) — usage: [Schemas/Portfolio-Bundle](Schemas/Portfolio-Bundle)
+- `crml-simulation-result-schema.json` (`crml_simulation_result: "1.0"`) — usage: [Schemas/Simulation-Result](Schemas/Simulation-Result)
 
 In addition to JSON Schema validation, `crml_lang` performs semantic validation (examples):
 
@@ -43,6 +43,8 @@ The reference engine includes an FX config schema:
 ```text
 crml_engine/src/crml_engine/schemas/crml-fx-config-schema.json
 ```
+
+Usage documentation: [Schemas/FX-Config](Schemas/FX-Config)
 
 Engines MAY define additional runtime config documents; those are not part of the CRML language unless adopted into `crml_lang`.
 

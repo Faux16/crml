@@ -19,14 +19,17 @@ from .common import (
 def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
     warnings: list[ValidationMessage] = []
 
-    # Warn if using old CRML version
-    if data.get("crml_scenario") != "1.2":
+    # Warn if using non-current CRML version
+    # Note: the JSON schema currently enforces the version, so this is mainly
+    # forward-compatible documentation for future schema relaxations.
+    current_version = "1.0"
+    if data.get("crml_scenario") != current_version:
         warnings.append(
             ValidationMessage(
                 level="warning",
                 source="semantic",
                 path="crml_scenario",
-                message=f"CRML scenario version '{data.get('crml_scenario')}' is not current. Consider upgrading to '1.2'.",
+                message=f"CRML scenario version '{data.get('crml_scenario')}' is not current. Consider upgrading to '{current_version}'.",
             )
         )
 

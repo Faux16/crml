@@ -24,22 +24,20 @@ crml --help
 
 ## Step 2: Create Your First Model (2 minutes)
 
-Create a file called `my-first-model.yaml`:
+Create a file called `my-first-scenario.yaml`:
 
 ```yaml
-crml: "1.1"
+crml_scenario: "1.0"
 meta:
   name: "my-first-risk-model"
   description: "A simple phishing risk model"
 
-model:
-  assets:
-    cardinality: 100  # 100 employees
-    
+scenario:
   frequency:
+    basis: per_organization_per_year
     model: poisson
     parameters:
-      lambda: 0.10  # 10% chance per employee per year
+      lambda: 0.10  # 10% chance per organization per year
       
   severity:
     model: lognormal
@@ -50,16 +48,17 @@ model:
 ```
 
 **What this models:**
-- 100 employees, each with 10% chance of clicking a phishing link
-- Expected ~10 incidents per year
+- A single organization with a 10% annual chance of an incident
 - Each incident costs ~$22K on average
+
+If you want **multi-asset / per-asset** modeling (e.g. 100 employees, 500 endpoints), put assets in a **portfolio** document and reference one or more scenarios.
 
 ---
 
 ## Step 3: Validate Your Model (30 seconds)
 
 ```bash
-crml validate my-first-model.yaml
+crml validate my-first-scenario.yaml
 ```
 
 You should see:
@@ -72,7 +71,7 @@ You should see:
 ## Step 4: Run Simulation (1 minute)
 
 ```bash
-crml simulate my-first-model.yaml --runs 10000
+crml simulate my-first-scenario.yaml --runs 10000
 ```
 
 You'll see results like:
@@ -131,7 +130,7 @@ Visit http://localhost:3000/simulation
 
 ### Advanced Features
 - Export results: `crml simulate model.yaml --format json > results.json`
-- Use in Python (language API): `from crml_lang import CRModel`
+- Use in Python (language API): `from crml_lang import CRScenario`
 - Use in Python (engine runtime): `from crml_engine.runtime import run_simulation`
 - Build complex models with mixture distributions
 

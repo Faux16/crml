@@ -1,6 +1,6 @@
 # Controls & Packs (Reference)
 
-This page defines the **normative** semantics for controls in CRML 1.2+ and how control-related “packs” interact.
+This page defines the **normative** semantics for controls in current CRML scenario/portfolio documents and how control-related “packs” interact.
 
 > Note: The CRML 1.1 spec pages describe an older, runtime-centric “layers” model. This page documents the newer packs-based approach.
 
@@ -43,23 +43,28 @@ Each assessment is scoped to a control ID and includes:
 
 - `implementation_effectiveness`: $[0,1]$
 - Optional `coverage` object
+- Optional `reliability`: $[0,1]$ (control “up/down” probability)
+- Optional `affects`: `frequency`, `severity`, or `both`
 
 Assessments are the preferred place to store org-wide posture.
 
 ### Portfolio Control Inventory
 
-A **Portfolio** is the executable context for scenarios. The portfolio contains a control inventory that can be used for simulation.
+A **Portfolio** is the executable context for scenarios.
 
 - Document header: `crml_portfolio: "1.0"`
 - Control inventory: `controls[]`
 
-A portfolio’s `controls[]` list is also used for **cross-document validation**: scenarios included in the portfolio may only reference controls that exist in the portfolio control inventory.
+In portfolio planning/validation, control posture can come from either:
+
+- A portfolio’s inline `controls[]` inventory, and/or
+- Control Assessment Packs referenced by the portfolio.
 
 ### Scenario Control References
 
 A **Scenario** may reference controls in a lightweight way, so scenarios remain portable.
 
-- Document header: `crml_scenario: "1.2"`
+- Document header: `crml_scenario: "1.0"`
 - Controls live under `scenario.controls[]`
 
 A scenario control reference can be:
@@ -78,7 +83,7 @@ Coverage is represented as a structured object:
 ```yaml
 coverage:
   value: 0.8
-  basis: asset_fraction
+  basis: endpoints
   notes: "Covers most endpoints, not OT"
 ```
 
@@ -90,20 +95,18 @@ Normative rules:
 
 ---
 
-## Effective Control Parameters (Merge / Override)
+## Effective Control Parameters (Merge)
 
-When multiple sources provide parameters for the same control ID, tools MUST derive “effective” parameters using this precedence order:
+When multiple sources provide parameters for the same control ID, tools MUST derive “effective” parameters using these rules:
 
-1. Scenario-specific control object (`scenario.controls[]` object fields)
-2. Portfolio control inventory (`portfolio.controls[]` entry)
-3. Control Assessment Pack (`assessments[]` entry)
-4. Control Catalog Pack (no numeric values; metadata only)
+- Portfolio inventory values (if present) SHOULD take precedence over assessment pack values.
+- Scenario control objects are interpreted as **scenario-level applicability factors** that multiply the portfolio/assessment values.
 
 Normative details:
 
-- If a scenario reference is a string ID (no object fields), it does not override anything.
-- If a scenario reference is an object, any provided fields override lower-precedence sources field-by-field.
-- If a control ID is referenced by a scenario and **no portfolio control inventory entry exists**, portfolio validation MUST fail.
+- If a scenario reference is a string ID (no object fields), it applies the portfolio/assessment values as-is.
+- If a scenario reference is an object, `implementation_effectiveness` and `coverage` are interpreted as multiplicative factors in $[0,1]$.
+- If a scenario references a control id and no portfolio inventory or assessment provides posture values, portfolio planning/validation MUST fail.
 
 > Implementation note: today the validator enforces the “scenario controls must exist in portfolio.controls” rule when validating a portfolio that loads scenarios. Portfolio-to-pack auto-loading/merging may be implemented by tooling/runtime.
 
@@ -121,6 +124,8 @@ assessment:
   assessments:
     - id: "org:iam.mfa"
       implementation_effectiveness: 0.7
+      reliability: 0.99
+      affects: frequency
       coverage: {value: 0.9, basis: employees}
 ```
 
@@ -139,16 +144,16 @@ portfolio:
 Scenario-specific assumption (highest precedence):
 
 ```yaml
-crml_scenario: "1.2"
+crml_scenario: "1.0"
 meta: {name: "Phishing"}
 scenario:
   controls:
     - id: "org:iam.mfa"
-      implementation_effectiveness: 0.3
+      implementation_effectiveness: 0.6  # scenario-level factor
       notes: "Assume limited MFA enforcement for this scenario"
 ```
 
-Effective value (for `implementation_effectiveness`) is `0.3` because scenario overrides portfolio and assessment.
+Effective `implementation_effectiveness` for this scenario is `0.5 × 0.6 = 0.3` (portfolio overrides assessment, then scenario scales it).
 
 ### Example: field-by-field override
 
@@ -161,7 +166,7 @@ scenario:
       coverage: {value: 0.6, basis: employees}
 ```
 
-Effective `implementation_effectiveness` comes from portfolio (if present) else assessment; effective `coverage` comes from the scenario.
+Effective `implementation_effectiveness` comes from portfolio (if present) else assessment; effective `coverage` is multiplied by the scenario factor.
 
 ---
 
@@ -192,7 +197,7 @@ If catalogs are supplied alongside validation, an assessment pack MUST also be r
 
 When validating a portfolio that references scenario documents:
 
-- Every control referenced by each scenario MUST exist in `portfolio.controls[]`.
+- Every control referenced by each scenario MUST have posture values available (via `portfolio.controls[]` and/or referenced assessment packs).
 
 ---
 
@@ -213,20 +218,27 @@ catalog:
 
 ```yaml
 crml_control_assessment: "1.0"
-assessments:
-  - id: "org:iam.mfa"
-    implementation_effectiveness: 0.7
-    coverage:
-      value: 0.9
-      basis: user_fraction
+meta: {name: "Org assessment"}
+assessment:
+  framework: "Org"
+  assessments:
+    - id: "org:iam.mfa"
+      implementation_effectiveness: 0.7
+      reliability: 0.99
+      affects: frequency
+      coverage:
+        value: 0.9
+        basis: employees
 ```
 
 ### Scenario control references
 
 ```yaml
-crml_scenario: "1.2"
+crml_scenario: "1.0"
+meta: {name: "Phishing -> account takeover"}
 scenario:
-  name: "Phishing -> account takeover"
+  frequency: {basis: per_organization_per_year, model: poisson, parameters: {lambda: 0.8}}
+  severity: {model: lognormal, parameters: {mu: 10, sigma: 1.2, currency: USD}}
   controls:
     - "org:iam.mfa"
     - id: "org:edr"

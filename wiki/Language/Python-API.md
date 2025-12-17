@@ -5,26 +5,26 @@ Use `crml_lang` when you want to **load, validate, or transform** CRML documents
 ## Load / dump YAML
 
 ```python
-from crml_lang import CRModel
+from crml_lang import CRScenario
 
-model = CRModel.load_from_yaml("model.yaml")
-text = model.dump_to_yaml_str()
+scenario = CRScenario.load_from_yaml("scenario.yaml")
+text = scenario.dump_to_yaml_str()
 ```
 
 Load from a YAML string:
 
 ```python
-from crml_lang import CRModel
+from crml_lang import CRScenario
 
 yaml_str = """
-crml: \"1.1\"
+crml_scenario: \"1.0\"
 meta: {name: demo}
-model:
-  frequency: {model: poisson, parameters: {lambda: 0.1}}
+scenario:
+  frequency: {basis: per_organization_per_year, model: poisson, parameters: {lambda: 0.1}}
   severity: {model: lognormal, parameters: {median: \"10 000\", currency: USD, sigma: 1.2}}
 """
 
-model = CRModel.load_from_yaml_str(yaml_str)
+scenario = CRScenario.load_from_yaml_str(yaml_str)
 ```
 
 ## Validate

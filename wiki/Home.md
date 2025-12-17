@@ -13,7 +13,7 @@ This repository is split into two Python packages:
 - Engine overview: [Engine/Overview](Engine/Overview)
 - Quickstart (CLI): [Quickstart](Quickstart)
 - Examples: [Examples](Examples)
-- CRML 1.1 spec: [Reference/CRML-1.1](Reference/CRML-1.1)
+- Scenario schema + docs: [Language/Overview](Language/Overview)
 
 ## Install
 
@@ -32,13 +32,14 @@ pip install crml-lang
 ## Minimal example
 
 ```yaml
-crml: "1.1"
+crml_scenario: "1.0"
 
 meta:
   name: "ransomware-risk"
 
-model:
+scenario:
   frequency:
+    basis: per_organization_per_year
     model: poisson
     parameters:
       lambda: 0.15

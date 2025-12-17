@@ -7,10 +7,29 @@ portfolio:
     constraints:
       require_paths_exist: true
       validate_scenarios: true
+
+  assets:
+    - name: "employees"
+      cardinality: 250
+      tags: ["workforce"]
+    - name: "endpoints"
+      cardinality: 450
+      tags: ["it", "endpoint"]
+
   control_catalogs:
     - ../control_cataloges/control-catalog.yaml
   control_assessments:
     - ../control_assessments/control-assessment.yaml
+
+  dependency:
+    copula:
+      type: gaussian
+      targets:
+        - "control:org:iam.mfa:state"
+        - "control:org:edr:state"
+      structure: toeplitz
+      rho: 0.35
+
   scenarios:
     - id: phishing
       path: ../scenarios/scenario-phishing.yaml

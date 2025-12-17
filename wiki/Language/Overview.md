@@ -13,7 +13,9 @@ If you want to *run simulations*, install and use the **engine** package instead
 
 ## Versions: schema vs packages
 
-- The **schema version** is declared in the model file as `crml: "1.1"`.
+- The **schema version** is declared in the document header:
+	- Scenarios: `crml_scenario: "1.0"`
+	- Portfolios: `crml_portfolio: "1.0"`
 - The **Python package versions** (`crml-lang`, `crml-engine`) follow their own release cadence.
 
-A CRML file declaring `crml: "1.1"` is a **CRML 1.1 document**, regardless of which engine executes it.
+A CRML file declaring `crml_scenario: "1.0"` is a **CRML Scenario 1.0 document**, regardless of which engine executes it.

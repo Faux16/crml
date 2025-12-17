@@ -39,10 +39,10 @@ crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
 Load and validate:
 
 ```python
-from crml_lang import CRModel, validate
+from crml_lang import CRScenario, validate
 
-model = CRModel.load_from_yaml("examples/scenarios/data-breach-simple.yaml")
-report = validate(model.dump_to_yaml_str(), source_kind="text")
+scenario = CRScenario.load_from_yaml("examples/scenarios/data-breach-simple.yaml")
+report = validate("examples/scenarios/data-breach-simple.yaml", source_kind="path")
 print(report.ok)
 ```
 
@@ -86,7 +86,12 @@ Open http://localhost:3000
 
 ## Documentation
 
-See the docs under `wiki/` and the CRML 1.1 specification at [wiki/Reference/CRML-1.1.md](wiki/Reference/CRML-1.1.md).
+See the docs under `wiki/`.
+
+Current document types:
+
+- Scenario documents: `crml_scenario: "1.0"` with top-level `scenario:`
+- Portfolio documents: `crml_portfolio: "1.0"` with top-level `portfolio:`
 
 ## License
 

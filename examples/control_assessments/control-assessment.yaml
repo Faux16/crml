@@ -6,11 +6,15 @@ assessment:
   assessments:
     - id: "org:iam.mfa"
       implementation_effectiveness: 0.7
+      reliability: 0.99
+      affects: frequency
       coverage:
         value: 0.9
         basis: employees
     - id: "org:edr"
       implementation_effectiveness: 0.6
+      reliability: 0.97
+      affects: both
       coverage:
         value: 0.8
         basis: endpoints

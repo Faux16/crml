@@ -46,6 +46,37 @@
           ],
           "default": null
         },
+        "reliability": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reliability"
+        },
+        "affects": {
+          "anyOf": [
+            {
+              "enum": [
+                "frequency",
+                "severity",
+                "both"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "frequency",
+          "title": "Affects"
+        },
         "notes": {
           "anyOf": [
             {

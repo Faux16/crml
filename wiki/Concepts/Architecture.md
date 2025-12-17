@@ -18,8 +18,8 @@ For the detailed architecture, see:
 - Control catalog packs: `crml_control_catalog: "1.0"` (top-level `catalog:`)
 - Control assessment packs: `crml_control_assessment: "1.0"` (top-level `assessment:`)
 - FX config documents: `crml_fx_config: "1.0"` (top-level `base_currency`, `output_currency`, `rates`, optional `as_of`; engine-owned config document)
-- Portfolio bundle artifacts: `schema_id: "crml.portfolio.bundle"` (top-level `portfolio`, optional `scenarios`, `control_catalogs`, `control_assessments`, `warnings`, `metadata`)
-- Simulation result artifacts: `schema_id: "crml.simulation.result"` (top-level `engine`, optional `run`, `inputs`, `units`, `results`, plus `success`, `errors`, `warnings`)
+- Portfolio bundle artifacts: `crml_portfolio_bundle: "1.0"` (top-level `portfolio_bundle:`)
+- Simulation result artifacts: `crml_simulation_result: "1.0"` (top-level `result:`)
 
 ## System-level data flow
 
@@ -59,7 +59,8 @@ flowchart LR
 
     AUTH["Recognized authorities<br/>NIS, CIS"] -->|publish| CC["Control catalog pack<br/>CRControlCatalog"]
     SCAN["Assessment and scan tools"] --> CA["Control assessment pack<br/>CRControlAssessment"]
-    SCAN -.->|optional| P
+
+    CC -.->|basis| CA
 
     S --> B["Bundle step<br/>bundle_portfolio"]
     P --> B

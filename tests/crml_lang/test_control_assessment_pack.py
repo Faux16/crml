@@ -9,6 +9,7 @@ meta:
 assessment:
   id: "acme-2025-q4"
   framework: "CISv8"
+  assessed_at: "2025-12-17T10:15:30Z"
   assessments:
     - id: "cisv8:2.3"
       ref: {standard: "CIS", version: "v8", control: "2", safeguard: "3"}

@@ -13,7 +13,7 @@ from typing import Dict, Optional
 
 import yaml
 from jsonschema import Draft202012Validator
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .constants import DEFAULT_FX_RATES, CURRENCY_SYMBOL_TO_CODE, CURRENCY_CODE_TO_SYMBOL
 
@@ -21,19 +21,18 @@ from .constants import DEFAULT_FX_RATES, CURRENCY_SYMBOL_TO_CODE, CURRENCY_CODE_
 FX_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "..", "schemas", "crml-fx-config-schema.json")
 
 class CurrencyInfo(BaseModel):
-    symbol: str
-    rate: float
+    symbol: str = Field(..., description="Currency display symbol (e.g. '$', '€').")
+    rate: float = Field(..., description="Conversion rate relative to the configured base currency.")
 
 
 class FXConfig(BaseModel):
-    base_currency: str = Field(default="USD")
-    output_currency: str = Field(default="USD")
-    output_symbol: str = Field(default="$")
-    rates: Dict[str, float]
-    as_of: Optional[str] = None
+    model_config = ConfigDict(extra="allow")
 
-    class Config:
-        extra = "allow"
+    base_currency: str = Field(default="USD", description="Base currency code used for FX rates (typically 'USD').")
+    output_currency: str = Field(default="USD", description="Default output/reporting currency code.")
+    output_symbol: str = Field(default="$", description="Display symbol for the output currency.")
+    rates: Dict[str, float] = Field(..., description="Mapping of currency code to rate relative to base currency.")
+    as_of: Optional[str] = Field(None, description="Optional timestamp/date for when rates were observed.")
 
 def get_default_fx_config() -> FXConfig:
     """

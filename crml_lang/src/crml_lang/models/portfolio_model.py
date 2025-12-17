@@ -11,17 +11,25 @@ from .numberish import parse_intish
 
 
 class CriticalityIndex(BaseModel):
-    type: Optional[str] = None
-    inputs: Optional[Dict[str, str]] = None
-    weights: Optional[Dict[str, float]] = None
-    transform: Optional[str] = None
+    type: Optional[str] = Field(None, description="Criticality index method identifier (tool/engine-defined).")
+    inputs: Optional[Dict[str, str]] = Field(
+        None, description="Optional mapping of input names to asset fields/values used by the index."
+    )
+    weights: Optional[Dict[str, float]] = Field(
+        None, description="Optional weights applied to inputs when computing the criticality index."
+    )
+    transform: Optional[str] = Field(None, description="Optional post-transform applied to the computed index.")
 
 
 class Asset(BaseModel):
-    name: str
-    cardinality: int = Field(..., ge=1)
-    criticality_index: Optional[CriticalityIndex] = None
-    tags: Optional[List[str]] = None
+    name: str = Field(..., description="Unique asset name within the portfolio.")
+    cardinality: int = Field(
+        ..., ge=1, description="Number of identical asset units represented by this asset entry (>= 1)."
+    )
+    criticality_index: Optional[CriticalityIndex] = Field(
+        None, description="Optional criticality index configuration for this asset."
+    )
+    tags: Optional[List[str]] = Field(None, description="Optional list of tags for grouping/filtering assets.")
 
     @field_validator("cardinality", mode="before")
     @classmethod
@@ -33,41 +41,63 @@ PortfolioMethod = Literal["sum", "mixture", "choose_one", "max"]
 
 
 class PortfolioConstraints(BaseModel):
-    require_paths_exist: bool = False
-    validate_scenarios: bool = True
+    require_paths_exist: bool = Field(
+        False, description="If true, referenced file paths must exist during validation."
+    )
+    validate_scenarios: bool = Field(
+        True, description="If true, referenced scenario files are schema-validated during portfolio validation."
+    )
 
 
 class PortfolioSemantics(BaseModel):
-    method: PortfolioMethod
-    constraints: PortfolioConstraints = Field(default_factory=PortfolioConstraints)
+    method: PortfolioMethod = Field(..., description="Aggregation semantics used to combine scenario losses.")
+    constraints: PortfolioConstraints = Field(
+        default_factory=PortfolioConstraints, description="Validation/runtime constraints for this portfolio."
+    )
 
 
 class ScenarioBinding(BaseModel):
     # Minimal binding surface: explicit list of portfolio asset names.
     # If a scenario is per-asset-unit, this defines its exposure set.
-    applies_to_assets: Optional[List[str]] = None
+    applies_to_assets: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Optional explicit list of portfolio asset names this scenario applies to. "
+            "Used for per-asset-unit scenarios to define the exposure set."
+        ),
+    )
 
 
 class ScenarioRef(BaseModel):
-    id: str
-    path: str
-    weight: Optional[float] = None
-    binding: ScenarioBinding = Field(default_factory=ScenarioBinding)
-    tags: Optional[List[str]] = None
+    id: str = Field(..., description="Unique scenario id within the portfolio.")
+    path: str = Field(..., description="Path to the referenced CRML scenario document.")
+    weight: Optional[float] = Field(
+        None, description="Optional weight used by some portfolio aggregation methods (model-specific)."
+    )
+    binding: ScenarioBinding = Field(
+        default_factory=ScenarioBinding, description="Optional binding/exposure configuration for this scenario."
+    )
+    tags: Optional[List[str]] = Field(None, description="Optional list of tags for grouping/filtering scenarios.")
 
 
 class CorrelationRelationship(BaseModel):
-    type: Literal["correlation"]
-    between: List[str] = Field(..., min_length=2, max_length=2)
-    value: float = Field(..., ge=-1.0, le=1.0)
-    method: Optional[Literal["gaussian_copula", "rank_correlation"]] = None
+    type: Literal["correlation"] = Field(..., description="Relationship type discriminator.")
+    between: List[str] = Field(
+        ..., min_length=2, max_length=2, description="Pair of scenario ids this correlation applies to."
+    )
+    value: float = Field(..., ge=-1.0, le=1.0, description="Correlation coefficient in [-1, 1].")
+    method: Optional[Literal["gaussian_copula", "rank_correlation"]] = Field(
+        None, description="Optional correlation method used by the runtime (engine-defined)."
+    )
 
 
 class ConditionalRelationship(BaseModel):
-    type: Literal["conditional"]
-    given: str
-    then: str
-    probability: float = Field(..., ge=0.0, le=1.0)
+    type: Literal["conditional"] = Field(..., description="Relationship type discriminator.")
+    given: str = Field(..., description="Scenario id representing the condition event.")
+    then: str = Field(..., description="Scenario id whose behavior depends on the condition event.")
+    probability: float = Field(
+        ..., ge=0.0, le=1.0, description="Conditional probability in [0, 1]."
+    )
 
 
 Relationship = CorrelationRelationship | ConditionalRelationship
@@ -75,16 +105,34 @@ Relationship = CorrelationRelationship | ConditionalRelationship
 
 class PortfolioControl(BaseModel):
     # Canonical unique control id, e.g. "cis.v8.2.3" or "iso27001:2022:A.5.1".
-    id: ControlId
-    implementation_effectiveness: Optional[float] = Field(None, ge=0.0, le=1.0)
-    coverage: Optional[Coverage] = None
+    id: ControlId = Field(..., description="Canonical unique control id present in the portfolio inventory.")
+    implementation_effectiveness: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description="Portfolio-level implementation effectiveness for this control (0..1).",
+    )
+    coverage: Optional[Coverage] = Field(
+        None, description="Breadth of deployment/application across the organization."
+    )
     # Reliability/uptime of the control as a probability of being effective in a given period.
     # This is a portfolio/inventory attribute; runtimes may treat it as a stochastic state.
-    reliability: Optional[float] = Field(None, ge=0.0, le=1.0)
+    reliability: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Reliability/uptime probability for this control being effective in a given period. "
+            "This is an inventory attribute; runtimes may treat it as a stochastic state."
+        ),
+    )
 
     # Effect surface for this control. Default is frequency-first.
-    affects: Optional[Literal["frequency", "severity", "both"]] = "frequency"
-    notes: Optional[str] = None
+    affects: Optional[Literal["frequency", "severity", "both"]] = Field(
+        "frequency",
+        description="Which loss component this control affects (frequency, severity, or both).",
+    )
+    notes: Optional[str] = Field(None, description="Free-form notes about this portfolio control entry.")
 
 
 class DependencyCopula(BaseModel):
@@ -97,40 +145,72 @@ class DependencyCopula(BaseModel):
     - control:<id>:state  (a control availability/performance state)
     """
 
-    type: Literal["gaussian"] = "gaussian"
+    type: Literal["gaussian"] = Field("gaussian", description="Copula family/type discriminator.")
 
     # Ordered list of target references; length defines the copula dimension.
-    targets: List[str] = Field(..., min_length=1)
+    targets: List[str] = Field(
+        ...,
+        min_length=1,
+        description=(
+            "Ordered list of dependency target references; list length defines the copula dimension."
+        ),
+    )
 
     # Correlation specification: either Toeplitz (rho) or an explicit matrix.
-    structure: Optional[Literal["toeplitz"]] = None
-    rho: Optional[float] = Field(None, ge=-1.0, le=1.0)
-    matrix: Optional[List[List[float]]] = None
+    structure: Optional[Literal["toeplitz"]] = Field(
+        None, description="Optional shorthand correlation structure (e.g. toeplitz)."
+    )
+    rho: Optional[float] = Field(
+        None,
+        ge=-1.0,
+        le=1.0,
+        description="Toeplitz correlation parameter (used when structure='toeplitz').",
+    )
+    matrix: Optional[List[List[float]]] = Field(
+        None, description="Optional explicit correlation matrix (dimension must match targets)."
+    )
 
 
 class PortfolioDependency(BaseModel):
-    copula: Optional[DependencyCopula] = None
+    copula: Optional[DependencyCopula] = Field(
+        None, description="Optional copula specification for dependency across targets."
+    )
 
 
 class Portfolio(BaseModel):
-    assets: List[Asset] = Field(default_factory=list)
-    controls: Optional[List[PortfolioControl]] = None
+    assets: List[Asset] = Field(
+        default_factory=list, description="List of assets/exposures in the portfolio."
+    )
+    controls: Optional[List[PortfolioControl]] = Field(
+        None, description="Optional list of controls present in the organization/portfolio."
+    )
 
     # Optional pack references (paths). These allow portfolios to point at
     # portable catalogs/assessments without duplicating their contents.
-    control_catalogs: Optional[List[str]] = None
-    control_assessments: Optional[List[str]] = None
+    control_catalogs: Optional[List[str]] = Field(
+        None, description="Optional list of file paths to referenced control catalog packs."
+    )
+    control_assessments: Optional[List[str]] = Field(
+        None, description="Optional list of file paths to referenced control assessment packs."
+    )
 
-    scenarios: List[ScenarioRef]
-    semantics: PortfolioSemantics
-    relationships: Optional[List[Relationship]] = None
-    dependency: Optional[PortfolioDependency] = None
-    context: Dict[str, Any] = Field(default_factory=dict)
+    scenarios: List[ScenarioRef] = Field(..., description="List of scenario references included in the portfolio.")
+    semantics: PortfolioSemantics = Field(..., description="Portfolio aggregation semantics and constraints.")
+    relationships: Optional[List[Relationship]] = Field(
+        None, description="Optional relationships between scenarios (correlation/conditional)."
+    )
+    dependency: Optional[PortfolioDependency] = Field(
+        None, description="Optional dependency specification for runtime models (e.g. copulas)."
+    )
+    context: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Free-form context object for tools/runtimes (engine-defined).",
+    )
 
 
 class CRPortfolioSchema(BaseModel):
-    crml_portfolio: Literal["1.0"]
-    meta: Meta
-    portfolio: Portfolio
+    crml_portfolio: Literal["1.0"] = Field(..., description="Portfolio document version identifier.")
+    meta: Meta = Field(..., description="Document metadata (name, description, tags, etc.).")
+    portfolio: Portfolio = Field(..., description="The portfolio payload.")
 
     model_config: ConfigDict = ConfigDict(populate_by_name=True)

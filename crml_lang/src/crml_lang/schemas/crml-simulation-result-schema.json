@@ -5,10 +5,12 @@
         "kind": {
           "const": "currency",
           "default": "currency",
+          "description": "Unit kind discriminator.",
           "title": "Kind",
           "type": "string"
         },
         "code": {
+          "description": "ISO 4217 currency code (e.g. 'USD', 'EUR').",
           "title": "Code",
           "type": "string"
         },
@@ -22,6 +24,7 @@
             }
           ],
           "default": null,
+          "description": "Optional currency display symbol (e.g. '$', '€').",
           "title": "Symbol"
         }
       },
@@ -34,6 +37,7 @@
     "EngineInfo": {
       "properties": {
         "name": {
+          "description": "Engine name/identifier.",
           "title": "Name",
           "type": "string"
         },
@@ -47,6 +51,7 @@
             }
           ],
           "default": null,
+          "description": "Engine version string.",
           "title": "Version"
         }
       },
@@ -61,10 +66,12 @@
         "kind": {
           "const": "histogram",
           "default": "histogram",
+          "description": "Artifact kind discriminator.",
           "title": "Kind",
           "type": "string"
         },
         "id": {
+          "description": "Artifact identifier.",
           "title": "Id",
           "type": "string"
         },
@@ -77,9 +84,11 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Optional unit metadata for this artifact."
         },
         "bin_edges": {
+          "description": "Histogram bin edge values.",
           "items": {
             "type": "number"
           },
@@ -87,6 +96,7 @@
           "type": "array"
         },
         "counts": {
+          "description": "Histogram bin counts (same length as bins minus one).",
           "items": {
             "type": "integer"
           },
@@ -95,6 +105,7 @@
         },
         "binning": {
           "additionalProperties": true,
+          "description": "Optional binning configuration/metadata (engine-defined).",
           "title": "Binning",
           "type": "object"
         }
@@ -117,6 +128,7 @@
             }
           ],
           "default": null,
+          "description": "Optional input model name (from scenario/portfolio meta).",
           "title": "Model Name"
         },
         "model_version": {
@@ -129,6 +141,7 @@
             }
           ],
           "default": null,
+          "description": "Optional input model version (from scenario/portfolio meta).",
           "title": "Model Version"
         },
         "description": {
@@ -141,6 +154,7 @@
             }
           ],
           "default": null,
+          "description": "Optional input model description (from meta).",
           "title": "Description"
         }
       },
@@ -150,6 +164,7 @@
     "Measure": {
       "properties": {
         "id": {
+          "description": "Measure identifier (e.g. 'eal', 'var_95').",
           "title": "Id",
           "type": "string"
         },
@@ -163,6 +178,7 @@
             }
           ],
           "default": null,
+          "description": "Numeric measure value.",
           "title": "Value"
         },
         "unit": {
@@ -174,10 +190,12 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Optional unit metadata for this measure."
         },
         "parameters": {
           "additionalProperties": true,
+          "description": "Optional parameterization metadata for this measure (engine/UI defined).",
           "title": "Parameters",
           "type": "object"
         },
@@ -191,6 +209,7 @@
             }
           ],
           "default": null,
+          "description": "Optional human-friendly label for display.",
           "title": "Label"
         }
       },
@@ -203,6 +222,7 @@
     "ResultPayload": {
       "properties": {
         "measures": {
+          "description": "List of computed summary measures.",
           "items": {
             "$ref": "#/$defs/Measure"
           },
@@ -210,6 +230,7 @@
           "type": "array"
         },
         "artifacts": {
+          "description": "List of computed artifacts (histograms/samples).",
           "items": {
             "anyOf": [
               {
@@ -239,6 +260,7 @@
             }
           ],
           "default": null,
+          "description": "Number of Monte Carlo runs/samples executed.",
           "title": "Runs"
         },
         "seed": {
@@ -251,6 +273,7 @@
             }
           ],
           "default": null,
+          "description": "Random seed used by the engine (if any).",
           "title": "Seed"
         },
         "runtime_ms": {
@@ -263,6 +286,7 @@
             }
           ],
           "default": null,
+          "description": "Execution time in milliseconds (best-effort).",
           "title": "Runtime Ms"
         },
         "started_at": {
@@ -276,6 +300,7 @@
             }
           ],
           "default": null,
+          "description": "UTC timestamp when execution started.",
           "title": "Started At"
         }
       },
@@ -287,10 +312,12 @@
         "kind": {
           "const": "samples",
           "default": "samples",
+          "description": "Artifact kind discriminator.",
           "title": "Kind",
           "type": "string"
         },
         "id": {
+          "description": "Artifact identifier.",
           "title": "Id",
           "type": "string"
         },
@@ -303,9 +330,11 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Optional unit metadata for this artifact."
         },
         "values": {
+          "description": "Sample values (may be truncated for size).",
           "items": {
             "type": "number"
           },
@@ -322,6 +351,7 @@
             }
           ],
           "default": null,
+          "description": "Total sample count produced by the engine.",
           "title": "Sample Count Total"
         },
         "sample_count_returned": {
@@ -334,10 +364,12 @@
             }
           ],
           "default": null,
+          "description": "Number of samples included in 'values'.",
           "title": "Sample Count Returned"
         },
         "sampling": {
           "additionalProperties": true,
+          "description": "Optional sampling configuration/metadata (engine-defined).",
           "title": "Sampling",
           "type": "object"
         }
@@ -351,7 +383,8 @@
     "Units": {
       "properties": {
         "currency": {
-          "$ref": "#/$defs/CurrencyUnit"
+          "$ref": "#/$defs/CurrencyUnit",
+          "description": "Currency unit used for monetary measures/artifacts."
         },
         "horizon": {
           "anyOf": [
@@ -370,6 +403,7 @@
             }
           ],
           "default": "unknown",
+          "description": "Time horizon/period unit for rates/annualized figures when applicable.",
           "title": "Horizon"
         }
       },
@@ -385,20 +419,24 @@
     "schema_id": {
       "const": "crml.simulation.result",
       "default": "crml.simulation.result",
+      "description": "Envelope schema identifier.",
       "title": "Schema Id",
       "type": "string"
     },
     "schema_version": {
       "default": "1.0.0",
+      "description": "Envelope schema version.",
       "title": "Schema Version",
       "type": "string"
     },
     "success": {
       "default": false,
+      "description": "True if the run completed successfully.",
       "title": "Success",
       "type": "boolean"
     },
     "errors": {
+      "description": "List of error messages (if any).",
       "items": {
         "type": "string"
       },
@@ -406,6 +444,7 @@
       "type": "array"
     },
     "warnings": {
+      "description": "List of warning messages (if any).",
       "items": {
         "type": "string"
       },
@@ -413,13 +452,16 @@
       "type": "array"
     },
     "engine": {
-      "$ref": "#/$defs/EngineInfo"
+      "$ref": "#/$defs/EngineInfo",
+      "description": "Engine identification and version metadata."
     },
     "run": {
-      "$ref": "#/$defs/RunInfo"
+      "$ref": "#/$defs/RunInfo",
+      "description": "Execution/run metadata."
     },
     "inputs": {
-      "$ref": "#/$defs/InputInfo"
+      "$ref": "#/$defs/InputInfo",
+      "description": "Input model metadata captured for reporting."
     },
     "units": {
       "anyOf": [
@@ -430,10 +472,12 @@
           "type": "null"
         }
       ],
-      "default": null
+      "default": null,
+      "description": "Optional unit metadata for values in this envelope."
     },
     "results": {
-      "$ref": "#/$defs/ResultPayload"
+      "$ref": "#/$defs/ResultPayload",
+      "description": "The result payload (measures/artifacts)."
     }
   },
   "required": [

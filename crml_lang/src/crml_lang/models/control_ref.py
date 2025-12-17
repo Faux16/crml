@@ -47,10 +47,10 @@ class ControlStructuredRef(BaseModel):
         {standard: "CIS", version: "v8", control: "2", safeguard: "3"}
     """
 
-    standard: str
-    version: Optional[str] = None
-    control: str
-    safeguard: Optional[str] = None
+    standard: str = Field(..., description="Standard identifier (e.g. CISv8, ISO27001).")
+    version: Optional[str] = Field(None, description="Optional standard version string.")
+    control: str = Field(..., description="Control identifier within the referenced standard.")
+    safeguard: Optional[str] = Field(None, description="Optional sub-control/safeguard identifier.")
 
     @field_validator("standard", "version", "control", "safeguard", mode="before")
     @classmethod

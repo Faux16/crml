@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from .control_ref import ControlId, ControlStructuredRef
 from .crml_model import Meta
@@ -15,23 +15,27 @@ class ControlCatalogEntry(BaseModel):
     Keep this to identifiers and tool-friendly metadata.
     """
 
-    id: ControlId
-    ref: Optional[ControlStructuredRef] = None
-    title: Optional[str] = None
-    url: Optional[str] = None
-    tags: Optional[List[str]] = None
+    id: ControlId = Field(..., description="Canonical unique control id present in this catalog.")
+    ref: Optional[ControlStructuredRef] = Field(
+        None, description="Optional structured locator to map the id to an external standard."
+    )
+    title: Optional[str] = Field(None, description="Optional short human-readable title for the control.")
+    url: Optional[str] = Field(None, description="Optional URL for additional reference material.")
+    tags: Optional[List[str]] = Field(None, description="Optional list of tags for grouping/filtering.")
 
 
 class ControlCatalogPack(BaseModel):
-    id: Optional[str] = None
+    id: Optional[str] = Field(None, description="Optional identifier for this catalog pack (organization-owned).")
     # Free-form label for humans/tools (e.g. "CIS v8", "ISO 27001:2022").
-    framework: str
-    controls: List[ControlCatalogEntry]
+    framework: str = Field(..., description="Free-form framework label for humans/tools.")
+    controls: List[ControlCatalogEntry] = Field(..., description="List of catalog entries.")
 
 
 class CRControlCatalogSchema(BaseModel):
-    crml_control_catalog: Literal["1.0"]
-    meta: Meta
-    catalog: ControlCatalogPack
+    crml_control_catalog: Literal["1.0"] = Field(
+        ..., description="Control catalog document version identifier."
+    )
+    meta: Meta = Field(..., description="Document metadata (name, description, tags, etc.).")
+    catalog: ControlCatalogPack = Field(..., description="The control catalog pack payload.")
 
     model_config: ConfigDict = ConfigDict(populate_by_name=True)

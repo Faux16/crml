@@ -3,6 +3,7 @@ meta:
   name: "Example control assessment"
 assessment:
   framework: "Org"
+  assessed_at: "2025-12-17T10:15:30Z"
   assessments:
     - id: "org:iam.mfa"
       implementation_effectiveness: 0.7

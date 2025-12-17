@@ -4,12 +4,14 @@
       "description": "Breadth of application of a control across an organization.\n\nSemantics:\n- value=0.0 means \"not deployed/applied anywhere in the stated basis\"\n- value=1.0 means \"fully deployed/applied across the stated basis\"\n\nThe basis defines the denominator for the fraction (e.g. endpoints, employees).",
       "properties": {
         "value": {
+          "description": "Coverage fraction in [0, 1] for the stated basis.",
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Value",
           "type": "number"
         },
         "basis": {
+          "description": "Coverage basis/denominator (e.g. endpoints, employees).",
           "enum": [
             "endpoints",
             "employees",
@@ -32,6 +34,7 @@
             }
           ],
           "default": null,
+          "description": "Optional free-form notes about how coverage was estimated.",
           "title": "Notes"
         }
       },
@@ -57,6 +60,7 @@
             }
           ],
           "default": null,
+          "description": "Optional named data sources referenced by the scenario.",
           "title": "Sources"
         },
         "feature_mapping": {
@@ -72,6 +76,7 @@
             }
           ],
           "default": null,
+          "description": "Optional mapping from engine-required feature names to source columns/fields.",
           "title": "Feature Mapping"
         }
       },
@@ -81,6 +86,7 @@
     "DataSource": {
       "properties": {
         "type": {
+          "description": "Identifier for the data source type (engine/UI defined).",
           "title": "Type",
           "type": "string"
         },
@@ -97,6 +103,7 @@
             }
           ],
           "default": null,
+          "description": "Optional schema mapping for source fields (feature name -> type/meaning).",
           "title": "Data Schema"
         }
       },
@@ -110,6 +117,7 @@
       "properties": {
         "basis": {
           "default": "per_organization_per_year",
+          "description": "Frequency basis/denominator (e.g. per-organization-year, per-asset-unit-year).",
           "enum": [
             "per_organization_per_year",
             "per_asset_unit_per_year"
@@ -118,11 +126,13 @@
           "type": "string"
         },
         "model": {
+          "description": "Frequency distribution/model identifier (engine-defined).",
           "title": "Model",
           "type": "string"
         },
         "parameters": {
-          "$ref": "#/$defs/FrequencyParameters"
+          "$ref": "#/$defs/FrequencyParameters",
+          "description": "Model parameters for the selected frequency model."
         }
       },
       "required": [
@@ -144,6 +154,7 @@
             }
           ],
           "default": null,
+          "description": "Frequency parameter (e.g. Poisson rate). Serialized as 'lambda' in YAML/JSON.",
           "title": "Lambda"
         },
         "alpha_base": {
@@ -156,6 +167,7 @@
             }
           ],
           "default": null,
+          "description": "Frequency model parameter (model-specific).",
           "title": "Alpha Base"
         },
         "beta_base": {
@@ -168,6 +180,7 @@
             }
           ],
           "default": null,
+          "description": "Frequency model parameter (model-specific).",
           "title": "Beta Base"
         },
         "r": {
@@ -180,6 +193,7 @@
             }
           ],
           "default": null,
+          "description": "Frequency model parameter (model-specific).",
           "title": "R"
         },
         "p": {
@@ -192,6 +206,7 @@
             }
           ],
           "default": null,
+          "description": "Probability parameter for frequency model (0..1).",
           "title": "P"
         }
       },
@@ -201,6 +216,7 @@
     "Meta": {
       "properties": {
         "name": {
+          "description": "Human-friendly name for this document.",
           "title": "Name",
           "type": "string"
         },
@@ -214,6 +230,7 @@
             }
           ],
           "default": null,
+          "description": "Optional version string for this document.",
           "title": "Version"
         },
         "description": {
@@ -226,6 +243,7 @@
             }
           ],
           "default": null,
+          "description": "Optional free-form description.",
           "title": "Description"
         },
         "author": {
@@ -238,6 +256,7 @@
             }
           ],
           "default": null,
+          "description": "Optional author/owner.",
           "title": "Author"
         },
         "organization": {
@@ -250,6 +269,7 @@
             }
           ],
           "default": null,
+          "description": "Optional organization name.",
           "title": "Organization"
         },
         "industries": {
@@ -265,10 +285,12 @@
             }
           ],
           "default": null,
+          "description": "Optional list of industry tags.",
           "title": "Industries"
         },
         "locale": {
           "additionalProperties": true,
+          "description": "Optional locale/region information and arbitrary locale metadata.",
           "title": "Locale",
           "type": "object"
         },
@@ -285,6 +307,7 @@
             }
           ],
           "default": null,
+          "description": "Optional company size tags.",
           "title": "Company Sizes"
         },
         "regulatory_frameworks": {
@@ -300,6 +323,7 @@
             }
           ],
           "default": null,
+          "description": "Optional list of regulatory frameworks relevant to this document.",
           "title": "Regulatory Frameworks"
         },
         "tags": {
@@ -315,6 +339,7 @@
             }
           ],
           "default": null,
+          "description": "Optional list of user-defined tags.",
           "title": "Tags"
         }
       },
@@ -327,10 +352,12 @@
     "Scenario": {
       "properties": {
         "frequency": {
-          "$ref": "#/$defs/Frequency"
+          "$ref": "#/$defs/Frequency",
+          "description": "Frequency model definition."
         },
         "severity": {
-          "$ref": "#/$defs/Severity"
+          "$ref": "#/$defs/Severity",
+          "description": "Severity model definition."
         },
         "controls": {
           "anyOf": [
@@ -356,6 +383,7 @@
             }
           ],
           "default": null,
+          "description": "Optional threat-centric declaration of relevant controls. Semantics: the threat can be mitigated by these controls if present in the portfolio.",
           "title": "Controls"
         }
       },
@@ -370,7 +398,7 @@
       "description": "Scenario-specific control reference.\n\nThis allows a scenario to specify scenario-scoped assumptions for a control\n(e.g. partial applicability) without requiring portfolio-wide changes.",
       "properties": {
         "id": {
-          "description": "Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1",
+          "description": "Canonical unique control id referenced by this scenario.",
           "maxLength": 256,
           "minLength": 1,
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
@@ -389,6 +417,7 @@
             }
           ],
           "default": null,
+          "description": "Scenario-scoped implementation effectiveness override (0..1).",
           "title": "Implementation Effectiveness"
         },
         "coverage": {
@@ -400,7 +429,8 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Scenario-scoped coverage override (breadth of deployment/application)."
         },
         "notes": {
           "anyOf": [
@@ -412,6 +442,7 @@
             }
           ],
           "default": null,
+          "description": "Free-form notes about this scenario control reference.",
           "title": "Notes"
         }
       },
@@ -424,11 +455,13 @@
     "Severity": {
       "properties": {
         "model": {
+          "description": "Severity distribution/model identifier (engine-defined).",
           "title": "Model",
           "type": "string"
         },
         "parameters": {
-          "$ref": "#/$defs/SeverityParameters"
+          "$ref": "#/$defs/SeverityParameters",
+          "description": "Model parameters for the selected severity model."
         },
         "components": {
           "anyOf": [
@@ -444,6 +477,7 @@
             }
           ],
           "default": null,
+          "description": "Optional component breakdown (engine/tool-defined structure).",
           "title": "Components"
         }
       },
@@ -466,6 +500,7 @@
             }
           ],
           "default": null,
+          "description": "Median loss value (distribution-dependent).",
           "title": "Median"
         },
         "currency": {
@@ -478,6 +513,7 @@
             }
           ],
           "default": null,
+          "description": "Optional currency code/symbol for severity inputs.",
           "title": "Currency"
         },
         "mu": {
@@ -490,6 +526,7 @@
             }
           ],
           "default": null,
+          "description": "Distribution parameter (e.g. lognormal mu).",
           "title": "Mu"
         },
         "sigma": {
@@ -502,6 +539,7 @@
             }
           ],
           "default": null,
+          "description": "Distribution parameter (e.g. lognormal sigma).",
           "title": "Sigma"
         },
         "shape": {
@@ -514,6 +552,7 @@
             }
           ],
           "default": null,
+          "description": "Distribution parameter (model-specific).",
           "title": "Shape"
         },
         "scale": {
@@ -526,6 +565,7 @@
             }
           ],
           "default": null,
+          "description": "Distribution parameter (model-specific).",
           "title": "Scale"
         },
         "alpha": {
@@ -538,6 +578,7 @@
             }
           ],
           "default": null,
+          "description": "Distribution parameter (model-specific).",
           "title": "Alpha"
         },
         "x_min": {
@@ -550,6 +591,7 @@
             }
           ],
           "default": null,
+          "description": "Minimum loss / truncation parameter (model-specific).",
           "title": "X Min"
         },
         "single_losses": {
@@ -565,6 +607,7 @@
             }
           ],
           "default": null,
+          "description": "Optional list of explicit sample losses (used by some empirical severity models).",
           "title": "Single Losses"
         }
       },
@@ -576,11 +619,13 @@
   "properties": {
     "crml_scenario": {
       "const": "1.0",
+      "description": "Scenario document version identifier.",
       "title": "Crml Scenario",
       "type": "string"
     },
     "meta": {
-      "$ref": "#/$defs/Meta"
+      "$ref": "#/$defs/Meta",
+      "description": "Document metadata (name, description, tags, etc.)."
     },
     "data": {
       "anyOf": [
@@ -591,10 +636,12 @@
           "type": "null"
         }
       ],
-      "default": null
+      "default": null,
+      "description": "Optional data source and feature mapping section."
     },
     "scenario": {
-      "$ref": "#/$defs/Scenario"
+      "$ref": "#/$defs/Scenario",
+      "description": "The scenario payload."
     }
   },
   "required": [

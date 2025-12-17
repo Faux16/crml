@@ -20,47 +20,48 @@
 #   print(result.metrics.eal)
 #   print(result.model_dump())
 from typing import Optional, List, Any
+
 from pydantic import BaseModel, Field
 
 class Metrics(BaseModel):
-    eal: Optional[float] = None
-    var_95: Optional[float] = None
-    var_99: Optional[float] = None
-    var_999: Optional[float] = None
-    min: Optional[float] = None
-    max: Optional[float] = None
-    median: Optional[float] = None
-    std_dev: Optional[float] = None
+    eal: Optional[float] = Field(None, description="Expected annual loss (mean of the annual loss distribution).")
+    var_95: Optional[float] = Field(None, description="Value at Risk at the 95th percentile.")
+    var_99: Optional[float] = Field(None, description="Value at Risk at the 99th percentile.")
+    var_999: Optional[float] = Field(None, description="Value at Risk at the 99.9th percentile.")
+    min: Optional[float] = Field(None, description="Minimum observed/estimated loss.")
+    max: Optional[float] = Field(None, description="Maximum observed/estimated loss.")
+    median: Optional[float] = Field(None, description="Median of the loss distribution.")
+    std_dev: Optional[float] = Field(None, description="Standard deviation of the loss distribution.")
 
 class Distribution(BaseModel):
-    bins: List[float] = Field(default_factory=list)
-    frequencies: List[int] = Field(default_factory=list)
-    raw_data: List[float] = Field(default_factory=list)
+    bins: List[float] = Field(default_factory=list, description="Histogram bin edges.")
+    frequencies: List[int] = Field(default_factory=list, description="Histogram bin counts.")
+    raw_data: List[float] = Field(default_factory=list, description="Optional raw sample losses (may be truncated).")
 
 class Metadata(BaseModel):
-    runs: int
-    seed: Optional[int] = None
-    currency: Optional[str] = None
-    currency_code: Optional[str] = None
-    model_name: Optional[str] = None
-    model_version: Optional[str] = None
-    description: Optional[str] = None
-    runtime_ms: Optional[float] = None
-    lambda_baseline: Optional[float] = None
-    lambda_effective: Optional[float] = None
-    controls_applied: Optional[bool] = None
-    control_reduction_pct: Optional[float] = None
-    control_details: Optional[Any] = None
-    control_warnings: Optional[Any] = None
-    control_warning: Optional[str] = None
-    correlation_info: Optional[List[dict]] = None
+    runs: int = Field(..., description="Number of simulation runs/samples.")
+    seed: Optional[int] = Field(None, description="Random seed used for the run (if any).")
+    currency: Optional[str] = Field(None, description="Currency display symbol (if available).")
+    currency_code: Optional[str] = Field(None, description="ISO 4217 currency code (if available).")
+    model_name: Optional[str] = Field(None, description="Input model name (from meta).")
+    model_version: Optional[str] = Field(None, description="Input model version (from meta).")
+    description: Optional[str] = Field(None, description="Input model description (from meta).")
+    runtime_ms: Optional[float] = Field(None, description="Runtime duration in milliseconds.")
+    lambda_baseline: Optional[float] = Field(None, description="Baseline frequency rate (engine-specific).")
+    lambda_effective: Optional[float] = Field(None, description="Effective frequency rate after modifiers/controls (engine-specific).")
+    controls_applied: Optional[bool] = Field(None, description="Whether any controls were applied in the run.")
+    control_reduction_pct: Optional[float] = Field(None, description="Percent reduction due to controls (engine-specific).")
+    control_details: Optional[Any] = Field(None, description="Optional structured control details (engine-specific).")
+    control_warnings: Optional[Any] = Field(None, description="Optional structured control warnings (engine-specific).")
+    control_warning: Optional[str] = Field(None, description="Optional single warning string (legacy/compat).")
+    correlation_info: Optional[List[dict]] = Field(None, description="Optional correlation metadata (engine-specific).")
 
 class SimulationResult(BaseModel):
-    success: bool = False
-    metrics: Optional[Metrics] = None
-    distribution: Optional[Distribution] = None
-    metadata: Optional[Metadata] = None
-    errors: List[str] = Field(default_factory=list)
+    success: bool = Field(False, description="True if simulation completed successfully.")
+    metrics: Optional[Metrics] = Field(None, description="Computed summary statistics for the run.")
+    distribution: Optional[Distribution] = Field(None, description="Distribution artifacts for loss samples.")
+    metadata: Optional[Metadata] = Field(None, description="Run metadata and context.")
+    errors: List[str] = Field(default_factory=list, description="List of error messages (if any).")
 
 def print_result(result: 'SimulationResult'):
     """

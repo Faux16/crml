@@ -13,59 +13,93 @@ from ..models.control_catalog_model import CRControlCatalogSchema
 
 
 class PlanMessage(BaseModel):
-    level: Literal["error", "warning"]
-    path: str
-    message: str
+    level: Literal["error", "warning"] = Field(..., description="Message severity level.")
+    path: str = Field(..., description="Logical document path where the issue occurred.")
+    message: str = Field(..., description="Human-readable message.")
 
 
 class ResolvedScenarioControl(BaseModel):
-    id: str
+    id: str = Field(..., description="Canonical control id.")
 
     # Inventory inputs (portfolio.controls, assessment packs)
-    inventory_implementation_effectiveness: Optional[float] = Field(None, ge=0.0, le=1.0)
-    inventory_coverage_value: Optional[float] = Field(None, ge=0.0, le=1.0)
-    inventory_coverage_basis: Optional[str] = None
+    inventory_implementation_effectiveness: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Implementation effectiveness from inventory sources (0..1)."
+    )
+    inventory_coverage_value: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Coverage value from inventory sources (0..1)."
+    )
+    inventory_coverage_basis: Optional[str] = Field(
+        None, description="Coverage basis from inventory sources (e.g. endpoints, employees)."
+    )
 
-    inventory_reliability: Optional[float] = Field(None, ge=0.0, le=1.0)
-    affects: Optional[str] = None
+    inventory_reliability: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Reliability/uptime from inventory sources (0..1)."
+    )
+    affects: Optional[str] = Field(
+        None, description="Effect surface for the control (frequency, severity, or both)."
+    )
 
     # Scenario-scoped factors (optional)
-    scenario_implementation_effectiveness_factor: Optional[float] = Field(None, ge=0.0, le=1.0)
-    scenario_coverage_factor: Optional[float] = Field(None, ge=0.0, le=1.0)
-    scenario_coverage_basis: Optional[str] = None
+    scenario_implementation_effectiveness_factor: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Scenario-scoped multiplier for implementation effectiveness (0..1)."
+    )
+    scenario_coverage_factor: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Scenario-scoped multiplier for coverage (0..1)."
+    )
+    scenario_coverage_basis: Optional[str] = Field(
+        None, description="Scenario-scoped coverage basis override (if applicable)."
+    )
 
     # Combined values (what the engine should apply)
-    combined_implementation_effectiveness: Optional[float] = Field(None, ge=0.0, le=1.0)
-    combined_coverage_value: Optional[float] = Field(None, ge=0.0, le=1.0)
+    combined_implementation_effectiveness: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Combined implementation effectiveness to apply (0..1)."
+    )
+    combined_coverage_value: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Combined coverage value to apply (0..1)."
+    )
 
-    combined_reliability: Optional[float] = Field(None, ge=0.0, le=1.0)
+    combined_reliability: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Combined reliability/uptime probability to apply (0..1)."
+    )
 
 
 class ResolvedScenario(BaseModel):
-    id: str
-    path: str
-    resolved_path: Optional[str] = None
-    weight: Optional[float] = None
+    id: str = Field(..., description="Scenario id from the portfolio.")
+    path: str = Field(..., description="Scenario path from the portfolio.")
+    resolved_path: Optional[str] = Field(None, description="Resolved absolute path for loading the scenario.")
+    weight: Optional[float] = Field(None, description="Optional scenario weight (portfolio semantics dependent).")
 
     # Portfolio binding resolution
-    applies_to_assets: list[str] = Field(default_factory=list)
-    cardinality: int = Field(..., ge=0)
+    applies_to_assets: list[str] = Field(
+        default_factory=list,
+        description="Concrete list of portfolio asset names this scenario applies to.",
+    )
+    cardinality: int = Field(
+        ..., ge=0, description="Total exposure cardinality implied by applies_to_assets."
+    )
 
     # Scenario document metadata (useful for reporting)
-    scenario_name: Optional[str] = None
+    scenario_name: Optional[str] = Field(None, description="Scenario meta.name (if present).")
 
     # Resolved control effects for this scenario
-    controls: list[ResolvedScenarioControl] = Field(default_factory=list)
+    controls: list[ResolvedScenarioControl] = Field(
+        default_factory=list,
+        description="Resolved per-control effects applicable to this scenario.",
+    )
 
 
 class PortfolioExecutionPlan(BaseModel):
     # Copy-through metadata needed by the runtime
-    portfolio_name: Optional[str] = None
-    semantics_method: str
+    portfolio_name: Optional[str] = Field(None, description="Portfolio meta.name (if present).")
+    semantics_method: str = Field(..., description="Resolved portfolio aggregation method.")
 
-    assets: list[dict[str, Any]] = Field(default_factory=list)
-    scenarios: list[ResolvedScenario]
-    dependency: Optional[dict[str, Any]] = None
+    assets: list[dict[str, Any]] = Field(
+        default_factory=list, description="Execution-ready asset payload (engine-defined structure)."
+    )
+    scenarios: list[ResolvedScenario] = Field(..., description="Resolved scenarios included in the plan.")
+    dependency: Optional[dict[str, Any]] = Field(
+        None, description="Optional execution-ready dependency payload (engine-defined structure)."
+    )
 
 
 def _is_control_state_ref(ref: str) -> bool:
@@ -113,10 +147,12 @@ def _validate_corr_matrix(matrix: list[list[float]], dim: int) -> Optional[str]:
 
 
 class PlanReport(BaseModel):
-    ok: bool
-    errors: list[PlanMessage] = Field(default_factory=list)
-    warnings: list[PlanMessage] = Field(default_factory=list)
-    plan: Optional[PortfolioExecutionPlan] = None
+    ok: bool = Field(..., description="True if planning completed successfully.")
+    errors: list[PlanMessage] = Field(default_factory=list, description="Errors encountered during planning.")
+    warnings: list[PlanMessage] = Field(default_factory=list, description="Warnings encountered during planning.")
+    plan: Optional[PortfolioExecutionPlan] = Field(
+        None, description="Resolved execution plan (present only when ok is true)."
+    )
 
 
 def _load_yaml_file(path: str) -> dict[str, Any]:

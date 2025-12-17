@@ -26,6 +26,10 @@ class Coverage(BaseModel):
     The basis defines the denominator for the fraction (e.g. endpoints, employees).
     """
 
-    value: float = Field(..., ge=0.0, le=1.0)
-    basis: CoverageBasis
-    notes: Optional[str] = None
+    value: float = Field(
+        ..., ge=0.0, le=1.0, description="Coverage fraction in [0, 1] for the stated basis."
+    )
+    basis: CoverageBasis = Field(
+        ..., description="Coverage basis/denominator (e.g. endpoints, employees)."
+    )
+    notes: Optional[str] = Field(None, description="Optional free-form notes about how coverage was estimated.")

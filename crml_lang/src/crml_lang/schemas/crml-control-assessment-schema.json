@@ -3,7 +3,7 @@
     "ControlAssessment": {
       "properties": {
         "id": {
-          "description": "Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1",
+          "description": "Canonical unique control id in the form 'namespace:key' (no whitespace).",
           "maxLength": 256,
           "minLength": 1,
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
@@ -19,7 +19,8 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Optional structured locator for mapping to an external standard (e.g. CIS/ISO). This is metadata only; referencing should use the canonical 'id'."
         },
         "implementation_effectiveness": {
           "anyOf": [
@@ -33,6 +34,7 @@
             }
           ],
           "default": null,
+          "description": "Organization-specific implementation strength for this control. Semantics: 0.0 = not implemented / no coverage, 1.0 = fully implemented.",
           "title": "Implementation Effectiveness"
         },
         "coverage": {
@@ -44,7 +46,8 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Breadth of deployment/application across the organization."
         },
         "reliability": {
           "anyOf": [
@@ -58,6 +61,7 @@
             }
           ],
           "default": null,
+          "description": "Reliability/uptime of the control as a probability of being effective in a given period.",
           "title": "Reliability"
         },
         "affects": {
@@ -75,6 +79,7 @@
             }
           ],
           "default": "frequency",
+          "description": "Which loss component this control affects. Default is 'frequency' (frequency-first).",
           "title": "Affects"
         },
         "notes": {
@@ -87,6 +92,7 @@
             }
           ],
           "default": null,
+          "description": "Free-form notes about this assessment entry.",
           "title": "Notes"
         }
       },
@@ -108,13 +114,30 @@
             }
           ],
           "default": null,
+          "description": "Optional identifier for this assessment pack (organization-owned).",
           "title": "Id"
         },
         "framework": {
+          "description": "Free-form framework label for humans/tools (e.g. 'CISv8', 'ISO27001:2022').",
           "title": "Framework",
           "type": "string"
         },
+        "assessed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When this assessment pack was performed/recorded (ISO 8601 date-time). Example: '2025-12-17T10:15:30Z'.",
+          "title": "Assessed At"
+        },
         "assessments": {
+          "description": "List of per-control assessment entries.",
           "items": {
             "$ref": "#/$defs/ControlAssessment"
           },
@@ -133,6 +156,7 @@
       "description": "Standard-independent structured control locator.\n\nThis is optional metadata that can be used by tools/UI to help users map\ncontrols, but *referencing* in scenarios/portfolios should be done via\n`ControlId`.\n\nExample:\n    {standard: \"CIS\", version: \"v8\", control: \"2\", safeguard: \"3\"}",
       "properties": {
         "standard": {
+          "description": "Standard identifier (e.g. CISv8, ISO27001).",
           "title": "Standard",
           "type": "string"
         },
@@ -146,9 +170,11 @@
             }
           ],
           "default": null,
+          "description": "Optional standard version string.",
           "title": "Version"
         },
         "control": {
+          "description": "Control identifier within the referenced standard.",
           "title": "Control",
           "type": "string"
         },
@@ -162,6 +188,7 @@
             }
           ],
           "default": null,
+          "description": "Optional sub-control/safeguard identifier.",
           "title": "Safeguard"
         }
       },
@@ -176,12 +203,14 @@
       "description": "Breadth of application of a control across an organization.\n\nSemantics:\n- value=0.0 means \"not deployed/applied anywhere in the stated basis\"\n- value=1.0 means \"fully deployed/applied across the stated basis\"\n\nThe basis defines the denominator for the fraction (e.g. endpoints, employees).",
       "properties": {
         "value": {
+          "description": "Coverage fraction in [0, 1] for the stated basis.",
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Value",
           "type": "number"
         },
         "basis": {
+          "description": "Coverage basis/denominator (e.g. endpoints, employees).",
           "enum": [
             "endpoints",
             "employees",
@@ -204,6 +233,7 @@
             }
           ],
           "default": null,
+          "description": "Optional free-form notes about how coverage was estimated.",
           "title": "Notes"
         }
       },
@@ -217,6 +247,7 @@
     "Meta": {
       "properties": {
         "name": {
+          "description": "Human-friendly name for this document.",
           "title": "Name",
           "type": "string"
         },
@@ -230,6 +261,7 @@
             }
           ],
           "default": null,
+          "description": "Optional version string for this document.",
           "title": "Version"
         },
         "description": {
@@ -242,6 +274,7 @@
             }
           ],
           "default": null,
+          "description": "Optional free-form description.",
           "title": "Description"
         },
         "author": {
@@ -254,6 +287,7 @@
             }
           ],
           "default": null,
+          "description": "Optional author/owner.",
           "title": "Author"
         },
         "organization": {
@@ -266,6 +300,7 @@
             }
           ],
           "default": null,
+          "description": "Optional organization name.",
           "title": "Organization"
         },
         "industries": {
@@ -281,10 +316,12 @@
             }
           ],
           "default": null,
+          "description": "Optional list of industry tags.",
           "title": "Industries"
         },
         "locale": {
           "additionalProperties": true,
+          "description": "Optional locale/region information and arbitrary locale metadata.",
           "title": "Locale",
           "type": "object"
         },
@@ -301,6 +338,7 @@
             }
           ],
           "default": null,
+          "description": "Optional company size tags.",
           "title": "Company Sizes"
         },
         "regulatory_frameworks": {
@@ -316,6 +354,7 @@
             }
           ],
           "default": null,
+          "description": "Optional list of regulatory frameworks relevant to this document.",
           "title": "Regulatory Frameworks"
         },
         "tags": {
@@ -331,6 +370,7 @@
             }
           ],
           "default": null,
+          "description": "Optional list of user-defined tags.",
           "title": "Tags"
         }
       },
@@ -344,14 +384,17 @@
   "properties": {
     "crml_control_assessment": {
       "const": "1.0",
+      "description": "Control assessment document version identifier.",
       "title": "Crml Control Assessment",
       "type": "string"
     },
     "meta": {
-      "$ref": "#/$defs/Meta"
+      "$ref": "#/$defs/Meta",
+      "description": "Document metadata (name, description, tags, etc.)."
     },
     "assessment": {
-      "$ref": "#/$defs/ControlAssessmentPack"
+      "$ref": "#/$defs/ControlAssessmentPack",
+      "description": "The control assessment pack payload."
     }
   },
   "required": [

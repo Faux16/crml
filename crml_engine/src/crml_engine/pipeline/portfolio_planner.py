@@ -51,6 +51,16 @@ class ResolvedScenarioControl(BaseModel):
         None, description="Scenario-scoped coverage basis override (if applicable)."
     )
 
+    scenario_potency_factor: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Scenario-scoped potency factor for this control against this specific threat (0..1). "
+            "This multiplies inventory implementation effectiveness when deriving combined values."
+        ),
+    )
+
     # Combined values (what the engine should apply)
     combined_implementation_effectiveness: Optional[float] = Field(
         None, ge=0.0, le=1.0, description="Combined implementation effectiveness to apply (0..1)."
@@ -176,20 +186,20 @@ def _resolve_path(base_dir: str | None, p: str) -> str:
 
 def _scenario_controls_to_objects(
     controls_any: list[Any],
-) -> list[tuple[str, Optional[float], Optional[tuple[float, str]]]]:
-    """Normalize scenario.controls into (id, eff_factor, coverage_factor(value,basis))."""
+) -> list[tuple[str, Optional[float], Optional[tuple[float, str]], Optional[float]]]:
+    """Normalize scenario.controls into (id, eff_factor, coverage_factor(value,basis), potency_factor)."""
 
-    out: list[tuple[str, Optional[float], Optional[tuple[float, str]]]] = []
+    out: list[tuple[str, Optional[float], Optional[tuple[float, str]], Optional[float]]] = []
     for c in controls_any:
         if isinstance(c, str):
-            out.append((c, None, None))
+            out.append((c, None, None, None))
             continue
 
         if isinstance(c, ScenarioControlModel):
             cov = None
             if c.coverage is not None:
                 cov = (float(c.coverage.value), str(c.coverage.basis))
-            out.append((c.id, c.implementation_effectiveness, cov))
+            out.append((c.id, c.implementation_effectiveness, cov, getattr(c, "potency", None)))
             continue
 
         if isinstance(c, dict):
@@ -197,11 +207,13 @@ def _scenario_controls_to_objects(
             if isinstance(cid, str):
                 eff = c.get("implementation_effectiveness")
                 eff_f = float(eff) if eff is not None else None
+                pot = c.get("potency")
+                pot_f = float(pot) if pot is not None else None
                 cov_obj = c.get("coverage")
                 cov = None
                 if isinstance(cov_obj, dict) and cov_obj.get("value") is not None and cov_obj.get("basis") is not None:
                     cov = (float(cov_obj["value"]), str(cov_obj["basis"]))
-                out.append((cid, eff_f, cov))
+                out.append((cid, eff_f, cov, pot_f))
             continue
 
     return out
@@ -514,7 +526,7 @@ def plan_portfolio(
         controls_norm = _scenario_controls_to_objects(list(controls_any))
         resolved_controls: list[ResolvedScenarioControl] = []
 
-        for (cid, scenario_eff_factor, scenario_cov_factor) in controls_norm:
+        for (cid, scenario_eff_factor, scenario_cov_factor, scenario_potency_factor) in controls_norm:
             inventory_eff: Optional[float] = None
             inventory_cov_val: Optional[float] = None
             inventory_cov_basis: Optional[str] = None
@@ -557,6 +569,7 @@ def plan_portfolio(
 
             # Scenario values are interpreted as *multiplicative applicability factors*.
             eff_factor = float(scenario_eff_factor) if scenario_eff_factor is not None else None
+            pot_factor = float(scenario_potency_factor) if scenario_potency_factor is not None else None
             cov_factor_val: Optional[float] = None
             cov_factor_basis: Optional[str] = None
             if scenario_cov_factor is not None:
@@ -565,7 +578,11 @@ def plan_portfolio(
 
             combined_eff = None
             if inventory_eff is not None:
-                combined_eff = _clamp01(inventory_eff * (eff_factor if eff_factor is not None else 1.0))
+                combined_eff = _clamp01(
+                    inventory_eff
+                    * (eff_factor if eff_factor is not None else 1.0)
+                    * (pot_factor if pot_factor is not None else 1.0)
+                )
 
             combined_cov = None
             if inventory_cov_val is not None:
@@ -584,6 +601,7 @@ def plan_portfolio(
                     scenario_implementation_effectiveness_factor=eff_factor,
                     scenario_coverage_factor=cov_factor_val,
                     scenario_coverage_basis=cov_factor_basis,
+                    scenario_potency_factor=pot_factor,
                     combined_implementation_effectiveness=combined_eff,
                     combined_coverage_value=combined_cov,
                     combined_reliability=combined_rel,
@@ -818,7 +836,7 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:
         controls_norm = _scenario_controls_to_objects(list(controls_any))
         resolved_controls: list[ResolvedScenarioControl] = []
 
-        for (cid, scenario_eff_factor, scenario_cov_factor) in controls_norm:
+        for (cid, scenario_eff_factor, scenario_cov_factor, scenario_potency_factor) in controls_norm:
             inventory_eff: Optional[float] = None
             inventory_cov_val: Optional[float] = None
             inventory_cov_basis: Optional[str] = None
@@ -860,6 +878,7 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:
                 continue
 
             eff_factor = float(scenario_eff_factor) if scenario_eff_factor is not None else None
+            pot_factor = float(scenario_potency_factor) if scenario_potency_factor is not None else None
             cov_factor_val: Optional[float] = None
             cov_factor_basis: Optional[str] = None
             if scenario_cov_factor is not None:
@@ -868,7 +887,11 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:
 
             combined_eff = None
             if inventory_eff is not None:
-                combined_eff = _clamp01(inventory_eff * (eff_factor if eff_factor is not None else 1.0))
+                combined_eff = _clamp01(
+                    inventory_eff
+                    * (eff_factor if eff_factor is not None else 1.0)
+                    * (pot_factor if pot_factor is not None else 1.0)
+                )
 
             combined_cov = None
             if inventory_cov_val is not None:
@@ -887,6 +910,7 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:
                     scenario_implementation_effectiveness_factor=eff_factor,
                     scenario_coverage_factor=cov_factor_val,
                     scenario_coverage_basis=cov_factor_basis,
+                    scenario_potency_factor=pot_factor,
                     combined_implementation_effectiveness=combined_eff,
                     combined_coverage_value=combined_cov,
                     combined_reliability=combined_rel,

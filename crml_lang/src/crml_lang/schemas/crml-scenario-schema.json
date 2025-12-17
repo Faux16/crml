@@ -420,6 +420,21 @@
           "description": "Scenario-scoped implementation effectiveness override (0..1).",
           "title": "Implementation Effectiveness"
         },
+        "potency": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scenario-scoped potency factor for this control against this specific threat (0..1). This represents how strong the control is against the scenario if implemented and applied; it is multiplied with portfolio/assessment posture values during planning.",
+          "title": "Potency"
+        },
         "coverage": {
           "anyOf": [
             {

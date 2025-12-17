@@ -170,6 +170,17 @@ class ScenarioControl(BaseModel):
         le=1.0,
         description="Scenario-scoped implementation effectiveness override (0..1).",
     )
+
+    potency: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Scenario-scoped potency factor for this control against this specific threat (0..1). "
+            "This represents how strong the control is against the scenario if implemented and applied; "
+            "it is multiplied with portfolio/assessment posture values during planning."
+        ),
+    )
     coverage: Optional[Coverage] = Field(
         None,
         description="Scenario-scoped coverage override (breadth of deployment/application).",

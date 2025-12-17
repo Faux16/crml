@@ -70,7 +70,7 @@ A **Scenario** may reference controls in a lightweight way, so scenarios remain 
 A scenario control reference can be:
 
 - A string Control ID: `"org:iam.mfa"`
-- An object: `{ id, implementation_effectiveness?, coverage?, notes? }`
+- An object: `{ id, implementation_effectiveness?, coverage?, potency?, notes? }`
 
 The object form is for scenario-specific assumptions.
 
@@ -105,7 +105,7 @@ When multiple sources provide parameters for the same control ID, tools MUST der
 Normative details:
 
 - If a scenario reference is a string ID (no object fields), it applies the portfolio/assessment values as-is.
-- If a scenario reference is an object, `implementation_effectiveness` and `coverage` are interpreted as multiplicative factors in $[0,1]$.
+- If a scenario reference is an object, `implementation_effectiveness`, `coverage`, and `potency` are interpreted as multiplicative factors in $[0,1]$.
 - If a scenario references a control id and no portfolio inventory or assessment provides posture values, portfolio planning/validation MUST fail.
 
 > Implementation note: today the validator enforces the “scenario controls must exist in portfolio.controls” rule when validating a portfolio that loads scenarios. Portfolio-to-pack auto-loading/merging may be implemented by tooling/runtime.
@@ -150,10 +150,11 @@ scenario:
   controls:
     - id: "org:iam.mfa"
       implementation_effectiveness: 0.6  # scenario-level factor
+      potency: 0.5  # threat-specific potency factor
       notes: "Assume limited MFA enforcement for this scenario"
 ```
 
-Effective `implementation_effectiveness` for this scenario is `0.5 × 0.6 = 0.3` (portfolio overrides assessment, then scenario scales it).
+Effective `implementation_effectiveness` for this scenario is `0.5 × 0.6 × 0.5 = 0.15` (portfolio overrides assessment, then scenario scales it, then potency applies).
 
 ### Example: field-by-field override
 

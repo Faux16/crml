@@ -380,6 +380,66 @@
       "title": "SamplesArtifact",
       "type": "object"
     },
+    "SimulationResult": {
+      "description": "Simulation result payload for `SimulationResultEnvelope`.",
+      "properties": {
+        "success": {
+          "default": false,
+          "description": "True if the run completed successfully.",
+          "title": "Success",
+          "type": "boolean"
+        },
+        "errors": {
+          "description": "List of error messages (if any).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "warnings": {
+          "description": "List of warning messages (if any).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "engine": {
+          "$ref": "#/$defs/EngineInfo",
+          "description": "Engine identification and version metadata."
+        },
+        "run": {
+          "$ref": "#/$defs/RunInfo",
+          "description": "Execution/run metadata."
+        },
+        "inputs": {
+          "$ref": "#/$defs/InputInfo",
+          "description": "Input model metadata captured for reporting."
+        },
+        "units": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Units"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional unit metadata for values in this result."
+        },
+        "results": {
+          "$ref": "#/$defs/ResultPayload",
+          "description": "The result payload (measures/artifacts)."
+        }
+      },
+      "required": [
+        "engine"
+      ],
+      "title": "SimulationResult",
+      "type": "object"
+    },
     "Units": {
       "properties": {
         "currency": {
@@ -416,72 +476,20 @@
   },
   "description": "Engine-agnostic, visualization-agnostic simulation result envelope.\n\nThis model lives in `crml_lang` so engines and UIs can share a stable contract.",
   "properties": {
-    "schema_id": {
-      "const": "crml.simulation.result",
-      "default": "crml.simulation.result",
-      "description": "Envelope schema identifier.",
-      "title": "Schema Id",
+    "crml_simulation_result": {
+      "const": "1.0",
+      "default": "1.0",
+      "description": "Simulation result document version identifier.",
+      "title": "Crml Simulation Result",
       "type": "string"
     },
-    "schema_version": {
-      "default": "1.0.0",
-      "description": "Envelope schema version.",
-      "title": "Schema Version",
-      "type": "string"
-    },
-    "success": {
-      "default": false,
-      "description": "True if the run completed successfully.",
-      "title": "Success",
-      "type": "boolean"
-    },
-    "errors": {
-      "description": "List of error messages (if any).",
-      "items": {
-        "type": "string"
-      },
-      "title": "Errors",
-      "type": "array"
-    },
-    "warnings": {
-      "description": "List of warning messages (if any).",
-      "items": {
-        "type": "string"
-      },
-      "title": "Warnings",
-      "type": "array"
-    },
-    "engine": {
-      "$ref": "#/$defs/EngineInfo",
-      "description": "Engine identification and version metadata."
-    },
-    "run": {
-      "$ref": "#/$defs/RunInfo",
-      "description": "Execution/run metadata."
-    },
-    "inputs": {
-      "$ref": "#/$defs/InputInfo",
-      "description": "Input model metadata captured for reporting."
-    },
-    "units": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/Units"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Optional unit metadata for values in this envelope."
-    },
-    "results": {
-      "$ref": "#/$defs/ResultPayload",
-      "description": "The result payload (measures/artifacts)."
+    "result": {
+      "$ref": "#/$defs/SimulationResult",
+      "description": "The simulation result payload."
     }
   },
   "required": [
-    "engine"
+    "result"
   ],
   "title": "SimulationResultEnvelope",
   "type": "object"

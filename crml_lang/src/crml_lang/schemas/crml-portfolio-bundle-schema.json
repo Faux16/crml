@@ -1236,6 +1236,58 @@
       "title": "Portfolio",
       "type": "object"
     },
+    "PortfolioBundlePayload": {
+      "description": "Portfolio bundle payload for `CRPortfolioBundle`.\n\nThis is intentionally the inlined artifact content; engines should not require filesystem access.",
+      "properties": {
+        "portfolio": {
+          "$ref": "#/$defs/CRPortfolioSchema",
+          "description": "The CRML portfolio document."
+        },
+        "scenarios": {
+          "description": "Scenario documents referenced by the portfolio, inlined.",
+          "items": {
+            "$ref": "#/$defs/BundledScenario"
+          },
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "control_catalogs": {
+          "description": "Optional inlined control catalog packs referenced by the portfolio.",
+          "items": {
+            "$ref": "#/$defs/CRControlCatalogSchema"
+          },
+          "title": "Control Catalogs",
+          "type": "array"
+        },
+        "control_assessments": {
+          "description": "Optional inlined control assessment packs referenced by the portfolio.",
+          "items": {
+            "$ref": "#/$defs/CRControlAssessmentSchema"
+          },
+          "title": "Control Assessments",
+          "type": "array"
+        },
+        "warnings": {
+          "description": "Non-fatal bundle warnings.",
+          "items": {
+            "$ref": "#/$defs/BundleMessage"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "description": "Optional metadata for traceability (e.g., source refs). Not interpreted by engines.",
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "portfolio"
+      ],
+      "title": "PortfolioBundlePayload",
+      "type": "object"
+    },
     "PortfolioConstraints": {
       "properties": {
         "require_paths_exist": {
@@ -1484,6 +1536,21 @@
           "default": null,
           "description": "Scenario-scoped implementation effectiveness override (0..1).",
           "title": "Implementation Effectiveness"
+        },
+        "potency": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scenario-scoped potency factor for this control against this specific threat (0..1). This represents how strong the control is against the scenario if implemented and applied; it is multiplied with portfolio/assessment posture values during planning.",
+          "title": "Potency"
         },
         "coverage": {
           "anyOf": [
@@ -1735,64 +1802,20 @@
   },
   "description": "Engine-agnostic bundle produced by the language layer.\n\nA portfolio bundle is a single, self-contained artifact that contains:\n- the portfolio document\n- referenced scenario documents inlined\n- optionally, referenced control packs inlined\n\nThe bundle is intended as the contract between `crml_lang` and engines.",
   "properties": {
-    "schema_id": {
-      "const": "crml.portfolio.bundle",
-      "default": "crml.portfolio.bundle",
-      "description": "Bundle schema identifier.",
-      "title": "Schema Id",
+    "crml_portfolio_bundle": {
+      "const": "1.0",
+      "default": "1.0",
+      "description": "Portfolio bundle document version identifier.",
+      "title": "Crml Portfolio Bundle",
       "type": "string"
     },
-    "schema_version": {
-      "default": "1.0.0",
-      "description": "Bundle schema version.",
-      "title": "Schema Version",
-      "type": "string"
-    },
-    "portfolio": {
-      "$ref": "#/$defs/CRPortfolioSchema",
-      "description": "The CRML portfolio document."
-    },
-    "scenarios": {
-      "description": "Scenario documents referenced by the portfolio, inlined.",
-      "items": {
-        "$ref": "#/$defs/BundledScenario"
-      },
-      "title": "Scenarios",
-      "type": "array"
-    },
-    "control_catalogs": {
-      "description": "Optional inlined control catalog packs referenced by the portfolio.",
-      "items": {
-        "$ref": "#/$defs/CRControlCatalogSchema"
-      },
-      "title": "Control Catalogs",
-      "type": "array"
-    },
-    "control_assessments": {
-      "description": "Optional inlined control assessment packs referenced by the portfolio.",
-      "items": {
-        "$ref": "#/$defs/CRControlAssessmentSchema"
-      },
-      "title": "Control Assessments",
-      "type": "array"
-    },
-    "warnings": {
-      "description": "Non-fatal bundle warnings.",
-      "items": {
-        "$ref": "#/$defs/BundleMessage"
-      },
-      "title": "Warnings",
-      "type": "array"
-    },
-    "metadata": {
-      "additionalProperties": true,
-      "description": "Optional metadata for traceability (e.g., source refs). Not interpreted by engines.",
-      "title": "Metadata",
-      "type": "object"
+    "portfolio_bundle": {
+      "$ref": "#/$defs/PortfolioBundlePayload",
+      "description": "The portfolio bundle payload (inlined artifact content)."
     }
   },
   "required": [
-    "portfolio"
+    "portfolio_bundle"
   ],
   "title": "CRPortfolioBundle",
   "type": "object"

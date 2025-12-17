@@ -110,6 +110,7 @@ scenario:
   controls:
     - id: "iso27001:2022:A.5.1"
       implementation_effectiveness: 0.5
+      potency: 0.2
       coverage: {value: 0.5, basis: applications}
   frequency:
     basis: per_organization_per_year
@@ -172,8 +173,9 @@ portfolio:
     # Scenario provides multiplicative applicability factors.
     assert ctrl.scenario_implementation_effectiveness_factor == 0.5
     assert ctrl.scenario_coverage_factor == 0.5
+    assert ctrl.scenario_potency_factor == 0.2
 
-    assert ctrl.combined_implementation_effectiveness == 0.3
+    assert ctrl.combined_implementation_effectiveness == 0.06
     assert ctrl.combined_coverage_value == 0.5
 
 

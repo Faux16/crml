@@ -502,7 +502,7 @@ Meaning:
 - `horizon` is the **total time span** the model intends to describe/simulate. Example: `"12m"` means a one-year horizon; `"24m"` means two years.
 - `granularity` is the **time step** used for time-sliced simulation or reporting. Example: `"1m"` means monthly steps; `"1w"` weekly steps.
 
-CRML is commonly used with **annualized** frequency and severity assumptions (e.g., a Poisson `lambda` interpreted as “events per year”). In that common case:
+CRML is commonly used with **annualized** frequency and severity assumptions (e.g., a Poisson `lambda` interpreted as “events per year”). These frequency/severity parameters are **threat-side scenario assumptions** (threat landscape likelihood and impact). Organization-specific **vulnerability likelihood** is represented via control posture in portfolios/control assessments and is applied as mitigation (primarily reducing effective frequency in the reference engine). In that common case:
 
 - `horizon: "12m"` corresponds to an annual horizon and metrics like `EAL` are naturally “per year”.
 - If the horizon is longer (e.g., `"24m"`), engines SHOULD define whether results are reported for the full horizon or normalized back to an annual basis.

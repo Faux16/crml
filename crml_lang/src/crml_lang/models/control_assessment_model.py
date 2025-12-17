@@ -30,13 +30,18 @@ class ControlAssessment(BaseModel):
         le=1.0,
         description=(
             "Organization-specific implementation strength for this control. "
-            "Semantics: 0.0 = not implemented / no coverage, 1.0 = fully implemented."
+            "Semantics: 0.0 = not implemented / no coverage, 1.0 = fully implemented. "
+            "This represents vulnerability likelihood (susceptibility) posture used to mitigate a scenario's baseline threat frequency."
         ),
     )
 
     # Breadth of deployment/application across the organization.
     coverage: Optional[Coverage] = Field(
-        None, description="Breadth of deployment/application across the organization."
+        None,
+        description=(
+            "Breadth of deployment/application across the organization. This contributes to vulnerability likelihood reduction "
+            "when applying this control to a scenario."
+        ),
     )
 
     # Reliability/uptime of the control as a probability of being effective in a given period.
@@ -54,7 +59,7 @@ class ControlAssessment(BaseModel):
         "frequency",
         description=(
             "Which loss component this control affects. "
-            "Default is 'frequency' (frequency-first)."
+            "Default is 'frequency' (frequency-first). Note: the current reference engine primarily applies controls to frequency (lambda)."
         ),
     )
 

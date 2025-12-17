@@ -124,8 +124,8 @@ Visit http://localhost:3000/simulation
 - **[Examples](Examples/Full-Examples)** - Pre-built models
 
 ### Try Different Scenarios
-- Modify `lambda` to see how frequency affects risk
-- Change `median` to model different loss amounts
+- Modify `lambda` to see how baseline threat frequency (threat likelihood) affects risk
+- Change `median` to model different threat impacts (loss per event)
 - Increase `cardinality` for larger organizations
 
 ### Advanced Features

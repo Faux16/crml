@@ -110,10 +110,17 @@ class PortfolioControl(BaseModel):
         None,
         ge=0.0,
         le=1.0,
-        description="Portfolio-level implementation effectiveness for this control (0..1).",
+        description=(
+            "Portfolio-level implementation strength for this control (0..1). Represents organization-specific "
+            "vulnerability likelihood (susceptibility) reduction when applied to a scenario's baseline threat frequency."
+        ),
     )
     coverage: Optional[Coverage] = Field(
-        None, description="Breadth of deployment/application across the organization."
+        None,
+        description=(
+            "Breadth of deployment/application across the organization. This contributes to vulnerability likelihood reduction "
+            "when the control is used to mitigate a scenario's baseline threat frequency."
+        ),
     )
     # Reliability/uptime of the control as a probability of being effective in a given period.
     # This is a portfolio/inventory attribute; runtimes may treat it as a stochastic state.
@@ -130,7 +137,10 @@ class PortfolioControl(BaseModel):
     # Effect surface for this control. Default is frequency-first.
     affects: Optional[Literal["frequency", "severity", "both"]] = Field(
         "frequency",
-        description="Which loss component this control affects (frequency, severity, or both).",
+        description=(
+            "Which loss component this control is intended to affect (frequency, severity, or both). "
+            "Note: the current reference engine primarily applies controls to frequency (lambda)."
+        ),
     )
     notes: Optional[str] = Field(None, description="Free-form notes about this portfolio control entry.")
 

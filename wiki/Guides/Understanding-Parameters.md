@@ -60,6 +60,12 @@ pipeline:
 
 Distributions describe **how often** (frequency) and **how bad** (severity) cyber events occur.
 
+In CRML, scenarios describe **threat** assumptions:
+- **Frequency** (e.g., Poisson `lambda`) is baseline threat likelihood (threat landscape) for the chosen basis.
+- **Severity** (e.g., Lognormal `median`/`sigma`) is threat impact (monetary loss per event).
+
+Portfolios and control assessments represent **organization-specific vulnerability likelihood (susceptibility)** via controls (implementation effectiveness/coverage/reliability). The reference engine primarily applies this by reducing effective frequency; vulnerability impact is not modeled separately.
+
 ### Frequency Distributions
 
 **Question:** "How many times will this happen per year?"
@@ -69,7 +75,7 @@ Distributions describe **how often** (frequency) and **how bad** (severity) cybe
 **Use when:** Events are rare and random (most cyber risks)
 
 **Parameters:**
-- `lambda`: Average number of events per year per asset
+- `lambda`: Baseline threat-event rate for the chosen basis (commonly annualized)
 
 **How to choose lambda:**
 
@@ -119,15 +125,11 @@ frequency:
 **Use when:** Losses are typically small but can be extremely large (most cyber losses)
 
 **Parameters:**
-- `median`: The typical (median) loss amount in real currency. Accepts numbers or strings with spaces (e.g., `"100 000"`).
+- `median`: Typical (median) loss amount in real currency (threat impact per event). Accepts numbers or strings with spaces (e.g., `"100 000"`).
 - `currency`: The currency code for the median value (e.g., USD, EUR)
-- `sigma`: Controls the variability (how spread out losses are)
+- `sigma`: Controls the variability (how spread out losses are) of threat impact
 - `mu`: Alternative to median - log-space mean (advanced users only)
 - `single_losses`: List of observed or estimated single-event loss amounts for auto-calibration (do not combine with median/mu/sigma). Each value can be a number or a string with spaces.
-- `cardinality`: Number of assets of this type. Accepts numbers or strings with spaces (e.g., `"10 000"`).
-- `lambda`: Poisson rate parameter. Accepts numbers or strings with spaces (e.g., `"1 200"`).
-- `alpha_base`: Gamma shape parameter for hierarchical_gamma_poisson. Accepts numbers, strings with spaces, or expressions (e.g., `"1 000"`, `"CI * 2 + 1"`).
-- `beta_base`: Gamma rate parameter for hierarchical_gamma_poisson. Accepts numbers or strings with spaces (e.g., `"10 000"`).
 
 **Number Format:** Large numbers support ISO 80000-1 style space separators for readability. Both `100000` and `"100 000"` are valid.
 This applies to all relevant parameters, including `median`, `cardinality`, `lambda`, `alpha_base`, `beta_base`, `shape`, `scale`, and `single_losses`. For example:
@@ -213,7 +215,7 @@ severity:
 2. Consult industry reports (Verizon DBIR, Ponemon, etc.)
 3. Ask: "Out of 100 similar assets, how many get hit per year?"
 
-**For Severity (mu, sigma):**
+**For Severity (median, sigma):**
 1. Review past incident costs (direct + indirect)
 2. Use industry benchmarks (IBM Cost of Data Breach Report)
 3. Consider: downtime, recovery, legal, reputation, fines

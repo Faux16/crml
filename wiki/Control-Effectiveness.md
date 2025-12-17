@@ -30,7 +30,7 @@ model:
   frequency:
     model: poisson
     parameters:
-      lambda: 0.15  # 15% baseline probability
+      lambda: 0.15  # Baseline threat-event rate (threat likelihood) for the chosen basis
   
   controls:
     layers:

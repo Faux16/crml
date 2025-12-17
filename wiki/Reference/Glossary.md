@@ -49,7 +49,7 @@ A single occurrence of a risk scenario. For example, one phishing attack or one 
 A quantitative risk analysis framework. CRML can model FAIR-style risks.
 
 **Frequency**  
-How often risk events occur. Modeled using distributions like Poisson or Gamma.
+How often risk events occur. In CRML scenarios, frequency is a **threat-side** (threat landscape) assumption about baseline event likelihood, typically annualized.
 
 **Frequency Model**  
 The statistical distribution used to model how often events occur (e.g., Poisson, Gamma).
@@ -72,7 +72,9 @@ See [Event](#event)
 ## L
 
 **Lambda (λ)**  
-The rate parameter in a Poisson distribution. Represents the probability of an event occurring per asset per time period.
+The rate parameter in a Poisson distribution.
+
+In CRML scenarios, `lambda` represents **baseline threat-event frequency** (threat likelihood) for the chosen basis (e.g., events per organization-year or per asset-unit-year). Organization-specific **vulnerability likelihood** (susceptibility) is represented separately via portfolios/control assessments and is applied as mitigation (e.g., reducing effective `lambda`).
 
 **Lognormal Distribution**  
 A probability distribution where the logarithm of the variable is normally distributed. Commonly used for modeling cyber loss amounts because most losses are small, but some are very large.
@@ -142,13 +144,32 @@ A specific risk situation being modeled. For example, "phishing attacks on emplo
 A value used to initialize a random number generator. Using the same seed produces identical simulation results (reproducibility).
 
 **Severity**  
-The magnitude of loss when a risk event occurs. Modeled using distributions like Lognormal or Gamma.
+The magnitude of loss when a risk event occurs.
+
+In CRML scenarios, severity is a **threat-side impact** assumption (monetary loss per event), modeled using distributions like Lognormal or Gamma.
 
 **Severity Model**  
 The statistical distribution used to model loss amounts (e.g., Lognormal, Gamma).
 
 **Sigma (σ)**  
 The scale parameter in a Lognormal distribution. Represents the variability of losses. Higher sigma = more variable losses.
+
+## T
+
+**Threat**  
+An external actor/event pattern represented by the scenario (industry, size, threat landscape). Threat data in CRML scenarios is captured via frequency (likelihood) and severity (impact).
+
+**Threat Likelihood (Threat Frequency)**  
+The baseline likelihood of the threat producing events for the chosen basis (commonly annualized). In CRML, this is represented by the scenario’s frequency model and parameters (e.g., Poisson `lambda`).
+
+**Threat Impact**  
+The monetary loss when a threat event occurs. In CRML, this is represented by the scenario’s severity model and parameters (e.g., Lognormal `median`/`mu`/`sigma`).
+
+**Vulnerability Likelihood (Susceptibility)**  
+The organization-specific likelihood that a threat event succeeds/causes loss given posture (controls, coverage, reliability). In CRML, this is represented via portfolio/control assessment control posture and is applied as mitigation (primarily reducing effective frequency in the reference engine).
+
+**Vulnerability Impact**  
+How large an event’s impact would be due to organization-specific weaknesses. The reference CRML approach does not model vulnerability impact separately; impact is modeled on the threat side via scenario severity.
 
 **Simulation**  
 The process of running a Monte Carlo model to generate risk estimates.

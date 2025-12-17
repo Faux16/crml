@@ -204,7 +204,7 @@ Model how security controls reduce cyber risk.
 
 ### Why Model Controls?
 
-Security controls (email filtering, EDR, MFA, backups) reduce the likelihood and impact of cyber incidents. CRML allows you to:
+Security controls (email filtering, EDR, MFA, backups) primarily reduce **vulnerability likelihood (susceptibility)** — i.e., the chance that a baseline threat event results in loss. In CRML, scenarios capture the **threat** (frequency/impact) and portfolios/control assessments capture the **vulnerability likelihood** posture (controls). The current reference engine applies controls primarily to frequency (`lambda`).
 
 - **Quantify control effectiveness** - See exact risk reduction
 - **Optimize security spend** - Identify highest-impact controls
@@ -217,7 +217,7 @@ model:
   frequency:
     model: poisson
     parameters:
-      lambda: 0.15  # 15% baseline probability
+      lambda: 0.15  # Baseline threat-event rate (threat likelihood) for the chosen basis
   
   controls:
     layers:

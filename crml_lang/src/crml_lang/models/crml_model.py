@@ -68,7 +68,11 @@ class FrequencyParameters(BaseModel):
     lambda_: Optional[float] = Field(
         None,
         alias="lambda",
-        description="Frequency parameter (e.g. Poisson rate). Serialized as 'lambda' in YAML/JSON.",
+        description=(
+            "Threat-event frequency parameter (e.g. Poisson rate). Interpreted as baseline "
+            "threat likelihood (threat landscape) before organization-specific vulnerability/control posture "
+            "is applied. Serialized as 'lambda' in YAML/JSON."
+        ),
     )
     alpha_base: Optional[float] = Field(None, description="Frequency model parameter (model-specific).")
     beta_base: Optional[float] = Field(None, description="Frequency model parameter (model-specific).")
@@ -99,10 +103,27 @@ class Frequency(BaseModel):
 
 # --- Model: Severity ---
 class SeverityParameters(BaseModel):
-    median: Optional[float] = Field(None, description="Median loss value (distribution-dependent).")
+    median: Optional[float] = Field(
+        None,
+        description=(
+            "Median loss value (distribution-dependent). Interpreted as threat impact (monetary loss per event). "
+            "The reference approach models vulnerability primarily via likelihood (controls); vulnerability impact is not modeled."
+        ),
+    )
     currency: Optional[str] = Field(None, description="Optional currency code/symbol for severity inputs.")
-    mu: Optional[float] = Field(None, description="Distribution parameter (e.g. lognormal mu).")
-    sigma: Optional[float] = Field(None, description="Distribution parameter (e.g. lognormal sigma).")
+    mu: Optional[float] = Field(
+        None,
+        description=(
+            "Distribution parameter (e.g. lognormal mu). Used to parameterize threat impact. "
+            "Prefer 'median' for human-readable inputs."
+        ),
+    )
+    sigma: Optional[float] = Field(
+        None,
+        description=(
+            "Distribution parameter (e.g. lognormal sigma). Controls variability of threat impact (loss per event)."
+        ),
+    )
     shape: Optional[float] = Field(None, description="Distribution parameter (model-specific).")
     scale: Optional[float] = Field(None, description="Distribution parameter (model-specific).")
     alpha: Optional[float] = Field(None, description="Distribution parameter (model-specific).")

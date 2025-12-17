@@ -13,6 +13,12 @@ Learn how to use your organization's actual incident data to improve CRML model 
 - Defensible in audits
 - Track improvement over time
 
+**Important CRML semantic note:** Calibration in this guide targets **scenario threat parameters**:
+- Frequency (`lambda`) = baseline threat-event likelihood for the chosen basis.
+- Severity (`median`/`mu`/`sigma`) = threat impact (loss per event).
+
+Organization-specific **vulnerability likelihood (susceptibility)** is represented separately via control posture in portfolios/control assessments (implementation effectiveness/coverage/reliability). The reference approach does not model vulnerability impact separately.
+
 ---
 
 ## What Data Do You Need?
@@ -24,7 +30,7 @@ Learn how to use your organization's actual incident data to improve CRML model 
 - Number of assets at risk
 - Time period (minimum 1 year, ideally 3+ years)
 
-**For Severity (Mu, Sigma):**
+**For Severity (Median, Sigma):**
 - Cost of each incident
 - At least 10-20 incidents for statistical validity
 
@@ -71,7 +77,7 @@ print(f"Lambda: {lambda_value:.3f}")  # 0.012 or 1.2%
 frequency:
   model: poisson
   parameters:
-    lambda: 0.012  # Your calibrated value
+        lambda: 0.012  # Calibrated baseline threat-event rate for the chosen basis
 ```
 
 ---

@@ -24,9 +24,9 @@ It intentionally does **not** run simulations.
 
 - Scenario document (`crml_scenario: "1.0"`)
 - Portfolio document (`crml_portfolio: "1.0"`)
-- Control cataloge
-- Attack cataloge
-- Assessment cataloge
+- Control catalog document (`crml_control_catalog: "1.0"`)
+- Attack catalog document (`crml_attack_catalog: "1.0"`)
+- Assessment document (`crml_assessment: "1.0"`)
 - Control relationships pack (`crml_control_relationships: "1.0"`)
 
 ### Outputs
@@ -36,7 +36,7 @@ It intentionally does **not** run simulations.
 
 ## Bundle contract
 
-`crml_lang` defines `CRPortfolioBundle` as an engine-agnostic, self-contained artifact that inlines a portfolio's referenced scenarios (and optionally control cataloges, assessments, and control relationships packs).
+`crml_lang` defines `CRPortfolioBundle` as an engine-agnostic, self-contained artifact that inlines a portfolio's referenced scenarios (and optionally control catalogs, assessments, and control relationships packs).
 
 This bundle is *inlined-only*: it does not contain planning-derived fields (e.g., per-scenario cardinality or resolved control effects).
 
@@ -51,7 +51,7 @@ Validation is schema-first and structured.
 ```mermaid
 flowchart TD
     DOC[CRML YAML/JSON document] --> LOAD[Load YAML/JSON as mapping]
-    LOAD --> SCHEMA["JSON Schema validation<br/>Draft 2020-12"]
+    LOAD --> SCHEMA["JSON Schema validation<br/>(generated from Pydantic models)"]
     SCHEMA -->|ok| SEM["Semantic checks<br/>best-practice warnings/errors"]
     SCHEMA -->|errors| RPT["ValidationReport<br/>ok=false"]
     SEM --> RPT2["ValidationReport<br/>ok=true/false"]

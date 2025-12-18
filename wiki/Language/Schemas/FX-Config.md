@@ -59,7 +59,7 @@ Example:
 
 The reference engine:
 
-- validates the file against its JSON Schema (Draft 2020-12),
+- validates the file against its JSON Schema (generated from the model),
 - merges provided rates with defaults,
 - warns and falls back to defaults if the file cannot be loaded.
 

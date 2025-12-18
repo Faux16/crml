@@ -40,12 +40,6 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    # Legacy filename (backwards compatibility)
-    (schemas_dir / "crml-control-assessment-schema.json").write_text(
-        json.dumps(assessment_schema, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-
     (schemas_dir / "crml-control-catalog-schema.json").write_text(
         json.dumps(control_catalog_schema, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",

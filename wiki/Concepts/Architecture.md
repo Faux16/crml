@@ -8,7 +8,7 @@ CRML is organized into three layers:
 
 In addition to these layers, most real deployments also use **calibration tooling**:
 
-- **Calibration tools (seperate tool responsibility but might be part of an engine)**: ingest organization-specific evidence (e.g., incident logs) and write back calibrated CRML scenarios/portfolios.
+- **Calibration tools (separate tool responsibility but might be part of an engine)**: ingest organization-specific evidence (e.g., incident logs) and write back calibrated CRML scenarios/portfolios.
 
 For the detailed architecture, see:
 
@@ -19,13 +19,30 @@ For the detailed architecture, see:
 
 - Scenario documents: `crml_scenario: "1.0"` (top-level `scenario:`)
 - Portfolio documents: `crml_portfolio: "1.0"` (top-level `portfolio:`; if `portfolio.assessments` is used, `portfolio.control_catalogs` must also be provided)
-- Control cataloges documents: `crml_control_catalog: "1.0"` (top-level `catalog:`)
-- Attack cataloges documents: `crml_attack_catalog: "1.0"` (top-level `catalog:`)
+- Control catalog documents: `crml_control_catalog: "1.0"` (top-level `catalog:`)
+- Attack catalog documents: `crml_attack_catalog: "1.0"` (top-level `catalog:`)
 - Assessment documents: `crml_assessment: "1.0"` (top-level `assessment:`)
 - Control relationships documents: `crml_control_relationships: "1.0"` (top-level `relationships:`; control-to-control mappings with overlap metadata)
 - FX config documents: `crml_fx_config: "1.0"` (top-level `base_currency`, `output_currency`, `rates`, optional `as_of`; engine-owned config document)
 - Portfolio bundle artifacts: `crml_portfolio_bundle: "1.0"` (top-level `portfolio_bundle:`)
 - Simulation result artifacts: `crml_simulation_result: "1.0"` (top-level `result:`)
+
+See also:
+
+- [Reference/CRML-Schema](../Reference/CRML-Schema.md) (where schemas live and how they’re generated)
+- [Language/Schemas/Scenario](../Language/Schemas/Scenario.md) and [Language/Schemas/Portfolio](../Language/Schemas/Portfolio.md)
+
+## Responsibility boundaries (why this split exists)
+
+CRML intentionally splits responsibilities so tools can interoperate cleanly:
+
+- `crml_lang` owns *document shape* (schemas), *validation*, and the *interchange contracts* used between tools/engines.
+- `crml_engine` (and other engines) own *execution semantics* for engine-defined `model` strings and runtime configuration.
+
+Two important contracts are language-owned:
+
+- **Portfolio bundle** (`crml_portfolio_bundle: "1.0"`): an inlined, filesystem-free input artifact.
+- **Simulation result envelope** (`crml_simulation_result: "1.0"`): a stable output container for downstream tools/UIs.
 
 ## System-level data flow
 
@@ -73,12 +90,17 @@ CRML is designed so that organizations can assemble *auditable, portable* input 
 In practice:
 
 - **Threat intelligence** produces or informs *scenario documents* (frequency, severity, narratives, assumptions).
+- **Attack catalogs** provide stable attack-pattern identifiers and metadata (titles/urls/tags) that scenarios and tools can reference.
 - **Organization evidence** (incident logs, internal loss data, telemetry) can be used by *calibration tools* to fit scenario parameters and reduce reliance on purely external priors.
 - **Portfolios** describe the organization's relatively stable assets, business units, and exposure structure. They can be updated via internal tooling (e.g., CMDB/asset inventory imports), but the portfolio document remains the central reference.
 - **Control catalogs** come from recognized authorities and frameworks (e.g., NIS, CIS) or can be commonly defined by the community. These catalogs define the canonical control set and their semantics.
-- **Attack catalogs** list attack-pattern identifiers (e.g., ATT&CK tactics/techniques) with metadata-only fields (title/url/tags) for UI/tools.
 - **Assessments** come from assessment/scan tools and audits. They capture which controls exist, how effective they are, and can optionally be used to populate or update the portfolio's control mapping.
 - **Mappings** (control-to-control relationships) can come from public sources (e.g., Secure Controls Framework) and from community or organization-specific mapping work.
+
+An additional (common) integration artifact is **attack-to-control mapping**:
+
+- Tools/community datasets can map attack-pattern ids (from an attack catalog) to control ids (from a control catalog).
+- CRML 1.0 does not currently standardize this as a first-class document type; tools can use it to populate `scenario.controls`, enrich UIs, or drive reporting.
 
 The language layer then provides a deterministic bundling step that inlines the referenced material into a self-contained `CRPortfolioBundle`, which can be handed to any risk engine without requiring filesystem access.
 
@@ -86,7 +108,9 @@ Engines are expected to return results using the **language-owned result envelop
 
 ```mermaid
 flowchart LR
-    TI["Threat intelligence<br/>feeds"] -->|publish| S["Scenario documents<br/>CRScenario"]
+    TI["Threat intelligence<br/>feeds"] -->|publish| AC["Attack catalog<br/>CRAttackCatalog"]
+    TI -->|publish/inform| S["Scenario documents<br/>CRScenario"]
+    AC -.->|reference ids/metadata| S
 
     EVID["Organization evidence<br/>(incident logs, telemetry)"] -->|calibrate| CAL
 
@@ -103,6 +127,11 @@ flowchart LR
     SCAN["Assessment and scan tools"] -->|generate| CA["Assessment catalog<br/>CRAssessment"]
 
     COMM["Community / org mappings"] -->|publish| CR["Control relationships pack<br/>CRControlRelationships"]
+
+    MAP["Attack→control mappings<br/>(tooling/community artifact)"]
+    AC -.->|attack ids| MAP
+    CC -.->|control ids| MAP
+    MAP -.->|suggest relevant controls| S
 
     CC -.->|basis| CA
     CC -.->|ids| CR

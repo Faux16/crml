@@ -93,11 +93,12 @@ class ControlRelationship(BaseModel):
             "equivalent_to",
             "parent_of",
             "child_of",
+            "backstops"
         ] = Field(
         None,
         description=(
             "Optional relationship type. Values: 'overlaps_with', 'mitigates', 'supports', 'equivalent_to', "
-            "'parent_of', 'child_of'."
+            "'parent_of', 'child_of', 'backstops'."
         ),
     )
 

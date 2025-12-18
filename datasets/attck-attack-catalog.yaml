@@ -1,0 +1,39 @@
+crml_attack_catalog: "1.0"
+meta:
+  name: "ATT&CK attack catalog (subset)"
+  description: "Small, metadata-only subset of MITRE ATT&CK for examples/tests. Contains only IDs + optional titles/URLs/tags; no framework text."
+  tags:
+    - attck
+    - dataset
+catalog:
+  id: "attck"
+  framework: "MITRE ATT&CK (Enterprise)"
+  attacks:
+    - id: "attck:TA0001"
+      title: "Initial Access"
+      url: "https://attack.mitre.org/tactics/TA0001/"
+      tags: ["tactic"]
+    - id: "attck:TA0002"
+      title: "Execution"
+      url: "https://attack.mitre.org/tactics/TA0002/"
+      tags: ["tactic"]
+    - id: "attck:T1059"
+      title: "Command and Scripting Interpreter"
+      url: "https://attack.mitre.org/techniques/T1059/"
+      tags: ["technique"]
+      kill_chain_phases: ["mitre-attack:execution"]
+    - id: "attck:T1059.003"
+      title: "Command and Scripting Interpreter: Windows Command Shell"
+      url: "https://attack.mitre.org/techniques/T1059/003/"
+      tags: ["sub-technique"]
+      kill_chain_phases: ["mitre-attack:execution"]
+    - id: "attck:T1566"
+      title: "Phishing"
+      url: "https://attack.mitre.org/techniques/T1566/"
+      tags: ["technique"]
+      kill_chain_phases: ["mitre-attack:initial-access"]
+    - id: "attck:T1566.001"
+      title: "Spearphishing Attachment"
+      url: "https://attack.mitre.org/techniques/T1566/001/"
+      tags: ["sub-technique"]
+      kill_chain_phases: ["mitre-attack:initial-access"]

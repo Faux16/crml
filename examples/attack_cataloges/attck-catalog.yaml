@@ -17,7 +17,9 @@ catalog:
       title: "Phishing"
       url: "https://attack.mitre.org/techniques/T1566/"
       tags: ["technique"]
+      kill_chain_phases: ["mitre-attack:initial-access"]
     - id: "attck:T1566.001"
       title: "Spearphishing Attachment"
       url: "https://attack.mitre.org/techniques/T1566/001/"
       tags: ["sub-technique"]
+      kill_chain_phases: ["mitre-attack:initial-access"]

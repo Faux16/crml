@@ -18,6 +18,13 @@ class AttackCatalogEntry(BaseModel):
     title: Optional[str] = Field(None, description="Optional short human-readable title for the attack pattern.")
     url: Optional[str] = Field(None, description="Optional URL for additional reference material.")
     tags: Optional[List[str]] = Field(None, description="Optional list of tags for grouping/filtering.")
+    kill_chain_phases: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Optional STIX kill chain phases, expressed as strings. "
+            "Recommended format is '<kill_chain_name>:<phase_name>' (e.g. 'mitre-attack:execution')."
+        ),
+    )
 
 
 class AttackCataloge(BaseModel):

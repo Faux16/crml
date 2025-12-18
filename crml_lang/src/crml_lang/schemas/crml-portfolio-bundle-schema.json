@@ -758,6 +758,18 @@
           "$ref": "#/$defs/Meta",
           "description": "Document metadata (name, description, tags, etc.)."
         },
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Evidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional evidence/provenance section designed for scenarios authored from threat reports/news and for lightweight calibration metadata."
+        },
         "data": {
           "anyOf": [
             {
@@ -1343,6 +1355,293 @@
       "title": "DependencyCopula",
       "type": "object"
     },
+    "Evidence": {
+      "properties": {
+        "sources": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/EvidenceSource"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of citations that informed this scenario (threat reports, news, internal docs). This is designed to support low-friction authoring from external reporting.",
+          "title": "Sources"
+        },
+        "observed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceObserved"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional lightweight observed metrics used to inform or calibrate the scenario. Tools may translate these into model parameters (e.g., lambda, median/sigma)."
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional evidence/provenance notes.",
+          "title": "Notes"
+        }
+      },
+      "title": "Evidence",
+      "type": "object"
+    },
+    "EvidenceObserved": {
+      "properties": {
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceWindow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional time window for the observations used to inform this scenario."
+        },
+        "incident_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed incident count for this scenario within the window. Useful for calibrating frequency.",
+          "title": "Incident Count"
+        },
+        "org_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional number of organizations covered by the observations (if known). Useful for translating report-level counts into per-organization rates.",
+          "title": "Org Count"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional currency code/symbol for observed loss values.",
+          "title": "Currency"
+        },
+        "loss_median": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed median loss per incident.",
+          "title": "Loss Median"
+        },
+        "loss_mean": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed mean loss per incident.",
+          "title": "Loss Mean"
+        },
+        "loss_p90": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed 90th percentile loss per incident.",
+          "title": "Loss P90"
+        },
+        "loss_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed minimum loss per incident.",
+          "title": "Loss Min"
+        },
+        "loss_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed maximum loss per incident.",
+          "title": "Loss Max"
+        }
+      },
+      "title": "EvidenceObserved",
+      "type": "object"
+    },
+    "EvidenceSource": {
+      "properties": {
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional title of the source (report/article).",
+          "title": "Title"
+        },
+        "publisher": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional publisher/vendor name.",
+          "title": "Publisher"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL for the source.",
+          "title": "Url"
+        },
+        "published_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional publish timestamp/date for the source (ISO 8601 string). Examples: '2025-12-01' or '2025-12-01T10:15:30Z'.",
+          "title": "Published At"
+        },
+        "retrieved_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional retrieval timestamp/date (ISO 8601 string). Useful for threat intel that changes over time.",
+          "title": "Retrieved At"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional notes about how this source was used.",
+          "title": "Notes"
+        }
+      },
+      "title": "EvidenceSource",
+      "type": "object"
+    },
+    "EvidenceWindow": {
+      "properties": {
+        "start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional start of the observation window (ISO 8601 string). Example: '2023-01-01'.",
+          "title": "Start"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional end of the observation window (ISO 8601 string). Example: '2025-12-31'.",
+          "title": "End"
+        }
+      },
+      "title": "EvidenceWindow",
+      "type": "object"
+    },
     "Frequency": {
       "properties": {
         "basis": {
@@ -1356,7 +1655,8 @@
           "type": "string"
         },
         "model": {
-          "description": "Frequency distribution/model identifier (engine-defined).",
+          "default": "poisson",
+          "description": "Frequency distribution/model identifier (engine-defined). If omitted, defaults to 'poisson'.",
           "title": "Model",
           "type": "string"
         },
@@ -1366,7 +1666,6 @@
         }
       },
       "required": [
-        "model",
         "parameters"
       ],
       "title": "Frequency",

@@ -87,6 +87,105 @@ class Data(BaseModel):
     )
 
 
+# --- Evidence (citations + lightweight observed metrics) ---
+class EvidenceSource(BaseModel):
+    title: Optional[str] = Field(None, description="Optional title of the source (report/article).")
+    publisher: Optional[str] = Field(None, description="Optional publisher/vendor name.")
+    url: Optional[str] = Field(None, description="Optional URL for the source.")
+    published_at: Optional[str] = Field(
+        None,
+        description=(
+            "Optional publish timestamp/date for the source (ISO 8601 string). "
+            "Examples: '2025-12-01' or '2025-12-01T10:15:30Z'."
+        ),
+    )
+    retrieved_at: Optional[str] = Field(
+        None,
+        description=(
+            "Optional retrieval timestamp/date (ISO 8601 string). "
+            "Useful for threat intel that changes over time."
+        ),
+    )
+    notes: Optional[str] = Field(None, description="Optional notes about how this source was used.")
+
+
+class EvidenceWindow(BaseModel):
+    start: Optional[str] = Field(
+        None,
+        description=(
+            "Optional start of the observation window (ISO 8601 string). "
+            "Example: '2023-01-01'."
+        ),
+    )
+    end: Optional[str] = Field(
+        None,
+        description=(
+            "Optional end of the observation window (ISO 8601 string). "
+            "Example: '2025-12-31'."
+        ),
+    )
+
+
+class EvidenceObserved(BaseModel):
+    window: Optional[EvidenceWindow] = Field(
+        None, description="Optional time window for the observations used to inform this scenario."
+    )
+    incident_count: Optional[int] = Field(
+        None,
+        ge=0,
+        description=(
+            "Optional observed incident count for this scenario within the window. "
+            "Useful for calibrating frequency."
+        ),
+    )
+    org_count: Optional[int] = Field(
+        None,
+        ge=0,
+        description=(
+            "Optional number of organizations covered by the observations (if known). "
+            "Useful for translating report-level counts into per-organization rates."
+        ),
+    )
+    currency: Optional[str] = Field(None, description="Optional currency code/symbol for observed loss values.")
+    loss_median: Optional[float] = Field(None, description="Optional observed median loss per incident.")
+    loss_mean: Optional[float] = Field(None, description="Optional observed mean loss per incident.")
+    loss_p90: Optional[float] = Field(None, description="Optional observed 90th percentile loss per incident.")
+    loss_min: Optional[float] = Field(None, description="Optional observed minimum loss per incident.")
+    loss_max: Optional[float] = Field(None, description="Optional observed maximum loss per incident.")
+
+    @field_validator(
+        "loss_median",
+        "loss_mean",
+        "loss_p90",
+        "loss_min",
+        "loss_max",
+        mode="before",
+    )
+    @classmethod
+    def _parse_losses(cls, v):
+        if v is None:
+            return None
+        return parse_floatish(v, allow_percent=False)
+
+
+class Evidence(BaseModel):
+    sources: Optional[List[EvidenceSource]] = Field(
+        None,
+        description=(
+            "Optional list of citations that informed this scenario (threat reports, news, internal docs). "
+            "This is designed to support low-friction authoring from external reporting."
+        ),
+    )
+    observed: Optional[EvidenceObserved] = Field(
+        None,
+        description=(
+            "Optional lightweight observed metrics used to inform or calibrate the scenario. "
+            "Tools may translate these into model parameters (e.g., lambda, median/sigma)."
+        ),
+    )
+    notes: Optional[str] = Field(None, description="Optional evidence/provenance notes.")
+
+
 # --- Model: Frequency ---
 FrequencyBasis = Literal["per_organization_per_year", "per_asset_unit_per_year"]
 
@@ -129,7 +228,13 @@ class Frequency(BaseModel):
         "per_organization_per_year",
         description="Frequency basis/denominator (e.g. per-organization-year, per-asset-unit-year).",
     )
-    model: str = Field(..., description="Frequency distribution/model identifier (engine-defined).")
+    model: str = Field(
+        "poisson",
+        description=(
+            "Frequency distribution/model identifier (engine-defined). "
+            "If omitted, defaults to 'poisson'."
+        ),
+    )
     parameters: FrequencyParameters = Field(..., description="Model parameters for the selected frequency model.")
 
 
@@ -233,6 +338,13 @@ class CRScenarioSchema(BaseModel):
     # Scenario document version.
     crml_scenario: Literal["1.0"] = Field(..., description="Scenario document version identifier.")
     meta: Meta = Field(..., description="Document metadata (name, description, tags, etc.).")
+    evidence: Optional[Evidence] = Field(
+        None,
+        description=(
+            "Optional evidence/provenance section designed for scenarios authored from threat reports/news "
+            "and for lightweight calibration metadata."
+        ),
+    )
     data: Optional[Data] = Field(None, description="Optional data source and feature mapping section.")
     scenario: Scenario = Field(..., description="The scenario payload.")
 

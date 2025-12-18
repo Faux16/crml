@@ -14,6 +14,171 @@ from ..controls import apply_control_effectiveness
 from .frequency import FrequencyEngine
 from .severity import SeverityEngine
 
+
+def _normalize_cardinality(cardinality: int | None) -> int:
+    try:
+        value = int(cardinality) if cardinality is not None else 1
+    except Exception:
+        value = 1
+    return max(1, value)
+
+
+def _coerce_multiplier(
+    multiplier: Optional[object],
+    *,
+    n_runs: int,
+    label: str,
+    result: SimulationResult,
+) -> Optional[object]:
+    if multiplier is None:
+        return None
+
+    if isinstance(multiplier, (int, float, np.floating)):
+        return float(multiplier)
+
+    arr = np.asarray(multiplier, dtype=np.float64)
+    if arr.shape != (n_runs,):
+        result.errors.append(f"{label} must be a scalar or shape (n_runs,)")
+        return None
+    return arr
+
+
+def _load_scenario_document(yaml_content: Union[str, dict], *, result: SimulationResult) -> Optional[CRScenarioSchema]:
+    try:
+        if isinstance(yaml_content, str):
+            import os
+
+            if os.path.isfile(yaml_content):
+                with open(yaml_content, 'r', encoding='utf-8') as f:
+                    yaml_str = f.read()
+                return load_crml_from_yaml_str(yaml_str)
+            return load_crml_from_yaml_str(yaml_content)
+
+        if isinstance(yaml_content, dict):
+            return CRScenarioSchema.model_validate(yaml_content)
+
+        result.errors.append("Invalid input type")
+        return None
+    except Exception as e:
+        result.errors.append(f"Parsing error: {str(e)}")
+        return None
+
+
+def _validate_supported_models(
+    *,
+    frequency_model: str,
+    severity_model: str,
+    result: SimulationResult,
+) -> bool:
+    supported_frequency_models = {"poisson", "gamma", "hierarchical_gamma_poisson"}
+    supported_severity_models = {"lognormal", "gamma", "mixture"}
+
+    if not frequency_model or frequency_model not in supported_frequency_models:
+        result.errors.append(f"Unsupported frequency model: {frequency_model}")
+        return False
+
+    if not severity_model or severity_model not in supported_severity_models:
+        result.errors.append(f"Unsupported severity model: {severity_model}")
+        return False
+
+    return True
+
+
+def _aggregate_severities_by_count(counts: np.ndarray, severities: np.ndarray) -> np.ndarray:
+    current_idx = 0
+    losses: list[float] = []
+    for c in counts:
+        if c > 0:
+            loss = float(np.sum(severities[current_idx : current_idx + c]))
+            losses.append(loss)
+            current_idx += c
+        else:
+            losses.append(0.0)
+    return np.asarray(losses, dtype=np.float64)
+
+
+def _simulate_annual_losses(
+    *,
+    n_runs: int,
+    seed: int | None,
+    fx_config: FXConfig,
+    cardinality: int,
+    frequency_model: str,
+    frequency_params: object,
+    severity_model: str,
+    severity_params: object,
+    severity_components: Optional[object],
+    frequency_rate_multiplier: Optional[object],
+    severity_loss_multiplier: Optional[object],
+) -> np.ndarray:
+    counts = FrequencyEngine.generate_frequency(
+        freq_model=frequency_model,
+        params=frequency_params,
+        n_runs=n_runs,
+        cardinality=cardinality,
+        seed=seed,
+        uniforms=None,
+        rate_multiplier=frequency_rate_multiplier,
+    )
+
+    total_events = int(np.sum(counts))
+    if total_events <= 0:
+        return np.zeros(n_runs, dtype=np.float64)
+
+    severities = SeverityEngine.generate_severity(
+        sev_model=severity_model,
+        params=severity_params,
+        components=severity_components,
+        total_events=total_events,
+        fx_config=fx_config,
+    )
+
+    if len(severities) != total_events:
+        severities = np.zeros(total_events)
+
+    losses = _aggregate_severities_by_count(counts, severities)
+    if severity_loss_multiplier is not None:
+        losses = losses * severity_loss_multiplier
+    return losses
+
+
+def _apply_output_currency(losses_base: np.ndarray, *, fx_config: FXConfig) -> np.ndarray:
+    losses_base = np.asarray(losses_base, dtype=np.float64)
+    if fx_config.base_currency == fx_config.output_currency:
+        return losses_base
+
+    factor = convert_currency(1.0, fx_config.base_currency, fx_config.output_currency, fx_config)
+    return losses_base * factor
+
+
+def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: Optional[int]) -> tuple[Metrics, Distribution]:
+    losses = np.asarray(losses, dtype=np.float64)
+
+    metrics = Metrics(
+        eal=float(np.mean(losses)),
+        var_95=float(np.percentile(losses, 95)),
+        var_99=float(np.percentile(losses, 99)),
+        var_999=float(np.percentile(losses, 99.9)),
+        min=float(np.min(losses)),
+        max=float(np.max(losses)),
+        median=float(np.median(losses)),
+        std_dev=float(np.std(losses)),
+    )
+
+    hist, bin_edges = np.histogram(losses, bins=50)
+    if raw_data_limit is None:
+        raw = losses.tolist()
+    else:
+        raw = losses.tolist()[: int(raw_data_limit)]
+
+    distribution = Distribution(
+        bins=bin_edges.tolist(),
+        frequencies=hist.tolist(),
+        raw_data=raw,
+    )
+
+    return metrics, distribution
+
 def run_monte_carlo(
     yaml_content: Union[str, dict],
     n_runs: int = 10000,
@@ -28,232 +193,87 @@ def run_monte_carlo(
     Orchestrates the Monte Carlo simulation.
     """
     start_time = time.time()
-    
-    # 1. Configuration Setup
+
     fx_config = normalize_fx_config(fx_config)
     output_symbol = get_currency_symbol(fx_config.output_currency)
-
     if seed is not None:
         np.random.seed(seed)
-        
+
     result = SimulationResult(
         success=False,
         metrics=Metrics(),
         distribution=Distribution(),
         metadata=Metadata(
-            runs=n_runs, seed=seed, 
-            currency=output_symbol, 
-            currency_code=fx_config.output_currency
+            runs=n_runs,
+            seed=seed,
+            currency=output_symbol,
+            currency_code=fx_config.output_currency,
         ),
-        errors=[]
+        errors=[],
     )
 
-    # 2. Parsing & Validation
-    try:
-        if isinstance(yaml_content, str):
-            import os
-            if os.path.isfile(yaml_content):
-                with open(yaml_content, 'r', encoding='utf-8') as f:
-                    yaml_str = f.read()
-                crml_obj = load_crml_from_yaml_str(yaml_str)
-            else:
-                crml_obj = load_crml_from_yaml_str(yaml_content)
-        elif isinstance(yaml_content, dict):
-            crml_obj = CRScenarioSchema.model_validate(yaml_content)
-        else:
-            result.errors.append("Invalid input type")
-            return result
-    except Exception as e:
-        result.errors.append(f"Parsing error: {str(e)}")
+    crml_obj = _load_scenario_document(yaml_content, result=result)
+    if crml_obj is None:
         return result
 
-    scenario = crml_obj.scenario
-
-    # Populating Metadata
     meta = crml_obj.meta
     result.metadata.model_name = meta.name
     result.metadata.model_version = meta.version or 'N/A'
     result.metadata.description = meta.description or ''
 
-    # 3. Execution Setup
-    # Single CRML document == one scenario.
-    # Portfolio / multi-file execution (if desired) lives above this function.
-    
+    scenario = crml_obj.scenario
     freq = scenario.frequency
     sev = scenario.severity
-    
-    # Cardinality is a portfolio/runtime concern (e.g. per-asset-unit basis).
-    # Scenario documents do not contain assets/exposure, so the default remains 1.
+
+    cardinality = _normalize_cardinality(cardinality)
+
+    freq_mult = _coerce_multiplier(
+        frequency_rate_multiplier,
+        n_runs=n_runs,
+        label="frequency_rate_multiplier",
+        result=result,
+    )
+    if result.errors:
+        return result
+
+    sev_mult = _coerce_multiplier(
+        severity_loss_multiplier,
+        n_runs=n_runs,
+        label="severity_loss_multiplier",
+        result=result,
+    )
+    if result.errors:
+        return result
+
+    if not _validate_supported_models(
+        frequency_model=freq.model,
+        severity_model=sev.model,
+        result=result,
+    ):
+        return result
+
     try:
-        cardinality = int(cardinality) if cardinality is not None else 1
-    except Exception:
-        cardinality = 1
-    if cardinality < 1:
-        cardinality = 1
-
-    # Optional per-run multipliers (portfolio/runtime concern)
-    freq_mult = None
-    if frequency_rate_multiplier is not None:
-        if isinstance(frequency_rate_multiplier, (int, float, np.floating)):
-            freq_mult = float(frequency_rate_multiplier)
-        else:
-            arr = np.asarray(frequency_rate_multiplier, dtype=np.float64)
-            if arr.shape != (n_runs,):
-                result.errors.append("frequency_rate_multiplier must be a scalar or shape (n_runs,)")
-                return result
-            freq_mult = arr
-
-    sev_mult = None
-    if severity_loss_multiplier is not None:
-        if isinstance(severity_loss_multiplier, (int, float, np.floating)):
-            sev_mult = float(severity_loss_multiplier)
-        else:
-            arr = np.asarray(severity_loss_multiplier, dtype=np.float64)
-            if arr.shape != (n_runs,):
-                result.errors.append("severity_loss_multiplier must be a scalar or shape (n_runs,)")
-                return result
-            sev_mult = arr
-        
-    # Controls Application (Heuristic/Multiplicative)
-    freq_model = freq.model if freq else ''
-    lambda_val = None
-    if freq_model == 'poisson' and freq.parameters:
-        lambda_val = float(freq.parameters.lambda_) if freq.parameters.lambda_ is not None else 0.0
-        
-    # Scenario-first controls are references, not executable effectiveness configs.
-    # Control application is handled at portfolio/runtime level.
-
-    # 4. Asset-Model Extraction
-    # We identify per-asset simulation units as (FrequencyModel, SeverityModel) pairs.
-    # Grouping logic:
-    # - If freq.models and sev.models exist, match by asset name.
-    # - Fall back to global models if asset-specific ones not found.
-    # - If no models list, use single global model logic.
-
-    scenarios = [
-        {
-            'name': 'global',
-            'freq_model': freq.model,
-            'freq_params': freq.parameters,
-            'sev_model': sev.model,
-            'sev_params': sev.parameters,
-            'sev_comps': sev.components,
-        }
-    ]
-
-    # 5. Simulation Loop (Aggregated)
-    try:
-        # Initialize total annual losses accumulator
-        total_annual_losses = np.zeros(n_runs)
-
-        supported_frequency_models = {"poisson", "gamma", "hierarchical_gamma_poisson"}
-        supported_severity_models = {"lognormal", "gamma", "mixture"}
-        
-        for sc in scenarios:
-            f_model = sc['freq_model']
-            asset_name = sc['name']
-
-            if not f_model or f_model not in supported_frequency_models:
-                result.errors.append(f"Unsupported frequency model: {f_model}")
-                return result
-
-            s_model = sc.get('sev_model')
-            if not s_model or s_model not in supported_severity_models:
-                result.errors.append(f"Unsupported severity model: {s_model}")
-                return result
-            
-            # ... (Control logic omitted for brevity) ...
-
-            uniforms = None
-
-            # Using specific parameters for this scenario
-            if f_model == 'poisson' and sc['freq_params']:
-                 lambda_val = float(sc['freq_params'].lambda_) if sc['freq_params'].lambda_ is not None else 0.0
-            
-            # A. Frequency Generation
-            counts = FrequencyEngine.generate_frequency(
-                freq_model=f_model,
-                params=sc['freq_params'],
-                n_runs=n_runs,
-                cardinality=cardinality,
-                seed=seed,
-                uniforms=uniforms,
-                rate_multiplier=freq_mult,
-            )
-            
-            scenario_losses = np.zeros(n_runs)
-            total_events = int(np.sum(counts))
-            
-            if total_events > 0:
-                # B. Severity Generation
-                severities = SeverityEngine.generate_severity(
-                    sev_model=sc['sev_model'],
-                    params=sc['sev_params'],
-                    components=sc['sev_comps'],
-                    total_events=total_events,
-                    fx_config=fx_config
-                )
-                
-                # Check for length mismatch
-                if len(severities) != total_events:
-                     severities = np.zeros(total_events)
-
-                # C. Aggregation for this scenario
-                current_idx = 0
-                temp_losses = []
-                for c in counts:
-                    if c > 0:
-                       loss = np.sum(severities[current_idx : current_idx + c])
-                       temp_losses.append(loss)
-                       current_idx += c
-                    else:
-                       temp_losses.append(0.0)
-                scenario_losses = np.array(temp_losses)
-            
-            # Add to total
-            if sev_mult is not None:
-                scenario_losses = scenario_losses * sev_mult
-            total_annual_losses += scenario_losses
-
-        annual_losses = total_annual_losses
-
-        # 5. Reporting Currency Conversion
-        annual_losses = np.asarray(total_annual_losses, dtype=np.float64)
-        
-        if fx_config.base_currency != fx_config.output_currency:
-            factor = convert_currency(1.0, fx_config.base_currency, fx_config.output_currency, fx_config)
-            annual_losses = annual_losses * factor
-
-        # 6. Metrics Calculation
-        eal = float(np.mean(annual_losses))
-        result.metrics = Metrics(
-            eal=eal,
-            var_95=float(np.percentile(annual_losses, 95)),
-            var_99=float(np.percentile(annual_losses, 99)),
-            var_999=float(np.percentile(annual_losses, 99.9)),
-            min=float(np.min(annual_losses)),
-            max=float(np.max(annual_losses)),
-            median=float(np.median(annual_losses)),
-            std_dev=float(np.std(annual_losses))
+        losses_base = _simulate_annual_losses(
+            n_runs=n_runs,
+            seed=seed,
+            fx_config=fx_config,
+            cardinality=cardinality,
+            frequency_model=freq.model,
+            frequency_params=freq.parameters,
+            severity_model=sev.model,
+            severity_params=sev.parameters,
+            severity_components=sev.components,
+            frequency_rate_multiplier=freq_mult,
+            severity_loss_multiplier=sev_mult,
         )
 
-        hist, bin_edges = np.histogram(annual_losses, bins=50)
-        if raw_data_limit is None:
-            raw = annual_losses.tolist()
-        else:
-            raw = annual_losses.tolist()[: int(raw_data_limit)]
-
-        result.distribution = Distribution(
-            bins=bin_edges.tolist(),
-            frequencies=hist.tolist(),
-            raw_data=raw
-        )
-
+        losses_out = _apply_output_currency(losses_base, fx_config=fx_config)
+        metrics, distribution = _compute_metrics_and_distribution(losses_out, raw_data_limit=raw_data_limit)
+        result.metrics = metrics
+        result.distribution = distribution
         result.metadata.runtime_ms = (time.time() - start_time) * 1000
         result.success = True
-
+        return result
     except Exception as e:
         result.errors.append(f"Simulation execution error: {str(e)}")
-        # Raise for debugging? No, capture in result object for API consistency.
-        
-    return result
+        return result

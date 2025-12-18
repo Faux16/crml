@@ -24,11 +24,12 @@ Run a simulation:
 ```bash
 crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
 crml simulate examples/portfolios/portfolio.yaml --runs 10000
+crml simulate examples/portfolio_bundles/portfolio-bundle-documented.yaml --runs 10000
 ```
 
 Notes:
 
-- The `crml simulate` command auto-detects scenario vs portfolio inputs.
+- The `crml simulate` command auto-detects scenario vs portfolio vs portfolio-bundle inputs.
 - Portfolio simulation uses `crml_lang.plan_portfolio` and applies portfolio semantics.
 
 ## Python

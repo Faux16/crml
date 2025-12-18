@@ -13,7 +13,8 @@ Portfolio planning/binding resolution lives in `crml_engine.pipeline`.
 
 import json
 from typing import Union, Optional
-from crml_engine.pipeline import plan_portfolio
+
+from crml_engine.pipeline import plan_bundle, plan_portfolio
 import numpy as np
 
 from .models.result_model import SimulationResult, Metrics, Distribution, Metadata, print_result
@@ -30,13 +31,11 @@ from crml_lang.models.result_envelope import (
     now_utc,
 )
 from .models.fx_model import (
-    FXConfig, 
-    load_fx_config, 
-    normalize_fx_config, 
-    convert_currency, 
+    FXConfig,
+    load_fx_config,
+    normalize_fx_config,
     get_currency_symbol
 )
-from .models.constants import DEFAULT_FX_RATES
 from .simulation.engine import run_monte_carlo
 from .simulation.severity import SeverityEngine
 from .copula import gaussian_copula_uniforms
@@ -289,20 +288,24 @@ def _run_single_portfolio_scenario(
         ValueError: For missing/invalid scenario path or malformed outputs.
         RuntimeError: If the scenario engine run fails.
     """
-    scenario_path = sc.resolved_path or sc.path
-    if not scenario_path:
-        raise ValueError(f"Scenario '{sc.id}' has no path")
-
-    try:
-        scenario_yaml = _load_text_file(scenario_path)
-    except Exception as e:
-        raise ValueError(f"Failed to read scenario '{sc.id}': {e}") from e
+    # Prefer inlined scenario docs (bundle mode) to avoid filesystem dependency.
+    scenario_doc = getattr(sc, "scenario", None)
+    if scenario_doc is not None:
+        scenario_input: object = scenario_doc.model_dump(exclude_none=True)
+    else:
+        scenario_path = sc.resolved_path or sc.path
+        if not scenario_path:
+            raise ValueError(f"Scenario '{sc.id}' has no path")
+        try:
+            scenario_input = _load_text_file(scenario_path)
+        except Exception as e:
+            raise ValueError(f"Failed to read scenario '{sc.id}': {e}") from e
 
     freq_mult, sev_mult = _control_multipliers_for_scenario(sc, control_state, n_runs)
 
     scenario_seed = None if seed is None else int(seed + idx * 1000)
     res = run_monte_carlo(
-        scenario_yaml,
+        scenario_input,
         n_runs=n_runs,
         seed=scenario_seed,
         fx_config=fx_config,
@@ -428,6 +431,113 @@ def run_portfolio_simulation(
     output_symbol = get_currency_symbol(fx_config.output_currency)
 
     report = plan_portfolio(portfolio_source, source_kind=source_kind)  # type: ignore[arg-type]
+    if not report.ok or report.plan is None:
+        errors = [e.message for e in (report.errors or [])]
+        return SimulationResult(success=False, errors=errors)
+
+    plan = report.plan
+    semantics = plan.semantics_method
+    scenarios = list(plan.scenarios)
+    if not scenarios:
+        return _portfolio_error_result("Portfolio contains no scenarios")
+
+    control_info = _collect_control_info(scenarios)
+    target_controls, corr = _extract_copula_targets(plan.dependency)
+    control_state = _sample_control_state(
+        control_info=control_info,
+        target_controls=target_controls,
+        corr=corr,
+        n_runs=n_runs,
+        seed=seed,
+    )
+
+    try:
+        scenario_losses, scenario_weights = _run_portfolio_scenarios(
+            scenarios=scenarios,
+            control_state=control_state,
+            n_runs=n_runs,
+            seed=seed,
+            fx_config=fx_config,
+        )
+    except (ValueError, RuntimeError) as e:
+        return _portfolio_error_result(str(e))
+
+    try:
+        total = _aggregate_portfolio_losses(
+            semantics=semantics,
+            scenario_losses=scenario_losses,
+            scenario_weights=scenario_weights,
+            n_runs=n_runs,
+            seed=seed,
+        )
+    except ValueError as e:
+        return _portfolio_error_result(str(e))
+
+    metrics, distribution = _compute_metrics_and_distribution(total, bin_count=50)
+    return SimulationResult(
+        success=True,
+        metrics=metrics,
+        distribution=distribution,
+        metadata=Metadata(
+            runs=n_runs,
+            seed=seed,
+            currency=output_symbol,
+            currency_code=fx_config.output_currency,
+            model_name=plan.portfolio_name,
+            model_version="N/A",
+            description="",
+            controls_applied=True,
+        ),
+        errors=[],
+    )
+
+
+def run_portfolio_bundle_simulation(
+    bundle_source: Union[str, dict],
+    *,
+    source_kind: str = "path",
+    n_runs: int = 10000,
+    seed: int | None = None,
+    fx_config: Optional[FXConfig] = None,
+) -> SimulationResult:
+    """Run a CRML portfolio bundle simulation.
+
+    A portfolio bundle is a self-contained artifact produced by `crml_lang`
+    that inlines the portfolio and referenced documents. This runtime executes
+    the bundle without requiring filesystem access to scenario paths.
+
+    Args:
+        bundle_source: Bundle input. Interpretation depends on `source_kind`.
+        source_kind: One of:
+            - "path": `bundle_source` is a filesystem path to YAML.
+            - "yaml": `bundle_source` is a YAML string.
+            - "data": `bundle_source` is an already-parsed dict.
+        n_runs: Number of Monte Carlo iterations.
+        seed: Optional base seed.
+        fx_config: Optional FXConfig.
+
+    Returns:
+        A `SimulationResult` for the bundled portfolio.
+    """
+    from crml_lang import CRPortfolioBundle
+
+    fx_config = normalize_fx_config(fx_config)
+    output_symbol = get_currency_symbol(fx_config.output_currency)
+
+    try:
+        if source_kind == "path":
+            assert isinstance(bundle_source, str)
+            bundle = CRPortfolioBundle.load_from_yaml(bundle_source)
+        elif source_kind == "yaml":
+            assert isinstance(bundle_source, str)
+            bundle = CRPortfolioBundle.load_from_yaml_str(bundle_source)
+        else:
+            assert isinstance(bundle_source, dict)
+            bundle = CRPortfolioBundle.model_validate(bundle_source)
+    except Exception as e:
+        return SimulationResult(success=False, errors=[str(e)])
+
+    report = plan_bundle(bundle)
     if not report.ok or report.plan is None:
         errors = [e.message for e in (report.errors or [])]
         return SimulationResult(success=False, errors=errors)
@@ -702,7 +812,9 @@ def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str =
     except Exception:
         root = None
 
-    if isinstance(root, dict) and "crml_portfolio" in root:
+    if isinstance(root, dict) and "crml_portfolio_bundle" in root:
+        result = run_portfolio_bundle_simulation(file_path, source_kind="path", n_runs=n_runs, seed=None, fx_config=fx_config)
+    elif isinstance(root, dict) and "crml_portfolio" in root:
         result = run_portfolio_simulation(file_path, source_kind="path", n_runs=n_runs, seed=None, fx_config=fx_config)
     else:
         result = run_simulation(file_path, n_runs, fx_config=fx_config)

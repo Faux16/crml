@@ -49,38 +49,45 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = _build_parser().parse_args(argv)
+    try:
+        args = _build_parser().parse_args(argv)
 
-    if args.cmd == "export-xlsx":
-        catalogs = [CRControlCatalog.load_from_yaml(p) for p in args.control_catalog]
-        attack_catalogs = [CRAttackCatalog.load_from_yaml(p) for p in args.attack_catalog]
-        rels = [CRControlRelationships.load_from_yaml(p) for p in args.control_relationships]
-        attck_rels = [
-            CRAttackControlRelationships.load_from_yaml(p) for p in args.attack_control_relationships
-        ]
+        if args.cmd == "export-xlsx":
+            catalogs = [CRControlCatalog.load_from_yaml(p) for p in args.control_catalog]
+            attack_catalogs = [CRAttackCatalog.load_from_yaml(p) for p in args.attack_catalog]
+            rels = [CRControlRelationships.load_from_yaml(p) for p in args.control_relationships]
+            attck_rels = [
+                CRAttackControlRelationships.load_from_yaml(p) for p in args.attack_control_relationships
+            ]
 
-        export_xlsx(
-            args.out,
-            control_catalogs=catalogs,
-            attack_catalogs=attack_catalogs,
-            control_relationships=rels,
-            attack_control_relationships=attck_rels,
-        )
-        return 0
+            export_xlsx(
+                args.out,
+                control_catalogs=catalogs,
+                attack_catalogs=attack_catalogs,
+                control_relationships=rels,
+                attack_control_relationships=attck_rels,
+            )
+            return 0
 
-    if args.cmd == "import-xlsx":
-        imported = import_xlsx(args.in_path)
-        written = write_imported_as_yaml(
-            imported,
-            args.out_dir,
-            overwrite=bool(args.overwrite),
-            sort_keys=bool(args.sort_keys),
-        )
-        for p in written:
-            print(p)
-        return 0
+        if args.cmd == "import-xlsx":
+            imported = import_xlsx(args.in_path)
+            written = write_imported_as_yaml(
+                imported,
+                args.out_dir,
+                overwrite=bool(args.overwrite),
+                sort_keys=bool(args.sort_keys),
+            )
+            for p in written:
+                print(p)
+            return 0
 
-    raise AssertionError(f"Unhandled cmd: {args.cmd}")
+        raise AssertionError(f"Unhandled cmd: {args.cmd}")
+    except KeyboardInterrupt:
+        print("Interrupted", file=sys.stderr)
+        return 130
+    except Exception as e:
+        print(str(e), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

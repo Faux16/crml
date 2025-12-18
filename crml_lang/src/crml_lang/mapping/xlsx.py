@@ -23,6 +23,194 @@ _SHEET_CONTROL_RELATIONSHIPS = "control_relationships"
 _SHEET_ATTACK_CONTROL_RELATIONSHIPS = "attack_control_relationships"
 
 
+# Common column labels/descriptions (Sonar: avoid duplicating literals)
+_DOC_NAME_LABEL = "Document name"
+_DOC_NAME_DESC = "Name of this CRML document (meta.name)."
+_DOC_VERSION_LABEL = "Document version"
+_DOC_VERSION_DESC = "Optional document version (meta.version)."
+_DOC_DESCRIPTION_LABEL = "Document description"
+_DOC_DESCRIPTION_DESC = "Optional description (meta.description)."
+_DOC_TAGS_LABEL = "Document tags (JSON)"
+_DOC_TAGS_DESC = "Optional tags array as JSON."
+_DOC_TAGS_DESC_EXAMPLE = 'Optional tags array as JSON (e.g. ["community"]).'
+_TAGS_JSON_LABEL = "Tags (JSON)"
+_TAGS_JSON_DESC = "Optional tags array as JSON."
+
+
+def _doc_meta_columns(*, tags_desc: str) -> list[tuple[str, str, str]]:
+    return [
+        ("doc_name", _DOC_NAME_LABEL, _DOC_NAME_DESC),
+        ("doc_version", _DOC_VERSION_LABEL, _DOC_VERSION_DESC),
+        ("doc_description", _DOC_DESCRIPTION_LABEL, _DOC_DESCRIPTION_DESC),
+        ("doc_tags_json", _DOC_TAGS_LABEL, tags_desc),
+    ]
+
+
+def _xlsx_header_row(ws) -> int:
+    # Mapping sheets created by this exporter hide row 1 (machine keys) and
+    # show row 2 as the human header.
+    return 2 if ws.row_dimensions[1].hidden else 1
+
+
+def _xlsx_header_index(ws, name: str) -> int:
+    # Machine header row is always row 1.
+    header = [c.value for c in ws[1]]
+    try:
+        return header.index(name) + 1
+    except ValueError as e:
+        raise KeyError(name) from e
+
+
+def _xlsx_set_freeze_and_filter(ws, *, header_row: int, first_body_row: int, get_column_letter) -> None:
+    ws.freeze_panes = f"A{first_body_row}"
+    if ws.max_row >= header_row and ws.max_column >= 1:
+        ws.auto_filter.ref = f"A{header_row}:{get_column_letter(ws.max_column)}{ws.max_row}"
+
+
+def _xlsx_style_header_row(ws, *, header_row: int, header_fill, header_font, header_align) -> None:
+    for cell in ws[header_row]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_align
+
+
+def _xlsx_wrap_body_cells(ws, *, first_body_row: int, wrap_align) -> None:
+    for row in ws.iter_rows(min_row=first_body_row, max_row=ws.max_row, values_only=False):
+        for cell in row:
+            v = cell.value
+            if v is None:
+                continue
+            if isinstance(v, str) and ("{" in v or "[" in v or "\n" in v):
+                cell.alignment = wrap_align
+
+
+def _xlsx_apply_column_widths(ws, *, widths: dict[str, float], get_column_letter) -> None:
+    for col_name, width in widths.items():
+        try:
+            idx = _xlsx_header_index(ws, col_name)
+        except KeyError:
+            continue
+        ws.column_dimensions[get_column_letter(idx)].width = width
+
+
+def _xlsx_style_sheet(
+    ws,
+    *,
+    header_fill,
+    header_font,
+    header_align,
+    wrap_align,
+    get_column_letter,
+    column_widths: dict[str, float] | None = None,
+) -> None:
+    hr = _xlsx_header_row(ws)
+    first_body_row = hr + 1
+    _xlsx_set_freeze_and_filter(
+        ws, header_row=hr, first_body_row=first_body_row, get_column_letter=get_column_letter
+    )
+    _xlsx_style_header_row(
+        ws,
+        header_row=hr,
+        header_fill=header_fill,
+        header_font=header_font,
+        header_align=header_align,
+    )
+    _xlsx_wrap_body_cells(ws, first_body_row=first_body_row, wrap_align=wrap_align)
+    if column_widths:
+        _xlsx_apply_column_widths(ws, widths=column_widths, get_column_letter=get_column_letter)
+
+
+def _control_catalog_get_or_create_doc(
+    *,
+    out_by_doc: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]],
+    doc_name: str,
+    doc_version: str | None,
+    doc_description: str | None,
+    doc_tags: Any,
+    catalog_id: str | None,
+    framework: str,
+) -> dict[str, Any]:
+    key = _doc_key(doc_name, doc_version, doc_description, doc_tags, catalog_id)
+    container = out_by_doc.get(key)
+    if container is None:
+        container = {
+            "crml_control_catalog": "1.0",
+            "meta": {
+                "name": doc_name,
+                "version": doc_version,
+                "description": doc_description,
+                "tags": doc_tags,
+            },
+            "catalog": {
+                "id": catalog_id,
+                "framework": framework,
+                "controls": [],
+            },
+        }
+        out_by_doc[key] = container
+        return container
+
+    if container["catalog"].get("framework") != framework:
+        raise ValueError(
+            f"control_catalogs sheet has conflicting frameworks for doc {doc_name!r}: "
+            f"{container['catalog']['framework']!r} vs {framework!r}"
+        )
+    return container
+
+
+def _control_catalog_parse_ref_obj(*, control_id: str | None, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    ref_standard = _cell_str(data.get("ref_standard"))
+    ref_control = _cell_str(data.get("ref_control"))
+    ref_requirement = _cell_str(data.get("ref_requirement"))
+
+    if ref_standard is None and ref_control is None and ref_requirement is None:
+        return None
+    if ref_standard is None or ref_control is None:
+        raise ValueError(f"control_catalogs row has incomplete ref for control {control_id!r}")
+    return {
+        "standard": ref_standard,
+        "control": ref_control,
+        "requirement": ref_requirement,
+    }
+
+
+def _xlsx_add_list_validation(ws, *, column_name: str, allowed: list[str]) -> None:
+    from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.datavalidation import DataValidation
+
+    try:
+        col_idx = _xlsx_header_index(ws, column_name)
+    except KeyError:
+        return
+
+    start_row = _xlsx_header_row(ws) + 1
+    if ws.max_row < start_row:
+        return
+
+    # Escape double-quotes for Excel list literals by doubling them.
+    safe_items = [s.replace('"', '""') for s in allowed]
+    formula = '"' + ",".join(safe_items) + '"'
+    dv = DataValidation(type="list", formula1=formula, allow_blank=True)
+    ws.add_data_validation(dv)
+    dv.add(
+        f"{get_column_letter(col_idx)}{start_row}:{get_column_letter(col_idx)}{ws.max_row}"
+    )
+
+
+def _xlsx_number_format(ws, *, column_name: str, fmt: str) -> None:
+    try:
+        col_idx = _xlsx_header_index(ws, column_name)
+    except KeyError:
+        return
+
+    start_row = _xlsx_header_row(ws) + 1
+    for r in range(start_row, ws.max_row + 1):
+        cell = ws.cell(row=r, column=col_idx)
+        if cell.value is None:
+            continue
+        cell.number_format = fmt
+
+
 def _xlsx_module():
     try:
         import openpyxl  # type: ignore
@@ -94,6 +282,107 @@ def _safe_filename(name: str) -> str:
     return s or "document"
 
 
+def _doc_key(
+    doc_name: str,
+    doc_version: str | None,
+    doc_description: str | None,
+    doc_tags: Any,
+    pack_or_catalog_id: str | None,
+) -> tuple[str, str | None, str | None, str | None, str | None]:
+    return (
+        doc_name,
+        doc_version,
+        doc_description,
+        _to_json_cell(doc_tags),
+        pack_or_catalog_id,
+    )
+
+
+def _read_sheet_rows(wb, sheet_name: str, *, header_rows: int) -> tuple[list[str], list[tuple[Any, ...]]]:
+    if sheet_name not in wb.sheetnames:
+        return ([], [])
+
+    ws = wb[sheet_name]
+    rows = list(ws.iter_rows(values_only=True))
+    if len(rows) <= header_rows:
+        return ([], [])
+
+    header = [str(c) for c in rows[0]]
+    body = list(rows[header_rows:])
+    return (header, body)
+
+
+def _read_doc_meta(data: dict[str, Any]) -> tuple[str | None, str | None, str | None, Any]:
+    doc_name = _cell_str(data.get("doc_name"))
+    doc_version = _cell_str(data.get("doc_version"))
+    doc_description = _cell_str(data.get("doc_description"))
+    doc_tags = _from_json_cell(data.get("doc_tags_json"))
+    return (doc_name, doc_version, doc_description, doc_tags)
+
+
+def _get_or_create_container(
+    *,
+    out_by_doc: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]],
+    doc_type: str,
+    doc_name: str,
+    doc_version: str | None,
+    doc_description: str | None,
+    doc_tags: Any,
+    payload_key: str,
+    payload_id: str | None,
+    framework: str | None,
+    list_key: str,
+    extra_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    key = _doc_key(doc_name, doc_version, doc_description, doc_tags, payload_id)
+    container = out_by_doc.get(key)
+    if container is None:
+        meta_obj: dict[str, Any] = {
+            "name": doc_name,
+            "version": doc_version,
+            "description": doc_description,
+            "tags": doc_tags,
+        }
+
+        payload_obj: dict[str, Any] = {
+            "id": payload_id,
+            list_key: [],
+        }
+        if framework is not None:
+            payload_obj["framework"] = framework
+        if extra_payload:
+            payload_obj.update(extra_payload)
+
+        container = {
+            doc_type: "1.0",
+            "meta": meta_obj,
+            payload_key: payload_obj,
+        }
+        out_by_doc[key] = container
+    else:
+        if framework is not None:
+            existing = container.get(payload_key, {}).get("framework")
+            if existing is not None and existing != framework:
+                raise ValueError(
+                    f"{sheet_name_for_error(payload_key)} sheet has conflicting frameworks for doc {doc_name!r}: "
+                    f"{existing!r} vs {framework!r}"
+                )
+    return container
+
+
+def sheet_name_for_error(payload_key: str) -> str:
+    # This keeps existing error wording stable-ish.
+    return payload_key
+
+
+def _group_last_or_new(rel_list: list[dict[str, Any]], *, key_field: str, key_value: str, targets_key: str) -> dict[str, Any]:
+    if rel_list and rel_list[-1].get(key_field) == key_value:
+        return rel_list[-1]
+    grouped: dict[str, Any] = {key_field: key_value, targets_key: []}
+    rel_list.append(grouped)
+    return grouped
+
+
 @dataclass(frozen=True)
 class ImportedXlsx:
     control_catalogs: list[CRControlCatalogSchema]
@@ -158,184 +447,123 @@ def _apply_workbook_formatting(wb) -> None:
     This intentionally does not change the workbook schema.
     """
 
-    openpyxl = _xlsx_module()
     from openpyxl.styles import Alignment, Font, PatternFill
     from openpyxl.utils import get_column_letter
-    from openpyxl.worksheet.datavalidation import DataValidation
 
     header_fill = PatternFill("solid", fgColor="F2F2F2")
     header_font = Font(bold=True)
     header_align = Alignment(vertical="top", wrap_text=True)
     wrap_align = Alignment(vertical="top", wrap_text=True)
 
-    def _header_row(ws) -> int:
-        # Mapping sheets created by this exporter hide row 1 (machine keys) and
-        # show row 2 as the human header.
-        return 2 if ws.row_dimensions[1].hidden else 1
-
-    def _style_sheet(ws, *, column_widths: dict[str, float] | None = None) -> int:
-        hr = _header_row(ws)
-        first_body_row = hr + 1
-
-        # Freeze below the (visible) header row
-        ws.freeze_panes = f"A{first_body_row}"
-
-        # Auto-filter across the visible header row
-        if ws.max_row >= hr and ws.max_column >= 1:
-            ws.auto_filter.ref = f"A{hr}:{get_column_letter(ws.max_column)}{ws.max_row}"
-
-        # Style visible header row
-        for cell in ws[hr]:
-            cell.fill = header_fill
-            cell.font = header_font
-            cell.alignment = header_align
-
-        # Wrap body cells
-        for row in ws.iter_rows(min_row=first_body_row, max_row=ws.max_row, values_only=False):
-            for cell in row:
-                if cell.value is None:
-                    continue
-                if isinstance(cell.value, str) and ("{" in cell.value or "[" in cell.value or "\n" in cell.value):
-                    cell.alignment = wrap_align
-
-        # Set column widths
-        if column_widths:
-            for col_name, width in column_widths.items():
-                try:
-                    idx = _header_index(ws, col_name)
-                except KeyError:
-                    continue
-                ws.column_dimensions[get_column_letter(idx)].width = width
-
-        return first_body_row
-
-    def _add_list_validation(ws, column_name: str, allowed: list[str]) -> None:
-        # Excel's list validation uses a comma-separated string in quotes.
-        # Keep it short and enum-like.
-        try:
-            col_idx = _header_index(ws, column_name)
-        except KeyError:
-            return
-        start_row = _header_row(ws) + 1
-        if ws.max_row < start_row:
-            return
-
-        # Escape double-quotes for Excel list literals by doubling them.
-        safe_items = [s.replace('"', '""') for s in allowed]
-        formula = '"' + ",".join(safe_items) + '"'
-        dv = DataValidation(type="list", formula1=formula, allow_blank=True)
-        ws.add_data_validation(dv)
-        dv.add(f"{get_column_letter(col_idx)}{start_row}:{get_column_letter(col_idx)}{ws.max_row}")
-
-    def _number_format(ws, column_name: str, fmt: str) -> None:
-        try:
-            col_idx = _header_index(ws, column_name)
-        except KeyError:
-            return
-        start_row = _header_row(ws) + 1
-        for r in range(start_row, ws.max_row + 1):
-            cell = ws.cell(row=r, column=col_idx)
-            if cell.value is None:
-                continue
-            cell.number_format = fmt
-
-    def _header_index(ws, name: str) -> int:
-        header = [c.value for c in ws[1]]
-        try:
-            return header.index(name) + 1
-        except ValueError as e:
-            raise KeyError(name) from e
-
-    if _SHEET_META in wb.sheetnames:
-        ws = wb[_SHEET_META]
-        _style_sheet(ws, column_widths={"format": 22, "version": 12, "created_at": 22, "header_rows": 12})
-
-    if _SHEET_CONTROL_CATALOGS in wb.sheetnames:
-        ws = wb[_SHEET_CONTROL_CATALOGS]
-        _style_sheet(
-            ws,
-            column_widths={
-                "doc_name": 22,
-                "framework": 20,
-                "control_id": 18,
-                "title": 32,
-                "url": 34,
-                "tags_json": 22,
-                "defense_in_depth_layers_json": 22,
+    sheet_configs: list[tuple[str, dict[str, Any]]] = [
+        (
+            _SHEET_META,
+            {
+                "column_widths": {"format": 22, "version": 12, "created_at": 22, "header_rows": 12},
             },
-        )
-        # Intentionally no Excel data-validation for JSON columns.
-
-    if _SHEET_ATTACK_CATALOGS in wb.sheetnames:
-        ws = wb[_SHEET_ATTACK_CATALOGS]
-        _style_sheet(
-            ws,
-            column_widths={
-                "doc_name": 22,
-                "framework": 26,
-                "attack_id": 18,
-                "title": 40,
-                "url": 34,
-                "tags_json": 22,
+        ),
+        (
+            _SHEET_CONTROL_CATALOGS,
+            {
+                "column_widths": {
+                    "doc_name": 22,
+                    "framework": 20,
+                    "control_id": 18,
+                    "title": 32,
+                    "url": 34,
+                    "tags_json": 22,
+                    "defense_in_depth_layers_json": 22,
+                },
             },
+        ),
+        (
+            _SHEET_ATTACK_CATALOGS,
+            {
+                "column_widths": {
+                    "doc_name": 22,
+                    "framework": 26,
+                    "attack_id": 18,
+                    "title": 40,
+                    "url": 34,
+                    "tags_json": 22,
+                },
+            },
+        ),
+        (
+            _SHEET_CONTROL_RELATIONSHIPS,
+            {
+                "column_widths": {
+                    "doc_name": 22,
+                    "source_id": 18,
+                    "target_id": 18,
+                    "relationship_type": 16,
+                    "overlap_weight": 14,
+                    "overlap_dimensions_json": 26,
+                    "overlap_rationale": 34,
+                    "confidence": 12,
+                    "groupings_json": 26,
+                    "references_json": 26,
+                    "description": 34,
+                },
+                "list_validations": [
+                    (
+                        "relationship_type",
+                        [
+                            "overlaps_with",
+                            "mitigates",
+                            "supports",
+                            "equivalent_to",
+                            "parent_of",
+                            "child_of",
+                            "backstops",
+                        ],
+                    )
+                ],
+                "number_formats": [("overlap_weight", "0.00"), ("confidence", "0.00")],
+            },
+        ),
+        (
+            _SHEET_ATTACK_CONTROL_RELATIONSHIPS,
+            {
+                "column_widths": {
+                    "doc_name": 22,
+                    "attack_id": 18,
+                    "control_id": 18,
+                    "relationship_type": 16,
+                    "strength": 12,
+                    "confidence": 12,
+                    "tags_json": 22,
+                    "references_json": 26,
+                    "description": 34,
+                    "metadata_json": 26,
+                },
+                "list_validations": [
+                    ("relationship_type", ["mitigated_by", "detectable_by", "respondable_by"])
+                ],
+                "number_formats": [("strength", "0.00"), ("confidence", "0.00")],
+            },
+        ),
+    ]
+
+    for sheet_name, cfg in sheet_configs:
+        if sheet_name not in wb.sheetnames:
+            continue
+        ws = wb[sheet_name]
+        _xlsx_style_sheet(
+            ws,
+            header_fill=header_fill,
+            header_font=header_font,
+            header_align=header_align,
+            wrap_align=wrap_align,
+            get_column_letter=get_column_letter,
+            column_widths=cfg.get("column_widths"),
         )
 
-    if _SHEET_CONTROL_RELATIONSHIPS in wb.sheetnames:
-        ws = wb[_SHEET_CONTROL_RELATIONSHIPS]
-        _style_sheet(
-            ws,
-            column_widths={
-                "doc_name": 22,
-                "source_id": 18,
-                "target_id": 18,
-                "relationship_type": 16,
-                "overlap_weight": 14,
-                "overlap_dimensions_json": 26,
-                "overlap_rationale": 34,
-                "confidence": 12,
-                "groupings_json": 26,
-                "references_json": 26,
-                "description": 34,
-            },
-        )
-        _add_list_validation(
-            ws,
-            "relationship_type",
-            [
-                "overlaps_with",
-                "mitigates",
-                "supports",
-                "equivalent_to",
-                "parent_of",
-                "child_of",
-                "backstops",
-            ],
-        )
-        # NOTE: We intentionally do not add Excel data-validation to JSON columns.
-        # Excel may remove/strip validations containing nested quotes.
-        _number_format(ws, "overlap_weight", "0.00")
-        _number_format(ws, "confidence", "0.00")
+        for col_name, allowed in (cfg.get("list_validations") or []):
+            _xlsx_add_list_validation(ws, column_name=str(col_name), allowed=list(allowed))
 
-    if _SHEET_ATTACK_CONTROL_RELATIONSHIPS in wb.sheetnames:
-        ws = wb[_SHEET_ATTACK_CONTROL_RELATIONSHIPS]
-        _style_sheet(
-            ws,
-            column_widths={
-                "doc_name": 22,
-                "attack_id": 18,
-                "control_id": 18,
-                "relationship_type": 16,
-                "strength": 12,
-                "confidence": 12,
-                "tags_json": 22,
-                "references_json": 26,
-                "description": 34,
-                "metadata_json": 26,
-            },
-        )
-        _add_list_validation(ws, "relationship_type", ["mitigated_by", "detectable_by", "respondable_by"])
-        _number_format(ws, "strength", "0.00")
-        _number_format(ws, "confidence", "0.00")
+        for col_name, fmt in (cfg.get("number_formats") or []):
+            _xlsx_number_format(ws, column_name=str(col_name), fmt=str(fmt))
 
 
 def import_xlsx(source: str | Path | Any) -> ImportedXlsx:
@@ -464,11 +692,8 @@ def _write_control_catalogs_sheet(wb, docs: list[CRControlCatalogSchema]) -> Non
     ws = wb.create_sheet(_SHEET_CONTROL_CATALOGS)
     _write_human_header(
         ws,
-        [
-            ("doc_name", "Document name", "Name of this CRML document (meta.name)."),
-            ("doc_version", "Document version", "Optional document version (meta.version)."),
-            ("doc_description", "Document description", "Optional description (meta.description)."),
-            ("doc_tags_json", "Document tags (JSON)", "Optional tags array as JSON (e.g. [\"community\"])."),
+        _doc_meta_columns(tags_desc=_DOC_TAGS_DESC_EXAMPLE)
+        + [
             ("catalog_id", "Catalog id", "Optional catalog identifier (catalog.id)."),
             ("framework", "Framework", "Framework label (e.g. CIS v8)."),
             ("control_id", "Control id", "Canonical control id (e.g. cisv8:4.2)."),
@@ -477,8 +702,12 @@ def _write_control_catalogs_sheet(wb, docs: list[CRControlCatalogSchema]) -> Non
             ("ref_requirement", "Ref requirement", "Optional structured ref: requirement."),
             ("title", "Title", "Optional short title."),
             ("url", "URL", "Optional URL."),
-            ("tags_json", "Tags (JSON)", "Optional tags array as JSON."),
-            ("defense_in_depth_layers_json", "Defense-in-depth layers (JSON)", "Optional array as JSON (e.g. [\"prevent\",\"detect\"])."),
+            ("tags_json", _TAGS_JSON_LABEL, _TAGS_JSON_DESC),
+            (
+                "defense_in_depth_layers_json",
+                "Defense-in-depth layers (JSON)",
+                "Optional array as JSON (e.g. [\"prevent\",\"detect\"]).",
+            ),
         ],
     )
 
@@ -516,17 +745,14 @@ def _write_attack_catalogs_sheet(wb, docs: list[CRAttackCatalogSchema]) -> None:
     ws = wb.create_sheet(_SHEET_ATTACK_CATALOGS)
     _write_human_header(
         ws,
-        [
-            ("doc_name", "Document name", "Name of this CRML document (meta.name)."),
-            ("doc_version", "Document version", "Optional document version (meta.version)."),
-            ("doc_description", "Document description", "Optional description (meta.description)."),
-            ("doc_tags_json", "Document tags (JSON)", "Optional tags array as JSON."),
+        _doc_meta_columns(tags_desc=_DOC_TAGS_DESC)
+        + [
             ("catalog_id", "Catalog id", "Optional catalog identifier (catalog.id)."),
             ("framework", "Framework", "Framework label (e.g. MITRE ATT&CK Enterprise)."),
             ("attack_id", "Attack id", "Canonical attack id (e.g. attck:T1059.003)."),
             ("title", "Title", "Optional short title."),
             ("url", "URL", "Optional URL."),
-            ("tags_json", "Tags (JSON)", "Optional tags array as JSON."),
+            ("tags_json", _TAGS_JSON_LABEL, _TAGS_JSON_DESC),
             (
                 "kill_chain_phases_json",
                 "Kill chain phases (JSON)",
@@ -557,78 +783,39 @@ def _write_attack_catalogs_sheet(wb, docs: list[CRAttackCatalogSchema]) -> None:
 
 
 def _read_control_catalogs_sheet(wb, *, header_rows: int) -> list[CRControlCatalogSchema]:
-    if _SHEET_CONTROL_CATALOGS not in wb.sheetnames:
+    header, body_rows = _read_sheet_rows(wb, _SHEET_CONTROL_CATALOGS, header_rows=header_rows)
+    if not header:
         return []
-
-    ws = wb[_SHEET_CONTROL_CATALOGS]
-    rows = list(ws.iter_rows(values_only=True))
-    if len(rows) <= header_rows:
-        return []
-
-    header = [str(c) for c in rows[0]]
     out_by_doc: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]] = {}
 
-    for row in rows[header_rows:]:
+    for row in body_rows:
         data = dict(zip(header, row))
 
-        doc_name = _cell_str(data.get("doc_name"))
+        doc_name, doc_version, doc_description, doc_tags = _read_doc_meta(data)
         if not doc_name:
             continue
-
-        doc_version = _cell_str(data.get("doc_version"))
-        doc_description = _cell_str(data.get("doc_description"))
-        doc_tags = _from_json_cell(data.get("doc_tags_json"))
 
         catalog_id = _cell_str(data.get("catalog_id"))
         framework = _cell_str(data.get("framework"))
         if not framework:
             raise ValueError(f"control_catalogs row missing framework for doc {doc_name!r}")
 
-        key = (doc_name, doc_version, doc_description, _to_json_cell(doc_tags), catalog_id)
-        container = out_by_doc.get(key)
-        if container is None:
-            container = {
-                "crml_control_catalog": "1.0",
-                "meta": {
-                    "name": doc_name,
-                    "version": doc_version,
-                    "description": doc_description,
-                    "tags": doc_tags,
-                },
-                "catalog": {
-                    "id": catalog_id,
-                    "framework": framework,
-                    "controls": [],
-                },
-            }
-            out_by_doc[key] = container
-        else:
-            # framework should be consistent within a doc
-            if container["catalog"]["framework"] != framework:
-                raise ValueError(
-                    f"control_catalogs sheet has conflicting frameworks for doc {doc_name!r}: "
-                    f"{container['catalog']['framework']!r} vs {framework!r}"
-                )
+        container = _control_catalog_get_or_create_doc(
+            out_by_doc=out_by_doc,
+            doc_name=doc_name,
+            doc_version=doc_version,
+            doc_description=doc_description,
+            doc_tags=doc_tags,
+            catalog_id=catalog_id,
+            framework=framework,
+        )
 
-        ref_standard = _cell_str(data.get("ref_standard"))
-        ref_control = _cell_str(data.get("ref_control"))
-        ref_requirement = _cell_str(data.get("ref_requirement"))
-
-        ref_obj: Optional[dict[str, Any]] = None
-        if ref_standard is not None or ref_control is not None or ref_requirement is not None:
-            if ref_standard is None or ref_control is None:
-                raise ValueError(
-                    f"control_catalogs row has incomplete ref for control {data.get('control_id')!r}"
-                )
-            ref_obj = {
-                "standard": ref_standard,
-                "control": ref_control,
-                "requirement": ref_requirement,
-            }
+        control_id = _cell_str(data.get("control_id"))
+        ref_obj = _control_catalog_parse_ref_obj(control_id=control_id, data=data)
 
         container["catalog"]["controls"].append(
             {
-                "id": _cell_str(data.get("control_id")),
+                "id": control_id,
                 "ref": ref_obj,
                 "title": _cell_str(data.get("title")),
                 "url": _cell_str(data.get("url")),
@@ -643,34 +830,24 @@ def _read_control_catalogs_sheet(wb, *, header_rows: int) -> list[CRControlCatal
 
 
 def _read_attack_catalogs_sheet(wb, *, header_rows: int) -> list[CRAttackCatalogSchema]:
-    if _SHEET_ATTACK_CATALOGS not in wb.sheetnames:
+    header, body_rows = _read_sheet_rows(wb, _SHEET_ATTACK_CATALOGS, header_rows=header_rows)
+    if not header:
         return []
-
-    ws = wb[_SHEET_ATTACK_CATALOGS]
-    rows = list(ws.iter_rows(values_only=True))
-    if len(rows) <= header_rows:
-        return []
-
-    header = [str(c) for c in rows[0]]
     out_by_doc: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]] = {}
 
-    for row in rows[header_rows:]:
+    for row in body_rows:
         data = dict(zip(header, row))
 
-        doc_name = _cell_str(data.get("doc_name"))
+        doc_name, doc_version, doc_description, doc_tags = _read_doc_meta(data)
         if not doc_name:
             continue
-
-        doc_version = _cell_str(data.get("doc_version"))
-        doc_description = _cell_str(data.get("doc_description"))
-        doc_tags = _from_json_cell(data.get("doc_tags_json"))
 
         catalog_id = _cell_str(data.get("catalog_id"))
         framework = _cell_str(data.get("framework"))
         if not framework:
             raise ValueError(f"attack_catalogs row missing framework for doc {doc_name!r}")
 
-        key = (doc_name, doc_version, doc_description, _to_json_cell(doc_tags), catalog_id)
+        key = _doc_key(doc_name, doc_version, doc_description, doc_tags, catalog_id)
         container = out_by_doc.get(key)
         if container is None:
             container = {
@@ -689,7 +866,7 @@ def _read_attack_catalogs_sheet(wb, *, header_rows: int) -> list[CRAttackCatalog
             }
             out_by_doc[key] = container
         else:
-            if container["catalog"]["framework"] != framework:
+            if container["catalog"].get("framework") != framework:
                 raise ValueError(
                     f"attack_catalogs sheet has conflicting frameworks for doc {doc_name!r}: "
                     f"{container['catalog']['framework']!r} vs {framework!r}"
@@ -712,11 +889,8 @@ def _write_control_relationships_sheet(wb, docs: list[CRControlRelationshipsSche
     ws = wb.create_sheet(_SHEET_CONTROL_RELATIONSHIPS)
     _write_human_header(
         ws,
-        [
-            ("doc_name", "Document name", "Name of this CRML document (meta.name)."),
-            ("doc_version", "Document version", "Optional document version (meta.version)."),
-            ("doc_description", "Document description", "Optional description (meta.description)."),
-            ("doc_tags_json", "Document tags (JSON)", "Optional tags array as JSON."),
+        _doc_meta_columns(tags_desc=_DOC_TAGS_DESC)
+        + [
             ("pack_id", "Pack id", "Optional relationship pack identifier (relationships.id)."),
             ("source_id", "Source control id", "Source control (scenario/threat-centric)."),
             ("target_id", "Target control id", "Target control (portfolio/implementation-centric)."),
@@ -726,7 +900,11 @@ def _write_control_relationships_sheet(wb, docs: list[CRControlRelationshipsSche
                 "Optional enum: overlaps_with, mitigates, supports, equivalent_to, parent_of, child_of, backstops.",
             ),
             ("overlap_weight", "Overlap weight", "Required overlap weight in [0,1]."),
-            ("overlap_dimensions_json", "Overlap dimensions (JSON)", "Optional dimension map as JSON (e.g. {\"coverage\":0.9})."),
+            (
+                "overlap_dimensions_json",
+                "Overlap dimensions (JSON)",
+                "Optional dimension map as JSON (e.g. {\"coverage\":0.9}).",
+            ),
             ("overlap_rationale", "Overlap rationale", "Optional rationale/explanation."),
             ("confidence", "Confidence", "Optional confidence in [0,1]."),
             ("groupings_json", "Groupings (JSON)", "Optional groupings array as JSON."),
@@ -735,66 +913,54 @@ def _write_control_relationships_sheet(wb, docs: list[CRControlRelationshipsSche
         ],
     )
 
+    def _row(meta, pack, rel, target) -> list[Any]:
+        groupings_json = None
+        if target.groupings:
+            groupings_json = _to_json_cell([g.model_dump(exclude_none=True) for g in target.groupings])
+        references_json = None
+        if target.references:
+            references_json = _to_json_cell([r.model_dump(exclude_none=True) for r in target.references])
+
+        return [
+            meta.name,
+            meta.version,
+            meta.description,
+            _to_json_cell(meta.tags),
+            pack.id,
+            rel.source,
+            target.target,
+            target.relationship_type,
+            target.overlap.weight,
+            _to_json_cell(target.overlap.dimensions),
+            target.overlap.rationale,
+            target.confidence,
+            groupings_json,
+            target.description,
+            references_json,
+        ]
+
     for doc in docs:
         meta = doc.meta
         pack = doc.relationships
         for rel in pack.relationships:
             for target in rel.targets:
-                ws.append(
-                    [
-                        meta.name,
-                        meta.version,
-                        meta.description,
-                        _to_json_cell(meta.tags),
-                        pack.id,
-                        rel.source,
-                        target.target,
-                        target.relationship_type,
-                        target.overlap.weight,
-                        _to_json_cell(target.overlap.dimensions),
-                        target.overlap.rationale,
-                        target.confidence,
-                        _to_json_cell(
-                            [g.model_dump(exclude_none=True) for g in (target.groupings or [])]
-                        )
-                        if target.groupings
-                        else None,
-                        target.description,
-                        _to_json_cell(
-                            [r.model_dump(exclude_none=True) for r in (target.references or [])]
-                        )
-                        if target.references
-                        else None,
-                    ]
-                )
+                ws.append(_row(meta, pack, rel, target))
 
 
 def _read_control_relationships_sheet(
     wb, *, header_rows: int
 ) -> list[CRControlRelationshipsSchema]:
-    if _SHEET_CONTROL_RELATIONSHIPS not in wb.sheetnames:
+    header, body_rows = _read_sheet_rows(wb, _SHEET_CONTROL_RELATIONSHIPS, header_rows=header_rows)
+    if not header:
         return []
-
-    ws = wb[_SHEET_CONTROL_RELATIONSHIPS]
-    rows = list(ws.iter_rows(values_only=True))
-    if len(rows) <= header_rows:
-        return []
-
-    header = [str(c) for c in rows[0]]
     out_by_doc: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]] = {}
 
-    def _doc_key(doc_name: str, doc_version, doc_description, doc_tags, pack_id):
-        return (doc_name, doc_version, doc_description, _to_json_cell(doc_tags), pack_id)
-
-    for row in rows[header_rows:]:
+    for row in body_rows:
         data = dict(zip(header, row))
-        doc_name = _cell_str(data.get("doc_name"))
+
+        doc_name, doc_version, doc_description, doc_tags = _read_doc_meta(data)
         if not doc_name:
             continue
-
-        doc_version = _cell_str(data.get("doc_version"))
-        doc_description = _cell_str(data.get("doc_description"))
-        doc_tags = _from_json_cell(data.get("doc_tags_json"))
         pack_id = _cell_str(data.get("pack_id"))
 
         key = _doc_key(doc_name, doc_version, doc_description, doc_tags, pack_id)
@@ -834,13 +1000,8 @@ def _read_control_relationships_sheet(
         description = _cell_str(data.get("description"))
         references = _from_json_cell(data.get("references_json"))
 
-        # Group by source, preserve row order for targets.
         rel_list = container["relationships"]["relationships"]
-        if rel_list and rel_list[-1]["source"] == source_id:
-            grouped = rel_list[-1]
-        else:
-            grouped = {"source": source_id, "targets": []}
-            rel_list.append(grouped)
+        grouped = _group_last_or_new(rel_list, key_field="source", key_value=source_id, targets_key="targets")
 
         grouped["targets"].append(
             {
@@ -867,11 +1028,8 @@ def _write_attack_control_relationships_sheet(
     ws = wb.create_sheet(_SHEET_ATTACK_CONTROL_RELATIONSHIPS)
     _write_human_header(
         ws,
-        [
-            ("doc_name", "Document name", "Name of this CRML document (meta.name)."),
-            ("doc_version", "Document version", "Optional document version (meta.version)."),
-            ("doc_description", "Document description", "Optional description (meta.description)."),
-            ("doc_tags_json", "Document tags (JSON)", "Optional tags array as JSON."),
+        _doc_meta_columns(tags_desc=_DOC_TAGS_DESC)
+        + [
             ("pack_id", "Pack id", "Optional relationship pack identifier (relationships.id)."),
             ("attack_id", "Attack id", "Attack pattern id (e.g. attck:T1059.003)."),
             ("control_id", "Control id", "Mapped control id (e.g. cap:edr)."),
@@ -883,7 +1041,7 @@ def _write_attack_control_relationships_sheet(
             ("strength", "Strength", "Optional strength in [0,1]."),
             ("confidence", "Confidence", "Optional confidence in [0,1]."),
             ("description", "Description", "Optional free-form description."),
-            ("tags_json", "Tags (JSON)", "Optional tags array as JSON."),
+            ("tags_json", _TAGS_JSON_LABEL, _TAGS_JSON_DESC),
             ("references_json", "References (JSON)", "Optional references array as JSON."),
             ("metadata_json", "Pack metadata (JSON)", "Optional pack-level metadata map as JSON."),
         ],
@@ -921,29 +1079,18 @@ def _write_attack_control_relationships_sheet(
 def _read_attack_control_relationships_sheet(
     wb, *, header_rows: int
 ) -> list[CRAttackControlRelationshipsSchema]:
-    if _SHEET_ATTACK_CONTROL_RELATIONSHIPS not in wb.sheetnames:
+    header, body_rows = _read_sheet_rows(wb, _SHEET_ATTACK_CONTROL_RELATIONSHIPS, header_rows=header_rows)
+    if not header:
         return []
-
-    ws = wb[_SHEET_ATTACK_CONTROL_RELATIONSHIPS]
-    rows = list(ws.iter_rows(values_only=True))
-    if len(rows) <= header_rows:
-        return []
-
-    header = [str(c) for c in rows[0]]
     out_by_doc: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]] = {}
 
-    def _doc_key(doc_name: str, doc_version, doc_description, doc_tags, pack_id):
-        return (doc_name, doc_version, doc_description, _to_json_cell(doc_tags), pack_id)
-
-    for row in rows[header_rows:]:
+    for row in body_rows:
         data = dict(zip(header, row))
-        doc_name = _cell_str(data.get("doc_name"))
+
+        doc_name, doc_version, doc_description, doc_tags = _read_doc_meta(data)
         if not doc_name:
             continue
 
-        doc_version = _cell_str(data.get("doc_version"))
-        doc_description = _cell_str(data.get("doc_description"))
-        doc_tags = _from_json_cell(data.get("doc_tags_json"))
         pack_id = _cell_str(data.get("pack_id"))
         metadata = _from_json_cell(data.get("metadata_json"))
 
@@ -986,11 +1133,7 @@ def _read_attack_control_relationships_sheet(
         references = _from_json_cell(data.get("references_json"))
 
         rel_list = container["relationships"]["relationships"]
-        if rel_list and rel_list[-1]["attack"] == attack_id:
-            grouped = rel_list[-1]
-        else:
-            grouped = {"attack": attack_id, "targets": []}
-            rel_list.append(grouped)
+        grouped = _group_last_or_new(rel_list, key_field="attack", key_value=attack_id, targets_key="targets")
 
         grouped["targets"].append(
             {

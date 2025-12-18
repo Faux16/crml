@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Literal, Optional
 import os
 
@@ -99,6 +98,14 @@ class ResolvedScenario(BaseModel):
     path: str = Field(..., description="Scenario path from the portfolio.")
     resolved_path: Optional[str] = Field(None, description="Resolved absolute path for loading the scenario.")
     weight: Optional[float] = Field(None, description="Optional scenario weight (portfolio semantics dependent).")
+
+    scenario: Optional[CRScenarioSchema] = Field(
+        None,
+        description=(
+            "Optional inlined scenario document. When present, runtimes should prefer this "
+            "over loading from `resolved_path`/`path` to avoid filesystem dependency (bundle mode)."
+        ),
+    )
 
     # Portfolio binding resolution
     applies_to_assets: list[str] = Field(
@@ -764,19 +771,17 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:  # NOSONAR
     """Plan a validated portfolio bundle into an execution plan.
 
     A bundle is a convenience container that already holds the portfolio and
-    any referenced documents in-memory.
+    referenced documents in-memory.
+
+    Unlike `plan_portfolio`, this function does not access the filesystem.
+    It expects scenarios (and optionally control cataloges) to already be
+    inlined inside the bundle.
 
     Args:
         bundle: `CRPortfolioBundle` instance.
 
     Returns:
         A `PlanReport` with `ok=True` and a populated `plan` on success.
-    """
-    """Resolve an inlined CRPortfolioBundle into an execution-friendly plan.
-
-    Unlike `plan_portfolio`, this function does not access the filesystem.
-    It expects scenarios (and optionally control cataloges) to already be inlined
-    inside the bundle.
     """
 
     errors: list[PlanMessage] = []
@@ -891,8 +896,8 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:  # NOSONAR
                         }
                     }
 
-    # Scenario lookup by id
-    scenario_by_id: dict[str, CRScenarioSchema] = {s.id: s.scenario for s in (bundle.scenarios or [])}
+    # Scenario lookup by id (bundle payload holds the inlined scenarios)
+    scenario_by_id: dict[str, CRScenarioSchema] = {s.id: s.scenario for s in (payload.scenarios or [])}
 
     resolved_scenarios: list[ResolvedScenario] = []
     for idx, sref in enumerate(portfolio.scenarios):
@@ -1037,6 +1042,7 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:  # NOSONAR
                 path=sref.path,
                 resolved_path=None,
                 weight=sref.weight,
+                scenario=scenario_doc,
                 applies_to_assets=applies_to_assets_list,
                 cardinality=cardinality,
                 scenario_name=scenario_doc.meta.name,

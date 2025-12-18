@@ -8,6 +8,8 @@ from .portfolio import validate_portfolio
 from .control_catalog import validate_control_catalog
 from .assessment import validate_assessment
 from .control_relationships import validate_control_relationships
+from .attack_catalog import validate_attack_catalog
+from .attack_control_relationships import validate_attack_control_relationships
 
 
 def _detect_kind(data: dict[str, Any]) -> str | None:
@@ -22,10 +24,14 @@ def _detect_kind(data: dict[str, Any]) -> str | None:
         return "portfolio"
     if "crml_control_catalog" in data:
         return "control_catalog"
+    if "crml_attack_catalog" in data:
+        return "attack_catalog"
     if "crml_assessment" in data or "crml_control_assessment" in data:
         return "assessment"
     if "crml_control_relationships" in data:
         return "control_relationships"
+    if "crml_attack_control_relationships" in data:
+        return "attack_control_relationships"
 
     return None
 
@@ -58,7 +64,8 @@ def validate_document(
                     path="(root)",
                     message=(
                         "Unknown CRML document type. Expected one of: crml_scenario, crml_portfolio, "
-                        "crml_control_catalog, crml_assessment, crml_control_relationships."
+                        "crml_control_catalog, crml_attack_catalog, crml_assessment, crml_control_relationships, "
+                        "crml_attack_control_relationships."
                     ),
                 )
             ],
@@ -72,10 +79,14 @@ def validate_document(
         return validate_portfolio(source, source_kind=source_kind)
     if kind == "control_catalog":
         return validate_control_catalog(source, source_kind=source_kind, strict_model=strict_model)
+    if kind == "attack_catalog":
+        return validate_attack_catalog(source, source_kind=source_kind, strict_model=strict_model)
     if kind == "assessment":
         return validate_assessment(source, source_kind=source_kind, strict_model=strict_model)
     if kind == "control_relationships":
         return validate_control_relationships(source, source_kind=source_kind, strict_model=strict_model)
+    if kind == "attack_control_relationships":
+        return validate_attack_control_relationships(source, source_kind=source_kind, strict_model=strict_model)
 
     return ValidationReport(
         ok=False,

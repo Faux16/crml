@@ -43,11 +43,15 @@ from .models.crml_model import CRScenarioSchema as _CRScenarioSchema
 from .models.assessment_model import CRAssessmentSchema as _CRAssessmentSchema
 from .models.control_catalog_model import CRControlCatalogSchema as _CRControlCatalogSchema
 from .models.attack_catalog_model import CRAttackCatalogSchema as _CRAttackCatalogSchema
+from .models.attack_control_relationships_model import (
+    CRAttackControlRelationshipsSchema as _CRAttackControlRelationshipsSchema,
+)
 from .models.control_relationships_model import CRControlRelationshipsSchema as _CRControlRelationshipsSchema
 from .models.portfolio_model import CRPortfolioSchema as _CRPortfolioSchema
 from .models.portfolio_bundle import CRPortfolioBundle as _CRPortfolioBundle
 from .validators import ValidationMessage, ValidationReport, validate, validate_portfolio
 from .validators import validate_attack_catalog
+from .validators import validate_attack_control_relationships
 
 
 class CRScenario(_CRScenarioSchema):
@@ -246,6 +250,28 @@ class CRControlRelationships(_CRControlRelationshipsSchema):
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return dump_yaml_to_str(data, sort_keys=sort_keys)
 
+
+class CRAttackControlRelationships(_CRAttackControlRelationshipsSchema):
+    """Root CRML Attack-to-Control Relationships document model."""
+
+    @classmethod
+    def load_from_yaml(cls, path: str) -> "CRAttackControlRelationships":
+        data = load_yaml_mapping_from_path(path)
+        return cls.model_validate(data)
+
+    @classmethod
+    def load_from_yaml_str(cls, yaml_text: str) -> "CRAttackControlRelationships":
+        data = load_yaml_mapping_from_str(yaml_text)
+        return cls.model_validate(data)
+
+    def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+
+    def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        return dump_yaml_to_str(data, sort_keys=sort_keys)
+
 __all__ = [
     "CRScenario",
     "CRPortfolio",
@@ -255,6 +281,7 @@ __all__ = [
     "CRAssessment",
     "CRControlAssessment",
     "CRControlRelationships",
+    "CRAttackControlRelationships",
     "load_from_yaml",
     "load_from_yaml_str",
     "dump_to_yaml",
@@ -262,6 +289,7 @@ __all__ = [
     "validate",
     "validate_portfolio",
     "validate_attack_catalog",
+    "validate_attack_control_relationships",
     "ValidationMessage",
     "ValidationReport",
 ]

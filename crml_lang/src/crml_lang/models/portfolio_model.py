@@ -208,6 +208,14 @@ class Portfolio(BaseModel):
     control_catalogs: Optional[List[str]] = Field(
         None, description="Optional list of file paths to referenced control cataloges."
     )
+
+    attack_catalogs: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Optional list of file paths to referenced attack catalogs (e.g., MITRE ATT&CK). "
+            "These are metadata-only catalogs used by tools/engines to resolve attack-pattern ids."
+        ),
+    )
     assessments: Optional[List[str]] = Field(
         None,
         validation_alias=AliasChoices("assessments", "control_assessments"),
@@ -220,6 +228,14 @@ class Portfolio(BaseModel):
         description=(
             "Optional list of file paths to referenced control relationships packs (control-to-control mappings). "
             "These can be used by tools/engines to resolve scenario control ids to implemented portfolio controls with quantitative overlap metadata."
+        ),
+    )
+
+    attack_control_relationships: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Optional list of file paths to referenced attack-to-control relationships mappings. "
+            "These can be used by tools/engines to translate attack-pattern ids (e.g., ATT&CK) into relevant controls."
         ),
     )
 

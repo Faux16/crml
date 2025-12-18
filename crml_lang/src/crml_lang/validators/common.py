@@ -21,6 +21,9 @@ ASSESSMENT_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-assessment-schema.json")
 CONTROL_ASSESSMENT_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-control-assessment-schema.json")
 CONTROL_CATALOG_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-control-catalog-schema.json")
 ATTACK_CATALOG_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-attack-catalog-schema.json")
+ATTACK_CONTROL_RELATIONSHIPS_SCHEMA_PATH = str(
+    _SCHEMA_DIR / "crml-attack-control-relationships-schema.json"
+)
 CONTROL_RELATIONSHIPS_SCHEMA_PATH = str(_SCHEMA_DIR / "crml-control-relationships-schema.json")
 
 
@@ -104,6 +107,11 @@ def _load_control_catalog_schema() -> dict[str, Any]:
 def _load_attack_catalog_schema() -> dict[str, Any]:
     """Load the CRML Attack Catalog JSON schema as a dict."""
     return _load_schema(ATTACK_CATALOG_SCHEMA_PATH)
+
+
+def _load_attack_control_relationships_schema() -> dict[str, Any]:
+    """Load the CRML Attack-to-Control Relationships JSON schema as a dict."""
+    return _load_schema(ATTACK_CONTROL_RELATIONSHIPS_SCHEMA_PATH)
 
 
 def _load_control_relationships_schema() -> dict[str, Any]:

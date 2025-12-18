@@ -23,6 +23,7 @@ Specifically:
 - `crml-portfolio-schema.json` (`crml_portfolio: "1.0"`) — usage: [Language/Schemas/Portfolio](../Language/Schemas/Portfolio.md)
 - `crml-control-catalog-schema.json` (`crml_control_catalog: "1.0"`) — usage: [Language/Schemas/Control-Catalog](../Language/Schemas/Control-Catalog.md)
 - `crml-attack-catalog-schema.json` (`crml_attack_catalog: "1.0"`) — usage: [Language/Schemas/Attack-Catalog](../Language/Schemas/Attack-Catalog.md)
+- `crml-attack-control-relationships-schema.json` (`crml_attack_control_relationships: "1.0"`) — usage: [Language/Schemas/Attack-Control-Relationships](../Language/Schemas/Attack-Control-Relationships.md)
 - `crml-assessment-schema.json` (`crml_assessment: "1.0"`) — usage: [Language/Schemas/Assessment](../Language/Schemas/Assessment.md)
 - `crml-control-relationships-schema.json` (`crml_control_relationships: "1.0"`) — usage: [Language/Schemas/Control-Relationships](../Language/Schemas/Control-Relationships.md)
 - `crml-portfolio-bundle-schema.json` (`crml_portfolio_bundle: "1.0"`) — usage: [Language/Schemas/Portfolio-Bundle](../Language/Schemas/Portfolio-Bundle.md)

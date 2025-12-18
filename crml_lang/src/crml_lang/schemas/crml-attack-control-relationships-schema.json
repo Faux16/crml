@@ -1,0 +1,416 @@
+{
+  "$defs": {
+    "AttackControlRelationship": {
+      "description": "Grouped relationship mapping for a single attack pattern id.",
+      "properties": {
+        "attack": {
+          "description": "Source attack-pattern id (recommended namespace: 'attck').",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "title": "Attack",
+          "type": "string"
+        },
+        "targets": {
+          "description": "List of mapped controls for this attack pattern.",
+          "items": {
+            "$ref": "#/$defs/AttackControlTarget"
+          },
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "attack",
+        "targets"
+      ],
+      "title": "AttackControlRelationship",
+      "type": "object"
+    },
+    "AttackControlRelationshipsPack": {
+      "description": "Relationship pack payload.\n\nThis is a standalone, shareable dataset that can be community- or org-authored.",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional identifier for this relationships pack (organization/community-owned).",
+          "title": "Id"
+        },
+        "relationships": {
+          "description": "List of grouped attack-to-control relationship mappings.",
+          "items": {
+            "$ref": "#/$defs/AttackControlRelationship"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "metadata": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form metadata for tools (e.g., source dataset name/version). Not interpreted by validators/engines.",
+          "title": "Metadata"
+        }
+      },
+      "required": [
+        "relationships"
+      ],
+      "title": "AttackControlRelationshipsPack",
+      "type": "object"
+    },
+    "AttackControlTarget": {
+      "description": "One target control mapped from an attack pattern.",
+      "properties": {
+        "control": {
+          "description": "Target control id.",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "title": "Control",
+          "type": "string"
+        },
+        "relationship_type": {
+          "description": "Relationship type between the attack pattern and the control.",
+          "enum": [
+            "mitigated_by",
+            "detectable_by",
+            "respondable_by"
+          ],
+          "title": "Relationship Type",
+          "type": "string"
+        },
+        "strength": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional quantitative strength in [0, 1] indicating how strongly this control mitigates/detects/responds to the attack pattern (tool/community-defined semantics).",
+          "title": "Strength"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional confidence score in [0, 1] for this mapping (tool/community-defined).",
+          "title": "Confidence"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description of how/why the control relates to the attack pattern. Avoid embedding copyrighted standard text unless you have rights.",
+          "title": "Description"
+        },
+        "references": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Reference"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of references/citations supporting this mapping.",
+          "title": "References"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of tags for grouping/filtering.",
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "control",
+        "relationship_type"
+      ],
+      "title": "AttackControlTarget",
+      "type": "object"
+    },
+    "Meta": {
+      "properties": {
+        "name": {
+          "description": "Human-friendly name for this document.",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional version string for this document.",
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form description.",
+          "title": "Description"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional author/owner.",
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional organization name.",
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of industry tags.",
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "description": "Optional locale/region information and arbitrary locale metadata.",
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional company size tags.",
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of regulatory frameworks relevant to this document.",
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of user-defined tags.",
+          "title": "Tags"
+        },
+        "attck": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "ATT&CK identifier in canonical namespaced form 'namespace:key' (no whitespace). Recommended namespace is 'attck'. Examples: attck:TA0001, attck:T1059, attck:T1059.003",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of ATT&CK tactic/technique/sub-technique identifiers relevant to this document, expressed as namespaced ids (e.g. 'attck:T1059.003').",
+          "title": "Attck"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Meta",
+      "type": "object"
+    },
+    "Reference": {
+      "description": "Optional reference/citation for a relationship.\n\nKeep this to pointers and provenance. Avoid embedding copyrighted standard text unless you have rights.",
+      "properties": {
+        "type": {
+          "description": "Reference type discriminator (e.g. 'url', 'document', 'ticket', 'evidence').",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional short label for this reference.",
+          "title": "Label"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL for this reference.",
+          "title": "Url"
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional citation string (free-form).",
+          "title": "Citation"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Reference",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "crml_attack_control_relationships": {
+      "const": "1.0",
+      "description": "Attack-to-control relationships document version identifier.",
+      "title": "Crml Attack Control Relationships",
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta",
+      "description": "Document metadata (name, description, tags, etc.)."
+    },
+    "relationships": {
+      "$ref": "#/$defs/AttackControlRelationshipsPack",
+      "description": "The attack-to-control relationships payload."
+    }
+  },
+  "required": [
+    "crml_attack_control_relationships",
+    "meta",
+    "relationships"
+  ],
+  "title": "CRAttackControlRelationshipsSchema",
+  "type": "object"
+}

@@ -21,6 +21,7 @@ For the detailed architecture, see:
 - Portfolio documents: `crml_portfolio: "1.0"` (top-level `portfolio:`; if `portfolio.assessments` is used, `portfolio.control_catalogs` must also be provided)
 - Control catalog documents: `crml_control_catalog: "1.0"` (top-level `catalog:`)
 - Attack catalog documents: `crml_attack_catalog: "1.0"` (top-level `catalog:`)
+- Attack→control relationships documents: `crml_attack_control_relationships: "1.0"` (top-level `relationships:`; attack-pattern to control mappings)
 - Assessment documents: `crml_assessment: "1.0"` (top-level `assessment:`)
 - Control relationships documents: `crml_control_relationships: "1.0"` (top-level `relationships:`; control-to-control mappings with overlap metadata)
 - FX config documents: `crml_fx_config: "1.0"` (top-level `base_currency`, `output_currency`, `rates`, optional `as_of`; engine-owned config document)
@@ -38,6 +39,11 @@ CRML intentionally splits responsibilities so tools can interoperate cleanly:
 
 - `crml_lang` owns *document shape* (schemas), *validation*, and the *interchange contracts* used between tools/engines.
 - `crml_engine` (and other engines) own *execution semantics* for engine-defined `model` strings and runtime configuration.
+
+Attack-graph semantics and **attack→attack** mappings are explicitly an engine/tool responsibility:
+
+- CRML mandates the ability to incorporate a baseline attack catalog (typically **MITRE ATT&CK**) via `crml_attack_catalog`.
+- If an engine supports additional attack frameworks (e.g., CAPEC) or needs attack→attack crosswalks, that mapping logic/data is outside the CRML language contract.
 
 Two important contracts are language-owned:
 
@@ -100,7 +106,7 @@ In practice:
 An additional (common) integration artifact is **attack-to-control mapping**:
 
 - Tools/community datasets can map attack-pattern ids (from an attack catalog) to control ids (from a control catalog).
-- CRML 1.0 does not currently standardize this as a first-class document type; tools can use it to populate `scenario.controls`, enrich UIs, or drive reporting.
+- CRML standardizes this as a first-class document type via `crml_attack_control_relationships`, so engines/tools can share mapping documents.
 
 The language layer then provides a deterministic bundling step that inlines the referenced material into a self-contained `CRPortfolioBundle`, which can be handed to any risk engine without requiring filesystem access.
 
@@ -128,7 +134,7 @@ flowchart LR
 
     COMM["Community / org mappings"] -->|publish| CR["Control relationships pack<br/>CRControlRelationships"]
 
-    MAP["Attack→control mappings<br/>(tooling/community artifact)"]
+    MAP["Attack→control relationships<br/>CRAttackControlRelationships"]
     AC -.->|attack ids| MAP
     CC -.->|control ids| MAP
     MAP -.->|suggest relevant controls| S
@@ -146,6 +152,7 @@ flowchart LR
     CC --> B
     CA --> B
     CR --> B
+    MAP --> B
     B --> PB
 
     subgraph E2["Engines + tools (outside language responsibility)"]

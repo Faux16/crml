@@ -516,6 +516,22 @@
           "description": "Optional list of file paths to referenced control cataloges.",
           "title": "Control Catalogs"
         },
+        "attack_catalogs": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced attack catalogs (e.g., MITRE ATT&CK). These are metadata-only catalogs used by tools/engines to resolve attack-pattern ids.",
+          "title": "Attack Catalogs"
+        },
         "assessments": {
           "anyOf": [
             {
@@ -547,6 +563,22 @@
           "default": null,
           "description": "Optional list of file paths to referenced control relationships packs (control-to-control mappings). These can be used by tools/engines to resolve scenario control ids to implemented portfolio controls with quantitative overlap metadata.",
           "title": "Control Relationships"
+        },
+        "attack_control_relationships": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced attack-to-control relationships mappings. These can be used by tools/engines to translate attack-pattern ids (e.g., ATT&CK) into relevant controls.",
+          "title": "Attack Control Relationships"
         },
         "scenarios": {
           "description": "List of scenario references included in the portfolio.",

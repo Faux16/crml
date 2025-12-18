@@ -227,6 +227,281 @@
       "title": "Asset",
       "type": "object"
     },
+    "AttackCatalogEntry": {
+      "description": "Portable metadata about an ATT&CK (or similar) attack-pattern id.\n\nImportant: do not embed copyrighted framework text here.\nKeep this to identifiers and tool-friendly metadata.",
+      "properties": {
+        "id": {
+          "description": "Canonical unique attack pattern id present in this catalog.",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional short human-readable title for the attack pattern.",
+          "title": "Title"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL for additional reference material.",
+          "title": "Url"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of tags for grouping/filtering.",
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "AttackCatalogEntry",
+      "type": "object"
+    },
+    "AttackCataloge": {
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional identifier for this cataloge (organization-owned).",
+          "title": "Id"
+        },
+        "framework": {
+          "description": "Free-form framework label for humans/tools. Example: 'MITRE ATT&CK Enterprise'.",
+          "title": "Framework",
+          "type": "string"
+        },
+        "attacks": {
+          "description": "List of attack pattern catalog entries.",
+          "items": {
+            "$ref": "#/$defs/AttackCatalogEntry"
+          },
+          "title": "Attacks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "framework",
+        "attacks"
+      ],
+      "title": "AttackCataloge",
+      "type": "object"
+    },
+    "AttackControlRelationship": {
+      "description": "Grouped relationship mapping for a single attack pattern id.",
+      "properties": {
+        "attack": {
+          "description": "Source attack-pattern id (recommended namespace: 'attck').",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "title": "Attack",
+          "type": "string"
+        },
+        "targets": {
+          "description": "List of mapped controls for this attack pattern.",
+          "items": {
+            "$ref": "#/$defs/AttackControlTarget"
+          },
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "attack",
+        "targets"
+      ],
+      "title": "AttackControlRelationship",
+      "type": "object"
+    },
+    "AttackControlRelationshipsPack": {
+      "description": "Relationship pack payload.\n\nThis is a standalone, shareable dataset that can be community- or org-authored.",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional identifier for this relationships pack (organization/community-owned).",
+          "title": "Id"
+        },
+        "relationships": {
+          "description": "List of grouped attack-to-control relationship mappings.",
+          "items": {
+            "$ref": "#/$defs/AttackControlRelationship"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "metadata": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form metadata for tools (e.g., source dataset name/version). Not interpreted by validators/engines.",
+          "title": "Metadata"
+        }
+      },
+      "required": [
+        "relationships"
+      ],
+      "title": "AttackControlRelationshipsPack",
+      "type": "object"
+    },
+    "AttackControlTarget": {
+      "description": "One target control mapped from an attack pattern.",
+      "properties": {
+        "control": {
+          "description": "Target control id.",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "title": "Control",
+          "type": "string"
+        },
+        "relationship_type": {
+          "description": "Relationship type between the attack pattern and the control.",
+          "enum": [
+            "mitigated_by",
+            "detectable_by",
+            "respondable_by"
+          ],
+          "title": "Relationship Type",
+          "type": "string"
+        },
+        "strength": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional quantitative strength in [0, 1] indicating how strongly this control mitigates/detects/responds to the attack pattern (tool/community-defined semantics).",
+          "title": "Strength"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional confidence score in [0, 1] for this mapping (tool/community-defined).",
+          "title": "Confidence"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description of how/why the control relates to the attack pattern. Avoid embedding copyrighted standard text unless you have rights.",
+          "title": "Description"
+        },
+        "references": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Reference"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of references/citations supporting this mapping.",
+          "title": "References"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of tags for grouping/filtering.",
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "control",
+        "relationship_type"
+      ],
+      "title": "AttackControlTarget",
+      "type": "object"
+    },
     "BundleMessage": {
       "properties": {
         "level": {
@@ -325,6 +600,56 @@
         "assessment"
       ],
       "title": "CRAssessmentSchema",
+      "type": "object"
+    },
+    "CRAttackCatalogSchema": {
+      "properties": {
+        "crml_attack_catalog": {
+          "const": "1.0",
+          "description": "Attack catalog document version identifier.",
+          "title": "Crml Attack Catalog",
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "Document metadata (name, description, tags, etc.)."
+        },
+        "catalog": {
+          "$ref": "#/$defs/AttackCataloge",
+          "description": "The attack cataloge payload."
+        }
+      },
+      "required": [
+        "crml_attack_catalog",
+        "meta",
+        "catalog"
+      ],
+      "title": "CRAttackCatalogSchema",
+      "type": "object"
+    },
+    "CRAttackControlRelationshipsSchema": {
+      "properties": {
+        "crml_attack_control_relationships": {
+          "const": "1.0",
+          "description": "Attack-to-control relationships document version identifier.",
+          "title": "Crml Attack Control Relationships",
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "Document metadata (name, description, tags, etc.)."
+        },
+        "relationships": {
+          "$ref": "#/$defs/AttackControlRelationshipsPack",
+          "description": "The attack-to-control relationships payload."
+        }
+      },
+      "required": [
+        "crml_attack_control_relationships",
+        "meta",
+        "relationships"
+      ],
+      "title": "CRAttackControlRelationshipsSchema",
       "type": "object"
     },
     "CRControlCatalogSchema": {
@@ -1378,6 +1703,22 @@
           "description": "Optional list of file paths to referenced control cataloges.",
           "title": "Control Catalogs"
         },
+        "attack_catalogs": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced attack catalogs (e.g., MITRE ATT&CK). These are metadata-only catalogs used by tools/engines to resolve attack-pattern ids.",
+          "title": "Attack Catalogs"
+        },
         "assessments": {
           "anyOf": [
             {
@@ -1409,6 +1750,22 @@
           "default": null,
           "description": "Optional list of file paths to referenced control relationships packs (control-to-control mappings). These can be used by tools/engines to resolve scenario control ids to implemented portfolio controls with quantitative overlap metadata.",
           "title": "Control Relationships"
+        },
+        "attack_control_relationships": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced attack-to-control relationships mappings. These can be used by tools/engines to translate attack-pattern ids (e.g., ATT&CK) into relevant controls.",
+          "title": "Attack Control Relationships"
         },
         "scenarios": {
           "description": "List of scenario references included in the portfolio.",
@@ -1508,6 +1865,22 @@
             "$ref": "#/$defs/CRControlRelationshipsSchema"
           },
           "title": "Control Relationships",
+          "type": "array"
+        },
+        "attack_catalogs": {
+          "description": "Optional inlined attack catalogs (e.g., MITRE ATT&CK) referenced by the portfolio.",
+          "items": {
+            "$ref": "#/$defs/CRAttackCatalogSchema"
+          },
+          "title": "Attack Catalogs",
+          "type": "array"
+        },
+        "attack_control_relationships": {
+          "description": "Optional inlined attack-to-control relationships mappings referenced by the portfolio.",
+          "items": {
+            "$ref": "#/$defs/CRAttackControlRelationshipsSchema"
+          },
+          "title": "Attack Control Relationships",
           "type": "array"
         },
         "warnings": {

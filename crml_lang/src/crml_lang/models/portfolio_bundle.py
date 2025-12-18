@@ -9,6 +9,8 @@ from .portfolio_model import CRPortfolioSchema
 from .control_catalog_model import CRControlCatalogSchema
 from .assessment_model import CRAssessmentSchema
 from .control_relationships_model import CRControlRelationshipsSchema
+from .attack_catalog_model import CRAttackCatalogSchema
+from .attack_control_relationships_model import CRAttackControlRelationshipsSchema
 
 
 class BundleMessage(BaseModel):
@@ -54,6 +56,16 @@ class PortfolioBundlePayload(BaseModel):
     control_relationships: List[CRControlRelationshipsSchema] = Field(
         default_factory=list,
         description="Optional inlined control relationships packs referenced by the portfolio.",
+    )
+
+    attack_catalogs: List[CRAttackCatalogSchema] = Field(
+        default_factory=list,
+        description="Optional inlined attack catalogs (e.g., MITRE ATT&CK) referenced by the portfolio.",
+    )
+
+    attack_control_relationships: List[CRAttackControlRelationshipsSchema] = Field(
+        default_factory=list,
+        description="Optional inlined attack-to-control relationships mappings referenced by the portfolio.",
     )
 
     warnings: List[BundleMessage] = Field(default_factory=list, description="Non-fatal bundle warnings.")

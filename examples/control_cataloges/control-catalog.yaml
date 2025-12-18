@@ -8,6 +8,8 @@ catalog:
     - id: "org:iam.mfa"
       title: "Multi-factor authentication"
       tags: ["iam"]
+      defense_in_depth_layers: ["prevent"]
     - id: "org:edr"
       title: "Endpoint detection and response"
       tags: ["endpoint", "detection"]
+      defense_in_depth_layers: ["detect", "respond"]

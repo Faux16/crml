@@ -1,18 +1,19 @@
 "use client";
 
 import { Editor } from "@monaco-editor/react";
-import { useEffect, useRef } from "react";
+import type { editor as MonacoEditor } from "monaco-editor";
+import { useRef } from "react";
 
 interface CodeEditorProps {
-    value: string;
-    onChange: (value: string) => void;
-    readOnly?: boolean;
+    readonly value: string;
+    readonly onChange: (value: string) => void;
+    readonly readOnly?: boolean;
 }
 
 export default function CodeEditor({ value, onChange, readOnly = false }: CodeEditorProps) {
-    const editorRef = useRef<any>(null);
+    const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
 
-    function handleEditorDidMount(editor: any) {
+    function handleEditorDidMount(editor: MonacoEditor.IStandaloneCodeEditor) {
         editorRef.current = editor;
     }
 

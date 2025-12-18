@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Menu, X, Github } from "lucide-react";
+import { Menu, X, Link2 } from "lucide-react";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -14,11 +14,7 @@ export default function Navbar() {
                 <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
                     <Link href="/" className="flex items-center space-x-2">
-                        <img
-                            src="/crml-logo.png"
-                            alt="CRML Logo"
-                            className="h-8 w-8"
-                        />
+                        <Image src="/crml-logo.png" alt="CRML Logo" width={32} height={32} className="h-8 w-8" />
                         <span className="font-bold text-xl">CRML</span>
                     </Link>
 
@@ -26,6 +22,9 @@ export default function Navbar() {
                     <div className="hidden md:flex items-center space-x-6">
                         <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">
                             Home
+                        </Link>
+                        <Link href="/playground" className="text-sm font-medium hover:text-primary transition-colors">
+                            Playground
                         </Link>
                         <Link href="/simulation" className="text-sm font-medium hover:text-primary transition-colors">
                             Simulation
@@ -45,7 +44,7 @@ export default function Navbar() {
                             rel="noopener noreferrer"
                             className="text-sm font-medium hover:text-primary transition-colors"
                         >
-                            <Github className="h-5 w-5" />
+                            <Link2 className="h-5 w-5" />
                         </a>
                     </div>
 
@@ -68,6 +67,13 @@ export default function Navbar() {
                             onClick={() => setIsOpen(false)}
                         >
                             Home
+                        </Link>
+                        <Link
+                            href="/playground"
+                            className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            Playground
                         </Link>
                         <Link
                             href="/simulation"

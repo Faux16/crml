@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
-import { readFile, readdir } from "fs/promises";
-import path from "path";
+import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
 import yaml from "js-yaml";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asStringArray(value: unknown): string[] {
+    return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
+
+function asStringArrayOrSingleton(value: unknown): string[] {
+    if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
+    if (typeof value === "string") return [value];
+    return [];
+}
 
 async function listYamlFiles(dir: string, baseDir: string): Promise<string[]> {
     const entries = await readdir(dir, { withFileTypes: true });
@@ -44,28 +58,37 @@ export async function GET() {
                 const content = await readFile(filePath, "utf-8");
 
                 try {
-                    const parsed: any = yaml.load(content);
+                    const parsed = yaml.load(content);
+                    const parsedObj = isRecord(parsed) ? parsed : undefined;
+                    const meta = parsedObj && isRecord(parsedObj["meta"]) ? parsedObj["meta"] : undefined;
 
                     // According to schema, regions and countries are in meta.locale
-                    const locale = parsed?.meta?.locale || {};
-                    const regions: string[] = Array.isArray(locale.regions) ? locale.regions : [];
-                    const countries: string[] = Array.isArray(locale.countries) ? locale.countries : (typeof locale.countries === "string" ? [locale.countries] : []);
+                    const locale = meta && isRecord(meta["locale"]) ? meta["locale"] : undefined;
+                    const regions = asStringArray(locale?.["regions"]);
 
-                    const id = file.replace(/\.(yaml|yml)$/, "").replace(/[\\/]/g, "__");
+                    const countries = asStringArrayOrSingleton(locale?.["countries"]);
+
+                    const id = file
+                        .replace(/\.(yaml|yml)$/, "")
+                        .replaceAll("\\", "__")
+                        .replaceAll("/", "__");
 
                     return {
                         id,
                         filename: file,
-                        name: parsed?.meta?.name || file,
-                        description: parsed?.meta?.description || "No description available",
-                        tags: parsed?.meta?.tags || [],
+                        name: (typeof meta?.["name"] === "string" ? meta["name"] : undefined) || file,
+                        description: (typeof meta?.["description"] === "string" ? meta["description"] : undefined) || "No description available",
+                        tags: asStringArray(meta?.["tags"]),
                         regions,
                         countries,
-                        company_size: parsed?.meta?.company_size || [],
+                        company_size: asStringArray(meta?.["company_size"]),
                         content,
                     };
-                } catch (error) {
-                    const id = file.replace(/\.(yaml|yml)$/, "").replace(/[\\/]/g, "__");
+                } catch {
+                    const id = file
+                        .replace(/\.(yaml|yml)$/, "")
+                        .replaceAll("\\", "__")
+                        .replaceAll("/", "__");
                     return {
                         id,
                         filename: file,

@@ -147,6 +147,13 @@ export default function SimulationPage() {
 
     const handleSimulate = async () => {
         setIsSimulating(true);
+
+        const parsedRuns = Number.parseInt(runs, 10);
+        const runsValue = Number.isNaN(parsedRuns) ? 10000 : parsedRuns;
+
+        const parsedSeed = seed ? Number.parseInt(seed, 10) : undefined;
+        const seedValue = parsedSeed === undefined || Number.isNaN(parsedSeed) ? undefined : parsedSeed;
+
         try {
             const response = await fetch("/api/simulate", {
                 method: "POST",
@@ -155,8 +162,8 @@ export default function SimulationPage() {
                 },
                 body: JSON.stringify({
                     yaml: yamlContent,
-                    runs: parseInt(runs) || 10000,
-                    seed: seed ? parseInt(seed) : undefined,
+                    runs: runsValue,
+                    seed: seedValue,
                     outputCurrency: outputCurrency
                 }),
             });
@@ -171,7 +178,7 @@ export default function SimulationPage() {
                 errors: ["Failed to run simulation: " + (error as Error).message],
                 warnings: [],
                 engine: { name: "web", version: undefined },
-                run: { runs: parseInt(runs) || 10000, seed: seed ? parseInt(seed) : undefined },
+                run: { runs: runsValue, seed: seedValue },
                 inputs: {},
                 results: { measures: [], artifacts: [] },
             });
@@ -262,9 +269,13 @@ export default function SimulationPage() {
                                     max="100000"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    {parseInt(runs) < 5000 && "⚡ Fast but less accurate"}
-                                    {parseInt(runs) >= 5000 && parseInt(runs) <= 20000 && "✓ Good balance"}
-                                    {parseInt(runs) > 20000 && "🎯 High accuracy"}
+                                    {(() => {
+                                        const runsParsed = Number.parseInt(runs, 10);
+                                        const runsForHint = Number.isNaN(runsParsed) ? 0 : runsParsed;
+                                        if (runsForHint < 5000) return "⚡ Fast but less accurate";
+                                        if (runsForHint <= 20000) return "✓ Good balance";
+                                        return "🎯 High accuracy";
+                                    })()}
                                 </p>
                             </div>
                             <div className="space-y-2">
@@ -390,6 +401,7 @@ export default function SimulationPage() {
                             <div>
                                 <h3 className="mb-3 font-semibold flex items-center gap-2">
                                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">1</span>
+                                    {" "}
                                     Frequency (Poisson)
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-2">
@@ -405,34 +417,39 @@ export default function SimulationPage() {
                             <div>
                                 <h3 className="mb-3 font-semibold flex items-center gap-2">
                                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">2</span>
+                                    {" "}
                                     Severity (Lognormal)
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-2">
                                     <strong>Median:</strong> Typical loss amount (recommended)
                                 </p>
                                 <ul className="text-sm space-y-1 text-muted-foreground">
-                                    <li>• "8 000" → ~$8K (minor incidents)</li>
-                                    <li>• "100 000" → ~$100K (data breaches)</li>
-                                    <li>• "700 000" → ~$700K (ransomware)</li>
-                                    <li>• "9 000 000" → ~$9M (major breaches)</li>
+                                    <li>• &quot;8 000&quot; → ~$8K (minor incidents)</li>
+                                    <li>• &quot;100 000&quot; → ~$100K (data breaches)</li>
+                                    <li>• &quot;700 000&quot; → ~$700K (ransomware)</li>
+                                    <li>• &quot;9 000 000&quot; → ~$9M (major breaches)</li>
                                 </ul>
                                 <p className="text-sm text-muted-foreground mt-3">
                                     <strong>Sigma (σ):</strong> Variability (0.5=low, 1.5=medium, 2.0+=high)
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-2 italic">
-                                    💡 Use median instead of mu - it's more intuitive!
+                                    💡 Use median instead of mu - it&apos;s more intuitive!
                                 </p>
                             </div>
                         </div>
                         <div className="mt-6 p-4 bg-muted rounded-lg">
                             <p className="text-sm">
-                                <strong>💡 Tip:</strong> Start with an example model, modify one parameter at a time, and observe how results change.
-                                Check the <Link href="/docs/understanding-parameters" className="text-primary hover:underline">full guide</Link> for detailed explanations and data sources.
+                                <strong>💡 Tip:</strong>{" "}
+                                Start with an example model, modify one parameter at a time, and observe how results change.
+                                {" "}Check the{" "}
+                                <Link href="/docs/understanding-parameters" className="text-primary hover:underline">full guide</Link>
+                                {" "}for detailed explanations and data sources.
                             </p>
                         </div>
                         <div className="mt-4 p-4 border border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800 rounded-lg">
                             <p className="text-sm">
-                                <strong>ℹ️ About Simulation Methods:</strong> This simulation uses <strong>Monte Carlo</strong> simulation (random sampling).
+                                <strong>ℹ️ About Simulation Methods:</strong>{" "}
+                                This simulation uses <strong>Monte Carlo</strong> simulation (random sampling).
                                 Advanced CRML models (like QBER) can specify <strong>MCMC</strong> (Markov Chain Monte Carlo) for full Bayesian inference,
                                 but this requires specialized tools like PyMC3 or Stan. This page approximates these models using Monte Carlo for speed and simplicity.
                             </p>

@@ -1,140 +1,171 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, unlink, mkdir } from "fs/promises";
-import { exec } from "child_process";
-import { promisify } from "util";
-import path from "path";
-import os from "os";
+import { writeFile, unlink, mkdir } from "node:fs/promises";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+import path from "node:path";
+import os from "node:os";
 import yaml from "js-yaml";
 
 const execAsync = promisify(exec);
 
-export async function POST(request: NextRequest) {
-    try {
-        const { yaml: yamlContent } = await request.json();
+const FAILED_SUMMARY_RE = /failed CRML.*validation with \d+ error\(s\)/i;
+const NUMBERED_ERROR_RE = /^\s*\d+\./;
 
-        if (!yamlContent) {
-            return NextResponse.json(
+type Result<T> = { ok: true; value: T } | { ok: false; response: NextResponse };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asStringArray(value: unknown): string[] {
+    return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
+
+function getYamlContentFromBody(body: unknown): Result<string> {
+    const yamlContent = isRecord(body) && typeof body["yaml"] === "string" ? body["yaml"] : undefined;
+    if (!yamlContent) {
+        return {
+            ok: false,
+            response: NextResponse.json(
                 { valid: false, errors: ["No YAML content provided"] },
                 { status: 400 }
-            );
-        }
+            ),
+        };
+    }
 
-        // Parse YAML to extract metadata
-        let parsedYaml: any;
-        try {
-            parsedYaml = yaml.load(yamlContent);
-        } catch (error) {
-            return NextResponse.json({
+    return { ok: true, value: yamlContent };
+}
+
+function parseYaml(yamlContent: string): Result<unknown> {
+    try {
+        return { ok: true, value: yaml.load(yamlContent) };
+    } catch (error) {
+        return {
+            ok: false,
+            response: NextResponse.json({
                 valid: false,
                 errors: [`YAML parsing error: ${(error as Error).message}`],
-            });
-        }
+            }),
+        };
+    }
+}
 
-        // Use OS-specific temp directory (cross-platform)
-        const tmpDir = path.join(os.tmpdir(), "crml-validator");
-        await mkdir(tmpDir, { recursive: true });
-        const tmpFile = path.join(tmpDir, `crml-${Date.now()}.yaml`);
+function extractMeta(parsedYaml: unknown): {
+    meta: Record<string, unknown> | undefined;
+    locale: Record<string, unknown> | undefined;
+} {
+    const parsedObj = isRecord(parsedYaml) ? parsedYaml : undefined;
+    const meta = parsedObj && isRecord(parsedObj["meta"]) ? parsedObj["meta"] : undefined;
+    const locale = meta && isRecord(meta["locale"]) ? meta["locale"] : undefined;
+    return { meta, locale };
+}
 
+function buildInfo(meta: Record<string, unknown> | undefined, locale: Record<string, unknown> | undefined) {
+    return {
+        name: typeof meta?.["name"] === "string" ? meta["name"] : undefined,
+        version: typeof meta?.["version"] === "string" ? meta["version"] : undefined,
+        description: typeof meta?.["description"] === "string" ? meta["description"] : undefined,
+        author: typeof meta?.["author"] === "string" ? meta["author"] : undefined,
+        organization: typeof meta?.["organization"] === "string" ? meta["organization"] : undefined,
+        company_sizes: asStringArray(meta?.["company_sizes"]),
+        industries: asStringArray(meta?.["industries"]),
+        regulatory_frameworks: asStringArray(meta?.["regulatory_frameworks"]),
+        tags: asStringArray(meta?.["tags"]),
+        regions: asStringArray(locale?.["regions"]),
+        countries: asStringArray(locale?.["countries"]),
+    };
+}
+
+async function withTempYamlFile<T>(yamlContent: string, fn: (tmpFile: string) => Promise<T>): Promise<T> {
+    const tmpDir = path.join(os.tmpdir(), "crml-validator");
+    await mkdir(tmpDir, { recursive: true });
+    const tmpFile = path.join(tmpDir, `crml-${Date.now()}.yaml`);
+
+    try {
+        await writeFile(tmpFile, yamlContent, "utf-8");
+        return await fn(tmpFile);
+    } finally {
         try {
-            // Write YAML content to temporary file
-            await writeFile(tmpFile, yamlContent, "utf-8");
+            await unlink(tmpFile);
+        } catch {
+            // Ignore cleanup errors
+        }
+    }
+}
 
-            // Extract model info
-            const info = {
-                name: parsedYaml?.meta?.name,
-                version: parsedYaml?.meta?.version,
-                description: parsedYaml?.meta?.description,
-                author: parsedYaml?.meta?.author,
-                organization: parsedYaml?.meta?.organization,
-                company_sizes: parsedYaml?.meta?.company_sizes || [],
-                industries: parsedYaml?.meta?.industries || [],
-                regulatory_frameworks: parsedYaml?.meta?.regulatory_frameworks || [],
-                tags: parsedYaml?.meta?.tags || [],
-                regions: Array.isArray(parsedYaml?.meta?.locale)
-                    ? parsedYaml?.meta?.locale
-                    : Array.isArray(parsedYaml?.meta?.locale?.regions)
-                        ? parsedYaml?.meta?.locale?.regions
-                        : [],
-                countries: Array.isArray(parsedYaml?.meta?.locale)
-                    ? parsedYaml?.meta?.countries
-                    : Array.isArray(parsedYaml?.meta?.locale?.countries)
-                        ? parsedYaml?.meta?.locale?.countries
-                        : [],
-            };
+function parseWarningsFromOutput(output: string): string[] {
+    return output
+        .split("\n")
+        .filter((line) => line.includes("[WARNING]"))
+        .map((line) => line.replace("[WARNING]", "").trim());
+}
 
-            // Run CRML validation
-            try {
-                const { stdout, stderr } = await execAsync(`crml validate "${tmpFile}"`);
+function parseErrorsFromOutput(output: string): string[] {
+    return output
+        .split("\n")
+        .filter((line) => line.trim())
+        .filter((line) => line.includes("[ERROR]") || NUMBERED_ERROR_RE.exec(line) !== null || line.includes("failed CRML"))
+        .filter((line) => FAILED_SUMMARY_RE.exec(line) === null)
+        .map((line) => line.replace("[ERROR]", "").trim());
+}
 
-                // Check if validation passed
-                if (stdout.includes("[OK]")) {
-                    // Extract warnings from stdout
-                    const warnings = stdout
-                        .split("\n")
-                        .filter((line) => line.includes("[WARNING]"))
-                        .map((line) => line.replace("[WARNING]", "").trim());
+async function execCrmlValidate(tmpFile: string): Promise<{ stdout: string; stderr: string; ok: boolean; message?: string }> {
+    try {
+        const { stdout, stderr } = await execAsync(`crml validate "${tmpFile}"`);
+        return { stdout, stderr, ok: true };
+    } catch (execError: unknown) {
+        const err = execError as { stdout?: string; stderr?: string; message?: string };
+        return {
+            stdout: err.stdout || "",
+            stderr: err.stderr || "",
+            ok: false,
+            message: err.message,
+        };
+    }
+}
 
-                    return NextResponse.json({
-                        valid: true,
-                        info,
-                        warnings,
-                    });
-                } else {
-                    // Parse errors from stderr or stdout
-                    const errors = (stderr || stdout)
-                        .split("\n")
-                        .filter((line) => line.trim() && !line.includes("[OK]"))
-                        // Filter out summary lines like "file.yaml failed CRML 1.1 validation with X error(s):"
-                        .filter((line) => !line.match(/failed CRML.*validation with \d+ error\(s\)/i))
-                        .map((line) => line.trim());
+export async function POST(request: NextRequest) {
+    try {
+        const body: unknown = await request.json();
+        const yamlContentResult = getYamlContentFromBody(body);
+        if (!yamlContentResult.ok) return yamlContentResult.response;
 
-                    return NextResponse.json({
-                        valid: false,
-                        errors: errors.length > 0 ? errors : ["Validation failed"],
-                        info,
-                    });
-                }
-            } catch (execError: any) {
-                // exec throws when command exits with non-zero code
-                // But stdout/stderr are still available on the error object
-                const stdout = execError.stdout || "";
-                const stderr = execError.stderr || "";
-                const output = stdout + "\n" + stderr;
+        const parsedYamlResult = parseYaml(yamlContentResult.value);
+        if (!parsedYamlResult.ok) return parsedYamlResult.response;
 
-                // Parse the actual validation errors from output
-                const errorLines = output
-                    .split("\n")
-                    .filter((line: string) => line.trim())
-                    .filter((line: string) => 
-                        line.includes("[ERROR]") || 
-                        line.match(/^\s*\d+\./) ||  // numbered errors like "  1. [path] message"
-                        line.includes("failed CRML")
-                    )
-                    // Filter out summary lines that just state the failure count
-                    .filter((line: string) => !line.match(/failed CRML.*validation with \d+ error\(s\)/i))
-                    .map((line: string) => line.replace("[ERROR]", "").trim());
+        const { meta, locale } = extractMeta(parsedYamlResult.value);
+        const info = buildInfo(meta, locale);
 
-                // Extract warnings too
-                const warnings = output
-                    .split("\n")
-                    .filter((line: string) => line.includes("[WARNING]"))
-                    .map((line: string) => line.replace("[WARNING]", "").trim());
+        return await withTempYamlFile(yamlContentResult.value, async (tmpFile) => {
+            const { stdout, stderr, ok, message } = await execCrmlValidate(tmpFile);
+            const output = `${stdout}\n${stderr}`;
+            const warnings = parseWarningsFromOutput(output);
 
+            if (ok && stdout.includes("[OK]")) {
+                return NextResponse.json({
+                    valid: true,
+                    info,
+                    warnings,
+                });
+            }
+
+            const errorLines = parseErrorsFromOutput(output);
+            if (errorLines.length > 0) {
                 return NextResponse.json({
                     valid: false,
-                    errors: errorLines.length > 0 ? errorLines : [`Validation failed: ${execError.message}`],
+                    errors: errorLines,
                     warnings,
                     info,
                 });
             }
-        } finally {
-            // Clean up temporary file
-            try {
-                await unlink(tmpFile);
-            } catch (error) {
-                // Ignore cleanup errors
-            }
-        }
+
+            return NextResponse.json({
+                valid: false,
+                errors: [ok ? "Validation failed" : `Validation failed: ${message || "Unknown error"}`],
+                warnings,
+                info,
+            });
+        });
     } catch (error) {
         console.error("Validation error:", error);
         return NextResponse.json(

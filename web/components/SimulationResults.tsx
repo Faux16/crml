@@ -108,8 +108,8 @@ export interface SimulationMetadata {
 export type SimulationResult = SimulationResultEnvelope;
 
 interface SimulationResultsProps {
-    result: SimulationResult | null;
-    isSimulating: boolean;
+    readonly result: SimulationResult | null;
+    readonly isSimulating: boolean;
 }
 
 export default function SimulationResults({ result, isSimulating }: SimulationResultsProps) {
@@ -150,7 +150,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                     <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                         <TrendingUp className="mb-4 h-12 w-12 opacity-50" />
                         <p>No results yet</p>
-                        <p className="text-sm">Click "Simulate" to start</p>
+                        <p className="text-sm">Click &quot;Simulate&quot; to start</p>
                     </div>
                 </CardContent>
             </Card>
@@ -158,6 +158,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
     }
 
     if (!result.success) {
+        const errorKeyCounts = new Map<string, number>();
         return (
             <Card className="h-full border-destructive">
                 <CardHeader>
@@ -170,9 +171,11 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                     <Alert variant="destructive">
                         <AlertDescription>
                             <ul className="list-disc space-y-1 pl-4">
-                                {result.errors?.map((error, idx) => (
-                                    <li key={idx}>{error}</li>
-                                ))}
+                                {result.errors?.map((error) => {
+                                    const count = errorKeyCounts.get(error) ?? 0;
+                                    errorKeyCounts.set(error, count + 1);
+                                    return <li key={`${error}::${count}`}>{error}</li>;
+                                })}
                             </ul>
                         </AlertDescription>
                     </Alert>
@@ -187,7 +190,11 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
     const currency = result.units?.currency?.symbol || result.units?.currency?.code || '$';
 
     const getMeasure = (id: string) => measures.find(m => m.id === id);
-    const getVar = (level: number) => measures.find(m => m.id === "loss.var" && (m.parameters as any)?.level === level);
+    const getVar = (level: number) => measures.find((m) => {
+        if (m.id !== "loss.var") return false;
+        const candidate = m.parameters?.["level"];
+        return typeof candidate === "number" && candidate === level;
+    });
     const histogram = artifacts.find((a): a is CrmlHistogramArtifact => a.kind === "histogram" && a.id === "loss.annual");
     const samples = artifacts.find((a): a is CrmlSamplesArtifact => a.kind === "samples" && a.id === "loss.annual");
 
@@ -244,7 +251,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
         a.download = `${metadata?.model_name || 'simulation'}_results.json`;
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        a.remove();
         URL.revokeObjectURL(url);
     };
 
@@ -259,7 +266,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
         a.download = `${metadata?.model_name || 'simulation'}_data.csv`;
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        a.remove();
         URL.revokeObjectURL(url);
     };
 
@@ -294,8 +301,8 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                         <CardContent className="space-y-2">
                             <div className="text-xs font-medium text-muted-foreground mb-2">Active Correlations:</div>
                             <div className="grid grid-cols-1 gap-1">
-                                {metadata.correlation_info.map((c, i) => (
-                                    <div key={i} className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded border border-blue-100 dark:border-blue-900 text-xs">
+                                {metadata.correlation_info.map((c) => (
+                                    <div key={`${c.assets.join("|")}::${c.value}`} className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded border border-blue-100 dark:border-blue-900 text-xs">
                                         <div className="flex items-center gap-2">
                                             <span className="font-semibold">{c.assets[0]}</span>
                                             <span className="text-muted-foreground">↔</span>
@@ -365,8 +372,8 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                         Individual Controls ({metadata.control_details.length})
                                     </p>
                                     <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                                        {metadata.control_details.slice(0, 5).map((ctrl, idx) => (
-                                            <div key={idx} className="flex items-center justify-between text-xs p-1.5 bg-white dark:bg-gray-900 rounded">
+                                        {metadata.control_details.slice(0, 5).map((ctrl) => (
+                                            <div key={`${ctrl.id}::${ctrl.type}`} className="flex items-center justify-between text-xs p-1.5 bg-white dark:bg-gray-900 rounded">
                                                 <div className="flex-1">
                                                     <span className="font-medium">{ctrl.id}</span>
                                                     <span className="text-muted-foreground ml-1">({ctrl.type})</span>

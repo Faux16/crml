@@ -16,6 +16,7 @@ from .common import (
 
 
 def _schema_validation_errors(*, data: dict[str, Any]) -> list[ValidationMessage]:
+    """Validate relationships data against the JSON schema and return errors."""
     validator = Draft202012Validator(_load_control_relationships_schema())
     errors: list[ValidationMessage] = []
     for err in validator.iter_errors(data):
@@ -32,6 +33,7 @@ def _schema_validation_errors(*, data: dict[str, Any]) -> list[ValidationMessage
 
 
 def _semantic_error(*, path: str, message: str) -> ValidationMessage:
+    """Helper to build a semantic validation error at a given path."""
     return ValidationMessage(
         level="error",
         source="semantic",
@@ -41,6 +43,7 @@ def _semantic_error(*, path: str, message: str) -> ValidationMessage:
 
 
 def _extract_relationship_groups(data: dict[str, Any]) -> list[Any] | None:
+    """Extract the list of relationship entries from the document payload."""
     payload = data.get("relationships")
     rels = payload.get("relationships") if isinstance(payload, dict) else None
     return rels if isinstance(rels, list) else None
@@ -55,6 +58,7 @@ def _validate_relationship_target_entry(
     errors: list[ValidationMessage],
     keys: list[tuple[str, str, str]],
 ) -> None:
+    """Validate one relationship target entry and collect semantic errors."""
     if not isinstance(target_entry, dict):
         errors.append(
             _semantic_error(
@@ -96,6 +100,7 @@ def _validate_relationship_group_entry(
     sources: list[str],
     keys: list[tuple[str, str, str]],
 ) -> None:
+    """Validate one relationship group entry (source + targets)."""
     if not isinstance(entry, dict):
         errors.append(
             _semantic_error(
@@ -140,6 +145,7 @@ def _validate_relationship_group_entry(
 
 
 def _semantic_validation_errors(*, data: dict[str, Any]) -> list[ValidationMessage]:
+    """Run semantic (cross-field) checks for control relationships documents."""
     errors: list[ValidationMessage] = []
 
     rels = _extract_relationship_groups(data)

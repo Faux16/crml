@@ -29,10 +29,12 @@ class BundleReport:
 
 
 def _load_yaml_file(path: str) -> dict[str, Any]:
+    """Load a YAML file from disk and require a mapping at the root."""
     return load_yaml_mapping_from_path(path)
 
 
 def _resolve_path(base_dir: str | None, p: str) -> str:
+    """Resolve a possibly-relative path against a base directory."""
     if base_dir and not os.path.isabs(p):
         return os.path.join(base_dir, p)
     return p
@@ -101,6 +103,11 @@ def _inline_pack_paths(
     model_mode_warning_path_prefix: str,
     model_mode_warning_message: str,
 ) -> list[str]:
+    """Resolve pack reference paths.
+
+    In model-mode (`source_kind == "model"`), file paths cannot be inlined and
+    are returned as an empty list while emitting warnings.
+    """
     if source_kind == "model":
         for idx, _ in enumerate(paths):
             warnings.append(
@@ -128,6 +135,7 @@ def _inline_control_catalogs(
     warnings: list[BundleMessage],
     initial: list[CRControlCatalogSchema],
 ) -> list[CRControlCatalogSchema]:
+    """Inline referenced control catalog documents into the bundle payload."""
     out = list(initial)
     paths = portfolio_doc.portfolio.control_catalogs or []
 
@@ -167,6 +175,7 @@ def _inline_assessments(
     warnings: list[BundleMessage],
     initial: list[CRAssessmentSchema],
 ) -> list[CRAssessmentSchema]:
+    """Inline referenced assessment documents into the bundle payload."""
     out = list(initial)
     paths = portfolio_doc.portfolio.assessments or []
 
@@ -206,6 +215,7 @@ def _inline_control_relationships(
     warnings: list[BundleMessage],
     initial: list[CRControlRelationshipsSchema],
 ) -> list[CRControlRelationshipsSchema]:
+    """Inline referenced control-relationships packs into the bundle payload."""
     out = list(initial)
     paths = portfolio_doc.portfolio.control_relationships or []
 
@@ -244,6 +254,12 @@ def _inline_scenarios(
     source_kind: Literal["path", "yaml", "data", "model"],
     scenarios: Mapping[str, CRScenarioSchema] | None,
 ) -> tuple[list[BundledScenario], list[BundleMessage]]:
+    """Inline scenario documents referenced by the portfolio.
+
+    Returns:
+        A pair of (bundled_scenarios, errors). If any error occurs while loading
+        a referenced scenario, the errors list is returned non-empty.
+    """
     errors: list[BundleMessage] = []
     bundled: list[BundledScenario] = []
 

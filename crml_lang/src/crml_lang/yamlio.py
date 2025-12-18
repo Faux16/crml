@@ -7,6 +7,13 @@ _ERR_PYYAML_REQUIRED = "PyYAML is required: pip install pyyaml"
 
 
 def _yaml_module():
+    """Import and return the PyYAML module.
+
+    This is isolated to keep PyYAML as an modular dependency for the package.
+
+    Raises:
+        ImportError: If PyYAML is not installed.
+    """
     try:
         import yaml  # type: ignore
 

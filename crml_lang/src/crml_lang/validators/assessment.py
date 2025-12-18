@@ -18,6 +18,7 @@ from .control_catalog import validate_control_catalog
 
 
 def _wrap_messages(messages: list[ValidationMessage], *, prefix: str) -> list[ValidationMessage]:
+    """Prefix message paths when nesting validation results."""
     out: list[ValidationMessage] = []
     for m in messages:
         out.append(
@@ -33,6 +34,7 @@ def _wrap_messages(messages: list[ValidationMessage], *, prefix: str) -> list[Va
 
 
 def _validate_against_schema(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Validate assessment data against the JSON schema."""
     try:
         schema = _load_assessment_schema()
     except FileNotFoundError:
@@ -61,6 +63,7 @@ def _validate_against_schema(data: dict[str, Any]) -> list[ValidationMessage]:
 
 
 def _strict_validate_model(data: dict[str, Any]) -> Optional[ValidationMessage]:
+    """Validate against the Pydantic model and return a single error (if any)."""
     try:
         from ..models.assessment_model import CRAssessmentSchema
 
@@ -77,6 +80,7 @@ def _strict_validate_model(data: dict[str, Any]) -> Optional[ValidationMessage]:
 
 
 def _collect_assessment_ids(data: dict[str, Any]) -> tuple[list[str], list[ValidationMessage]]:
+    """Collect assessment ids and report per-entry type errors."""
     assessment = data.get("assessment")
     assessments = assessment.get("assessments") if isinstance(assessment, dict) else None
     if not isinstance(assessments, list):
@@ -103,6 +107,7 @@ def _collect_assessment_ids(data: dict[str, Any]) -> tuple[list[str], list[Valid
 
 
 def _check_duplicate_ids(ids: list[str]) -> Optional[ValidationMessage]:
+    """Return an error if the id list contains duplicates."""
     if len(ids) == len(set(ids)):
         return None
     return ValidationMessage(
@@ -118,6 +123,7 @@ def _collect_control_catalog_ids(
     *,
     source_kind: Literal["path", "yaml", "data"] | None,
 ) -> tuple[set[str], list[ValidationMessage]]:
+    """Extract the set of control ids from provided control catalog documents."""
     catalog_ids: set[str] = set()
     errors: list[ValidationMessage] = []
 
@@ -146,6 +152,7 @@ def _collect_control_catalog_ids(
 
 
 def _check_ids_in_catalogs(ids: list[str], catalog_ids: set[str]) -> list[ValidationMessage]:
+    """Validate that each assessment id exists in the referenced control catalog ids."""
     if not catalog_ids:
         return []
     out: list[ValidationMessage] = []

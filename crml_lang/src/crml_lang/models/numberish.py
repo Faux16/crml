@@ -4,6 +4,11 @@ from typing import Iterable
 
 
 def _clean_numeric_string(raw: str) -> str:
+    """Normalize a numeric string by removing readability separators.
+
+    Accepts common separators that users may include in YAML/JSON:
+    spaces, thin spaces (U+202F), underscores, and commas.
+    """
     # Allow readability separators commonly used in YAML/JSON.
     # - regular space
     # - thin space (U+202F)
@@ -19,6 +24,16 @@ def _clean_numeric_string(raw: str) -> str:
 
 
 def parse_floatish(value, *, allow_percent: bool) -> float:
+    """Parse a float-like input.
+
+    Supported inputs:
+    - int/float (converted to float)
+    - str (optionally with separators; optional trailing '%' when allow_percent)
+
+    Raises:
+        TypeError: For unsupported types / booleans / None.
+        ValueError: For invalid strings or disallowed percent values.
+    """
     if value is None:
         raise TypeError("value is None")
 
@@ -45,6 +60,12 @@ def parse_floatish(value, *, allow_percent: bool) -> float:
 
 
 def parse_intish(value) -> int:
+    """Parse an integer-like input.
+
+    Notes:
+        This is strict: floats are rejected even if integer-like (e.g. 10.0).
+        Percent values are not allowed.
+    """
     if value is None:
         raise TypeError("value is None")
 
@@ -76,4 +97,5 @@ def parse_intish(value) -> int:
 
 
 def parse_float_list(values: Iterable, *, allow_percent: bool) -> list[float]:
+    """Parse an iterable of float-like values into a list of floats."""
     return [parse_floatish(v, allow_percent=allow_percent) for v in values]

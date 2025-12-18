@@ -64,19 +64,27 @@ class ValidationReport:
 
 
 def _load_schema(path: str) -> dict[str, Any]:
+    """Load a JSON schema file from disk."""
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def _load_scenario_schema() -> dict[str, Any]:
+    """Load the CRML Scenario JSON schema as a dict."""
     return _load_schema(SCENARIO_SCHEMA_PATH)
 
 
 def _load_portfolio_schema() -> dict[str, Any]:
+    """Load the CRML Portfolio JSON schema as a dict."""
     return _load_schema(PORTFOLIO_SCHEMA_PATH)
 
 
 def _load_assessment_schema() -> dict[str, Any]:
+    """Load the CRML Assessment JSON schema as a dict.
+
+    Prefers the new schema filename but supports a legacy name for
+    backwards-compatibility.
+    """
     # Prefer renamed schema file, but fall back to the legacy file name.
     if os.path.exists(ASSESSMENT_SCHEMA_PATH):
         return _load_schema(ASSESSMENT_SCHEMA_PATH)
@@ -84,31 +92,38 @@ def _load_assessment_schema() -> dict[str, Any]:
 
 
 def _load_control_assessment_schema() -> dict[str, Any]:
+    """Load the assessment schema (legacy alias)."""
     return _load_assessment_schema()
 
 
 def _load_control_catalog_schema() -> dict[str, Any]:
+    """Load the CRML Control Catalog JSON schema as a dict."""
     return _load_schema(CONTROL_CATALOG_SCHEMA_PATH)
 
 
 def _load_attack_catalog_schema() -> dict[str, Any]:
+    """Load the CRML Attack Catalog JSON schema as a dict."""
     return _load_schema(ATTACK_CATALOG_SCHEMA_PATH)
 
 
 def _load_control_relationships_schema() -> dict[str, Any]:
+    """Load the CRML Control Relationships JSON schema as a dict."""
     return _load_schema(CONTROL_RELATIONSHIPS_SCHEMA_PATH)
 
 
 def _looks_like_yaml_text(s: str) -> bool:
+    """Heuristically decide whether `s` is YAML text rather than a filesystem path."""
     # Heuristic: YAML documents almost always contain either newlines or key separators.
     return "\n" in s or ":" in s
 
 
 def _error(message: str, *, path: str = ROOT_PATH) -> list[ValidationMessage]:
+    """Create a single IO-scoped validation error."""
     return [ValidationMessage(level="error", source="io", path=path, message=message)]
 
 
 def _read_text_file(path: str) -> tuple[Optional[str], list[ValidationMessage]]:
+    """Read a UTF-8 text file and return (text, errors)."""
     if not os.path.exists(path):
         return None, _error(f"File not found: {path}")
     try:
@@ -119,6 +134,11 @@ def _read_text_file(path: str) -> tuple[Optional[str], list[ValidationMessage]]:
 
 
 def _parse_yaml_mapping(text: str) -> tuple[Optional[dict[str, Any]], list[ValidationMessage]]:
+    """Parse YAML and require the root to be a mapping.
+
+    Returns:
+        A pair of (data, errors). On failure, data is None and errors is non-empty.
+    """
     try:
         data = load_yaml_mapping_from_str(text)
     except ValueError:
@@ -134,6 +154,11 @@ def _load_input(
     *,
     source_kind: Literal["path", "yaml", "data"] | None,
 ) -> tuple[Optional[dict[str, Any]], list[ValidationMessage]]:
+    """Load CRML input from a path, YAML string, or already-parsed dict.
+
+    This helper centralizes "input kind" inference and produces consistent
+    IO errors for the validator modules.
+    """
     if source_kind == "data" or isinstance(source, dict):
         if not isinstance(source, dict):
             return None, _error("Expected a dict for source_kind='data'.")
@@ -157,6 +182,7 @@ def _load_input(
 
 
 def _jsonschema_path(error) -> str:
+    """Convert a jsonschema error object's path into a readable string."""
     try:
         if error.path:
             return " -> ".join(map(str, error.path))
@@ -166,6 +192,7 @@ def _jsonschema_path(error) -> str:
 
 
 def _format_oneof_error(error) -> str:
+    """Provide friendlier messages for common `oneOf` schema failures."""
     instance = getattr(error, "instance", None)
     if not isinstance(instance, dict):
         return error.message
@@ -188,6 +215,7 @@ def _format_oneof_error(error) -> str:
 
 
 def _format_required_error(error) -> str:
+    """Format jsonschema `required` errors to highlight the missing key."""
     try:
         missing = error.validator_value[0]
     except Exception:
@@ -198,6 +226,7 @@ def _format_required_error(error) -> str:
 
 
 def _format_enum_error(error) -> str:
+    """Format jsonschema `enum` errors with the list of allowed values."""
     try:
         values = ", ".join(map(str, error.validator_value))
     except Exception:
@@ -206,6 +235,7 @@ def _format_enum_error(error) -> str:
 
 
 def _format_jsonschema_error(error) -> str:
+    """Format jsonschema errors with a few CRML-specific improvements."""
     validator = getattr(error, "validator", None)
     if validator == "const":
         return f"Expected '{error.validator_value}', got '{error.instance}'"

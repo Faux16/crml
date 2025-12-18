@@ -22,6 +22,7 @@ _RECOMMENDED_META_KEYS = ("version", "description", "author", "industries")
 
 
 def _warn_non_current_version(*, data: dict[str, Any], warnings: list[ValidationMessage]) -> None:
+    """Emit a warning if the scenario document version is not the current one."""
     # Warn if using non-current CRML version
     # Note: the JSON schema currently enforces the version, so this is mainly
     # forward-compatible documentation for future schema relaxations.
@@ -40,6 +41,7 @@ def _warn_non_current_version(*, data: dict[str, Any], warnings: list[Validation
 
 
 def _warn_missing_meta_fields(*, meta: dict[str, Any], warnings: list[ValidationMessage]) -> None:
+    """Emit warnings for missing recommended `meta` keys."""
     for key in _RECOMMENDED_META_KEYS:
         if key not in meta or meta.get(key) in ([], ""):
             warnings.append(
@@ -56,6 +58,7 @@ def _warn_missing_meta_fields(*, meta: dict[str, Any], warnings: list[Validation
 
 
 def _warn_missing_regions(*, locale: dict[str, Any], warnings: list[ValidationMessage]) -> None:
+    """Emit a warning if `meta.locale.regions` is missing/empty."""
     if "regions" not in locale or locale.get("regions") in ([], ""):
         warnings.append(
             ValidationMessage(
@@ -71,6 +74,7 @@ def _warn_missing_regions(*, locale: dict[str, Any], warnings: list[ValidationMe
 
 
 def _warn_mixture_weights(*, severity: dict[str, Any], warnings: list[ValidationMessage]) -> None:
+    """Emit a warning if mixture component weights do not sum to ~1."""
     # Warn if mixture weights don't sum to 1
     if severity.get("model") != "mixture" or not isinstance(severity.get("components"), list):
         return
@@ -98,6 +102,7 @@ def _warn_mixture_weights(*, severity: dict[str, Any], warnings: list[Validation
 
 
 def _warn_missing_currency(*, severity: dict[str, Any], warnings: list[ValidationMessage]) -> None:
+    """Emit a warning if severity parameters appear monetary but omit `currency`."""
     # Warn if severity node appears to contain monetary values but no currency property
     params = severity.get("parameters", {}) if isinstance(severity.get("parameters"), dict) else {}
     has_money_fields = any(k in params for k in ("median", "mu", "mean", "single_losses"))
@@ -116,6 +121,7 @@ def _warn_missing_currency(*, severity: dict[str, Any], warnings: list[Validatio
 
 
 def _warn_duplicate_scenario_control_ids(*, scenario: dict[str, Any], warnings: list[ValidationMessage]) -> None:
+    """Emit a warning if scenario control ids contain duplicates."""
     # Warn if scenario control ids contain duplicates
     scenario_controls = scenario.get("controls") if isinstance(scenario, dict) else None
     ids = _control_ids_from_controls(scenario_controls)
@@ -131,6 +137,7 @@ def _warn_duplicate_scenario_control_ids(*, scenario: dict[str, Any], warnings: 
 
 
 def _schema_errors(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Validate scenario data against the JSON schema and return errors."""
     schema = _load_scenario_schema()
     validator = Draft202012Validator(schema)
 
@@ -149,6 +156,7 @@ def _schema_errors(data: dict[str, Any]) -> list[ValidationMessage]:
 
 
 def _pydantic_strict_model_errors(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Run strict Pydantic model validation and return errors (best-effort)."""
     errors: list[ValidationMessage] = []
     try:
         from ..models.crml_model import CRScenarioSchema
@@ -188,6 +196,7 @@ def _pydantic_strict_model_errors(data: dict[str, Any]) -> list[ValidationMessag
 
 
 def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Compute semantic (non-schema) warnings for a valid scenario document."""
     warnings: list[ValidationMessage] = []
 
     _warn_non_current_version(data=data, warnings=warnings)

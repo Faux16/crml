@@ -25,17 +25,23 @@ _PATH_PORTFOLIO_CONTROLS = "portfolio -> controls"
 
 
 def _resolve_path(base_dir: str | None, p: str) -> str:
+    """Resolve a possibly-relative path against `base_dir`."""
     if base_dir and not os.path.isabs(p):
         return os.path.join(base_dir, p)
     return p
 
 
 def _norm_token(s: str) -> str:
+    """Normalize a free-form token to a comparison-friendly form.
+
+    Used for loose matching of industries/countries/framework names.
+    """
     s = s.strip().lower()
     return "".join(ch for ch in s if ("a" <= ch <= "z") or ("0" <= ch <= "9") or ch in "_-" )
 
 
 def _norm_list(v: Any) -> set[str]:
+    """Normalize a list of strings into a set of normalized tokens."""
     if not isinstance(v, list):
         return set()
     out: set[str] = set()
@@ -46,6 +52,7 @@ def _norm_list(v: Any) -> set[str]:
 
 
 def _namespaces_from_control_ids(control_ids: set[str]) -> set[str]:
+    """Extract normalized namespaces from canonical control ids (namespace:key)."""
     out: set[str] = set()
     for cid in control_ids:
         if not isinstance(cid, str):
@@ -65,6 +72,11 @@ def _effective_portfolio_frameworks(
     catalog_ids: set[str],
     validate_relevance: bool,
 ) -> tuple[set[str], list[ValidationMessage]]:
+    """Compute the effective portfolio framework set.
+
+    If relevance validation is enabled, this can infer frameworks from referenced
+    control catalogs, or error if declared frameworks don't cover catalog namespaces.
+    """
     if not validate_relevance or not catalog_ids:
         return declared_frameworks, []
 
@@ -114,6 +126,11 @@ def _require_catalogs_for_assessments(
     catalog_paths: list[str],
     assessment_paths: list[str],
 ) -> list[ValidationMessage]:
+    """Require control catalogs when assessments are referenced.
+
+    Assessments are validated against catalog control ids, so the catalog paths
+    are required when assessment paths are present.
+    """
     if not assessment_paths:
         return []
     if catalog_paths:
@@ -132,6 +149,7 @@ def _require_catalogs_for_assessments(
 
 
 def _locale_countries(locale: Any) -> set[str]:
+    """Extract a normalized set of countries from a locale object."""
     if not isinstance(locale, dict):
         return set()
     values: list[str] = []
@@ -153,6 +171,7 @@ def _locale_countries(locale: Any) -> set[str]:
 
 
 def _controls_uniqueness_checks(portfolio: dict[str, Any]) -> list[ValidationMessage]:
+    """Validate portfolio.controls entries have string ids and are unique."""
     messages: list[ValidationMessage] = []
     controls = portfolio.get("controls")
     if not isinstance(controls, list):
@@ -193,6 +212,7 @@ def _validate_cataloge_references(
     portfolio: dict[str, Any],
     base_dir: str | None,
 ) -> tuple[list[str], list[str], list[ValidationMessage]]:
+    """Validate catalog + assessment references and return resolved paths + messages."""
     catalog_paths, cat_messages = _validate_catalog_references(portfolio=portfolio, base_dir=base_dir)
     assessment_paths, assess_messages = _validate_assessment_references(
         portfolio=portfolio,
@@ -207,6 +227,7 @@ def _validate_control_relationships_references(
     portfolio: dict[str, Any],
     base_dir: str | None,
 ) -> tuple[list[str], list[ValidationMessage]]:
+    """Validate referenced control-relationships pack file paths and contents."""
     sources = portfolio.get("control_relationships")
     if sources is None:
         return [], []
@@ -273,6 +294,7 @@ def _validate_catalog_references(
     portfolio: dict[str, Any],
     base_dir: str | None,
 ) -> tuple[list[str], list[ValidationMessage]]:
+    """Validate referenced control catalog file paths and return resolved paths."""
     sources = portfolio.get("control_catalogs")
     if sources is None:
         return [], []
@@ -305,6 +327,7 @@ def _validate_one_catalog_path(
     idx: int,
     base_dir: str | None,
 ) -> tuple[str | None, list[ValidationMessage]]:
+    """Validate one control catalog path entry and return (resolved_path, messages)."""
     messages: list[ValidationMessage] = []
     if not isinstance(p, str) or not p:
         return (
@@ -353,6 +376,7 @@ def _validate_assessment_references(
     base_dir: str | None,
     catalog_paths: list[str],
 ) -> tuple[list[str], list[ValidationMessage]]:
+    """Validate referenced assessment file paths and (optionally) their contents."""
     sources = portfolio.get("assessments")
     if sources is None:
         sources = portfolio.get("control_assessments")
@@ -393,6 +417,7 @@ def _validate_one_assessment_path(
     base_dir: str | None,
     catalog_paths: list[str],
 ) -> tuple[str | None, list[ValidationMessage]]:
+    """Validate one assessment path entry and return (resolved_path, messages)."""
     if not isinstance(p, str) or not p:
         return (
             None,
@@ -444,6 +469,7 @@ def _validate_one_assessment_path(
 
 
 def _catalog_ids_from_paths(catalog_paths: list[str]) -> set[str]:
+    """Load referenced control catalogs and union their control ids."""
     out: set[str] = set()
     for p in catalog_paths:
         cat_data, cat_io_errors = _load_input(p, source_kind="path")
@@ -454,6 +480,7 @@ def _catalog_ids_from_paths(catalog_paths: list[str]) -> set[str]:
 
 
 def _catalog_ids_from_data(cat_data: dict[str, Any]) -> set[str]:
+    """Extract control ids from a parsed control catalog document."""
     catalog = cat_data.get("catalog")
     controls_any = catalog.get("controls") if isinstance(catalog, dict) else None
     if not isinstance(controls_any, list):
@@ -462,6 +489,7 @@ def _catalog_ids_from_data(cat_data: dict[str, Any]) -> set[str]:
 
 
 def _assessment_ids_from_paths(assessment_paths: list[str]) -> set[str]:
+    """Load referenced assessments and union their assessed control ids."""
     out: set[str] = set()
     for p in assessment_paths:
         assess_data, assess_io_errors = _load_input(p, source_kind="path")
@@ -472,6 +500,7 @@ def _assessment_ids_from_paths(assessment_paths: list[str]) -> set[str]:
 
 
 def _assessment_ids_from_data(assess_data: dict[str, Any]) -> set[str]:
+    """Extract assessed control ids from a parsed assessment document."""
     assessment = assess_data.get("assessment")
     assessments_any = assessment.get("assessments") if isinstance(assessment, dict) else None
     if not isinstance(assessments_any, list):
@@ -480,6 +509,7 @@ def _assessment_ids_from_data(assess_data: dict[str, Any]) -> set[str]:
 
 
 def _scenario_ids_paths(scenarios: list[Any]) -> tuple[list[str], list[str]]:
+    """Extract scenario ids and scenario path strings from portfolio.scenarios."""
     scenario_ids: list[str] = []
     scenario_paths: list[str] = []
     for sc in scenarios:
@@ -495,6 +525,7 @@ def _scenario_ids_paths(scenarios: list[Any]) -> tuple[list[str], list[str]]:
 
 
 def _scenario_uniqueness_checks(scenario_ids: list[str], scenario_paths: list[str]) -> list[ValidationMessage]:
+    """Ensure scenario ids and paths are unique within a portfolio."""
     messages: list[ValidationMessage] = []
     if len(set(scenario_ids)) != len(scenario_ids):
         messages.append(
@@ -522,6 +553,7 @@ def _scenario_path_existence_checks(
     scenarios: list[Any],
     base_dir: str | None,
 ) -> list[ValidationMessage]:
+    """Check that all referenced scenario paths exist on disk."""
     messages: list[ValidationMessage] = []
     for idx, sc in enumerate(scenarios):
         if not isinstance(sc, dict):
@@ -543,6 +575,10 @@ def _scenario_path_existence_checks(
 
 
 def _weight_semantic_checks(method: Any, scenarios: list[Any]) -> list[ValidationMessage]:
+    """Validate portfolio scenario weights given a semantics method.
+
+    For mixture/choose_one, requires weights and checks they sum to ~1.0.
+    """
     messages: list[ValidationMessage] = []
     if method not in ("mixture", "choose_one"):
         return messages
@@ -587,6 +623,7 @@ def _weight_semantic_checks(method: Any, scenarios: list[Any]) -> list[Validatio
 
 
 def _relationship_reference_checks(relationships: Any, scenario_ids: list[str]) -> list[ValidationMessage]:
+    """Validate portfolio.relationships references only known scenario ids."""
     if not isinstance(relationships, list) or not scenario_ids:
         return []
     scenario_id_set = set(scenario_ids)
@@ -605,6 +642,7 @@ def _relationship_check_correlation(
     idx: int,
     scenario_id_set: set[str],
 ) -> list[ValidationMessage]:
+    """Validate a correlation relationship's `between` ids exist in the portfolio."""
     if rel.get("type") != "correlation":
         return []
     between = rel.get("between")
@@ -630,6 +668,7 @@ def _relationship_check_conditional(
     idx: int,
     scenario_id_set: set[str],
 ) -> list[ValidationMessage]:
+    """Validate a conditional relationship's `given`/`then` ids exist in the portfolio."""
     if rel.get("type") != "conditional":
         return []
     messages: list[ValidationMessage] = []
@@ -657,6 +696,11 @@ def _relevance_checks_for_scenario(
     scenario_id: Any,
     idx: int,
 ) -> list[ValidationMessage]:
+    """Validate that a referenced scenario is relevant to the portfolio (best-effort).
+
+    Uses overlaps between portfolio meta fields (industries, company_sizes, frameworks, countries)
+    and the loaded scenario's meta.
+    """
     s_meta = scenario_doc.meta
     scenario_industries = _norm_list(s_meta.industries)
     scenario_company_sizes = _norm_list(s_meta.company_sizes)
@@ -699,6 +743,7 @@ def _relevance_overlap_errors(
     scenario_id: Any,
     idx: int,
 ) -> list[ValidationMessage]:
+    """Return errors when portfolio/scenario relevance sets are disjoint."""
     def _mk(label: str, pset: set[str], sset: set[str]) -> ValidationMessage:
         return ValidationMessage(
             level="error",
@@ -729,6 +774,7 @@ def _relevance_control_namespace_warnings(
     scenario_id: Any,
     idx: int,
 ) -> list[ValidationMessage]:
+    """Warn if scenario control id namespaces are not declared in scenario frameworks."""
     if not scenario_frameworks:
         return []
     if not (scenario_doc.scenario.controls or []):
@@ -754,6 +800,11 @@ def _relevance_control_namespace_warnings(
 
 
 def _load_scenario_doc(resolved_path: str) -> tuple[Any | None, str | None]:
+    """Load a scenario YAML file and validate it as a CRScenarioSchema.
+
+    Returns:
+        (scenario_doc, error_message). If loading/validation fails, scenario_doc is None.
+    """
     try:
         import yaml
 
@@ -769,6 +820,7 @@ def _load_scenario_doc(resolved_path: str) -> tuple[Any | None, str | None]:
 
 
 def _asset_cardinalities_by_name(portfolio: dict[str, Any]) -> dict[str, int]:
+    """Build a mapping from asset name to cardinality (exposure units)."""
     assets = portfolio.get("assets")
     if not isinstance(assets, list):
         return {}
@@ -787,6 +839,7 @@ def _asset_cardinalities_by_name(portfolio: dict[str, Any]) -> dict[str, int]:
 
 
 def _binding_applies_to_assets(sc: dict[str, Any]) -> tuple[bool, Any]:
+    """Return (is_present, value) for scenario binding.applies_to_assets."""
     binding = sc.get("binding")
     if not isinstance(binding, dict):
         return False, None
@@ -796,6 +849,10 @@ def _binding_applies_to_assets(sc: dict[str, Any]) -> tuple[bool, Any]:
 
 
 def _bound_assets_from_binding(*, applies_present: bool, applies_value: Any, asset_cardinalities: dict[str, int]) -> list[str]:
+    """Compute which assets are bound by a scenario entry.
+
+    If applies_to_assets is missing/null, this defaults to all assets.
+    """
     if not asset_cardinalities:
         return []
     if not applies_present or applies_value is None:
@@ -806,6 +863,7 @@ def _bound_assets_from_binding(*, applies_present: bool, applies_value: Any, ass
 
 
 def _total_exposure(bound_assets: list[str], asset_cardinalities: dict[str, int]) -> int:
+    """Compute total exposure $E$ as the sum of cardinalities of bound assets."""
     return int(sum(int(asset_cardinalities.get(name, 0) or 0) for name in bound_assets))
 
 
@@ -874,6 +932,7 @@ def _portfolio_control_namespace_alignment(
     portfolio_control_ids: set[str],
     portfolio_frameworks: set[str],
 ) -> list[ValidationMessage]:
+    """Validate portfolio control id namespaces align with meta.regulatory_frameworks."""
     messages: list[ValidationMessage] = []
     if not portfolio_frameworks or not portfolio_control_ids:
         return messages
@@ -901,6 +960,7 @@ def _scenario_control_mapping_checks(
     portfolio_control_ids: set[str],
     scenario_idx: int,
 ) -> list[ValidationMessage]:
+    """Cross-check scenario control references against the portfolio control inventory."""
     messages: list[ValidationMessage] = []
     scenario_controls_any = scenario_doc.scenario.controls or []
     scenario_controls = _control_ids_from_controls(scenario_controls_any)
@@ -951,6 +1011,7 @@ def _cross_document_checks(
     assessment_ids: set[str],
     catalog_ids: set[str],
 ) -> list[ValidationMessage]:
+    """Run cross-document checks that require loading referenced scenario files."""
     portfolio_control_ids, using_assessment_controls = _effective_portfolio_control_ids(
         portfolio=portfolio,
         assessment_ids=assessment_ids,
@@ -1000,6 +1061,11 @@ def _effective_portfolio_control_ids(
     portfolio: dict[str, Any],
     assessment_ids: set[str],
 ) -> tuple[set[str], bool]:
+    """Determine the effective set of portfolio control ids.
+
+    Prefers explicit portfolio.controls; falls back to assessment ids if present.
+    Returns a tuple (control_ids, using_assessment_controls).
+    """
     portfolio_controls = portfolio.get("controls")
     ids: set[str] = set()
     if isinstance(portfolio_controls, list):
@@ -1017,6 +1083,7 @@ def _validate_controls_exist_in_catalog(
     catalog_ids: set[str],
     portfolio_control_ids: set[str],
 ) -> list[ValidationMessage]:
+    """Validate that portfolio control ids are present in referenced control catalogs."""
     if not catalog_ids or not portfolio_control_ids:
         return []
     missing = [cid for cid in sorted(portfolio_control_ids) if cid not in catalog_ids]
@@ -1045,6 +1112,7 @@ def _scenario_cross_checks(
     portfolio_control_ids: set[str],
     asset_cardinalities: dict[str, int],
 ) -> list[ValidationMessage]:
+    """Run per-scenario cross-document checks for portfolio.scenarios."""
     messages: list[ValidationMessage] = []
     for idx, sc in enumerate(scenarios):
         if not isinstance(sc, dict):
@@ -1084,6 +1152,12 @@ def _scenario_cross_checks_one(
     portfolio_control_ids: set[str],
     asset_cardinalities: dict[str, int],
 ) -> tuple[list[ValidationMessage], bool]:
+    """Run cross-document checks for a single portfolio.scenarios entry.
+
+    Returns:
+        (messages, stop). stop is true when downstream checks should stop early
+        (e.g. missing portfolio control inventory required for multiple scenarios).
+    """
     spath = sc.get("path")
     if not isinstance(spath, str) or not spath:
         return [], False
@@ -1157,6 +1231,11 @@ def _scenario_cross_checks_one(
 
 
 def _portfolio_semantic_checks(data: dict[str, Any], *, base_dir: str | None = None) -> list[ValidationMessage]:
+    """Run semantic validation checks for a portfolio document.
+
+    These checks include uniqueness, reference integrity, weights, and optional
+    cross-document checks controlled by portfolio.semantics.constraints.
+    """
     messages: list[ValidationMessage] = []
 
     portfolio = data.get("portfolio")

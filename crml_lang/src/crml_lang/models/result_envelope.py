@@ -112,4 +112,5 @@ class SimulationResultEnvelope(BaseModel):
 
 
 def now_utc() -> datetime:
+    """Return the current UTC timestamp (timezone-aware)."""
     return datetime.now(timezone.utc)

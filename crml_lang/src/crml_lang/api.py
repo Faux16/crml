@@ -107,14 +107,17 @@ class CRPortfolioBundle(_CRPortfolioBundle):
         return dump_yaml_to_str(data, sort_keys=sort_keys)
 
 def load_from_yaml(path: str) -> CRScenario:
+    """Load a CRML scenario from a YAML file path."""
     return CRScenario.load_from_yaml(path)
 
 
 def load_from_yaml_str(yaml_text: str) -> CRScenario:
+    """Load a CRML scenario from a YAML string."""
     return CRScenario.load_from_yaml_str(yaml_text)
 
 
 def dump_to_yaml(model: CRScenario | Mapping[str, Any], path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
+    """Serialize a scenario model (or mapping) to a YAML file."""
     if isinstance(model, CRScenario):
         model.dump_to_yaml(path, sort_keys=sort_keys, exclude_none=exclude_none)
         return
@@ -123,6 +126,7 @@ def dump_to_yaml(model: CRScenario | Mapping[str, Any], path: str, *, sort_keys:
 
 
 def dump_to_yaml_str(model: CRScenario | Mapping[str, Any], *, sort_keys: bool = False, exclude_none: bool = True) -> str:
+    """Serialize a scenario model (or mapping) to a YAML string."""
     if isinstance(model, CRScenario):
         return model.dump_to_yaml_str(sort_keys=sort_keys, exclude_none=exclude_none)
 

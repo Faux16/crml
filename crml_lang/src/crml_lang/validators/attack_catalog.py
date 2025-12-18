@@ -16,6 +16,7 @@ from .common import (
 
 
 def _load_schema_or_error() -> tuple[dict[str, Any] | None, list[ValidationMessage]]:
+    """Load the attack catalog schema, returning a structured error on failure."""
     try:
         return _load_attack_catalog_schema(), []
     except FileNotFoundError:
@@ -33,6 +34,7 @@ def _load_schema_or_error() -> tuple[dict[str, Any] | None, list[ValidationMessa
 
 
 def _schema_validation_errors(schema: dict[str, Any], data: dict[str, Any]) -> list[ValidationMessage]:
+    """Validate data against the provided JSON schema and return errors."""
     validator = Draft202012Validator(schema)
     errors: list[ValidationMessage] = []
     for err in validator.iter_errors(data):
@@ -49,6 +51,7 @@ def _schema_validation_errors(schema: dict[str, Any], data: dict[str, Any]) -> l
 
 
 def _semantic_attack_id_errors(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Validate attack ids for presence/type and uniqueness."""
     catalog = data.get("catalog")
     attacks = catalog.get("attacks") if isinstance(catalog, dict) else None
     if not isinstance(attacks, list):
@@ -86,6 +89,7 @@ def _semantic_attack_id_errors(data: dict[str, Any]) -> list[ValidationMessage]:
 
 
 def _pydantic_strict_errors(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Validate using the Pydantic model (strict mode)."""
     try:
         from ..models.attack_catalog_model import CRAttackCatalogSchema
 

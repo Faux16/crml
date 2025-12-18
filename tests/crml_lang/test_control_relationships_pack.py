@@ -10,22 +10,22 @@ relationships:
   id: "scf-overlap-demo"
   relationships:
     - source: "scf:AC-01"
-      target: "org:iam-policies"
-      relationship_type: "overlaps_with"
-      overlap:
-        weight: 0.7
-        dimensions:
-          intent: 0.8
-          coverage: 0.6
-      groupings:
-        - scheme: "nist_csf_function"
-          id: "PR"
-          label: "Protect"
-      question: "Do we enforce IAM policies across all identities?"
-      description: "Organization IAM policies partially cover the source control objective."
-      references:
-        - type: "url"
-          url: "https://example.com/mapping-notes"
+      targets:
+        - target: "org:iam-policies"
+          relationship_type: "overlaps_with"
+          overlap:
+            weight: 0.7
+            dimensions:
+              intent: 0.8
+              coverage: 0.6
+          groupings:
+            - scheme: "nist_csf_function"
+              id: "PR"
+              label: "Protect"
+          description: "Organization IAM policies partially cover the source control objective."
+          references:
+            - type: "url"
+              url: "https://example.com/mapping-notes"
 """
 
     report = validate_control_relationships(yaml_text, source_kind="yaml")
@@ -40,15 +40,15 @@ meta:
 relationships:
   relationships:
     - source: "scf:AC-01"
-      target: "org:iam-policies"
-      relationship_type: "overlaps_with"
-      overlap:
-        weight: 0.7
-    - source: "scf:AC-01"
-      target: "org:iam-policies"
-      relationship_type: "overlaps_with"
-      overlap:
-        weight: 0.7
+      targets:
+        - target: "org:iam-policies"
+          relationship_type: "overlaps_with"
+          overlap:
+            weight: 0.7
+        - target: "org:iam-policies"
+          relationship_type: "overlaps_with"
+          overlap:
+            weight: 0.7
 """
 
     report = validate_control_relationships(yaml_text, source_kind="yaml")
@@ -64,9 +64,10 @@ meta:
 relationships:
   relationships:
     - source: "scf:AC-01"
-      target: "scf:AC-01"
-      overlap:
-        weight: 1.0
+      targets:
+        - target: "scf:AC-01"
+          overlap:
+            weight: 1.0
 """
 
     report = validate_control_relationships(yaml_text, source_kind="yaml")
@@ -82,10 +83,11 @@ meta:
 relationships:
   relationships:
     - source: "scf:PR-01"
-      target: "org:incident-response"
-      relationship_type: "backstops"
-      overlap:
-        weight: 0.4
+      targets:
+        - target: "org:incident-response"
+          relationship_type: "backstops"
+          overlap:
+            weight: 0.4
 """
 
     report = validate_control_relationships(yaml_text, source_kind="yaml")

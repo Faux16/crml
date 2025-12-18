@@ -9,13 +9,13 @@ This page documents the CRML **Control Relationships** document shape and how to
 
 ## What a control relationships pack is
 
-A control relationships pack is a portable set of **directed control-to-control mapping edges** with quantitative overlap metadata.
+A control relationships pack is a portable set of **grouped control-to-control mappings** (1 to n) with quantitative overlap metadata.
 
 It is intended to support workflows like:
 
 - a scenario references control id `A` (threat-centric),
 - a portfolio implements control id `B` (implementation-centric),
-- the pack provides an edge describing how `B` relates to `A` (e.g. overlap or equivalence), so engines/tools can reason about mitigation.
+- the pack provides a mapping describing how each implemented `B` relates to `A` (e.g. overlap or equivalence), so engines/tools can reason about mitigation.
 
 ---
 
@@ -31,11 +31,17 @@ relationships:
 
 ---
 
-## Relationship edge
+## Relationship mapping (grouped 1→N)
 
-Each edge has:
+Each mapping entry groups all targets for a single source:
 
 - `source` (required): canonical control id (often scenario/threat-centric)
+- `targets` (required): non-empty list of target entries
+
+### Target entry
+
+Each target entry has:
+
 - `target` (required): canonical control id (often portfolio/implementation-centric)
 - `relationship_type` (optional): one of
   - `overlaps_with`, `mitigates`, `supports`, `equivalent_to`, `parent_of`, `child_of`, `backstops`
@@ -70,14 +76,15 @@ relationships:
   id: "org-mapping"
   relationships:
     - source: "cisv8:4.2"
-      target: "org:edr"
-      relationship_type: overlaps_with
-      overlap:
-        weight: 0.75
-      confidence: 0.8
-      references:
-        - type: url
-          url: https://example.com/mapping-notes
+      targets:
+        - target: "org:edr"
+          relationship_type: overlaps_with
+          overlap:
+            weight: 0.75
+          confidence: 0.8
+          references:
+            - type: url
+              url: https://example.com/mapping-notes
 ```
 
 ---

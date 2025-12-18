@@ -70,31 +70,29 @@ class Overlap(BaseModel):
     )
 
 
-class ControlRelationship(BaseModel):
-    """A directed relationship edge between two canonical control ids.
+RelationshipType = Literal[
+    "overlaps_with",
+    "mitigates",
+    "supports",
+    "equivalent_to",
+    "parent_of",
+    "child_of",
+    "backstops",
+]
 
-    Intended use:
-    - A scenario references a (source) control A.
-    - A portfolio implements a (target) control B.
-    - This edge expresses how B relates to A (e.g. overlaps/equivalent_to) with quantitative overlap metadata.
+
+class RelationshipTarget(BaseModel):
+    """Target-specific relationship metadata for a given relationship source.
+
+    This keeps per-target quantitative metadata (e.g., overlap weights) while allowing
+    relationship packs to be authored in a grouped 1:N form.
     """
 
-    source: ControlId = Field(
-        ..., description="Source control id (often scenario/threat-centric)."
-    )
     target: ControlId = Field(
         ..., description="Target control id (often portfolio/implementation-centric)."
     )
 
-    relationship_type: Literal[
-            "overlaps_with",
-            "mitigates",
-            "supports",
-            "equivalent_to",
-            "parent_of",
-            "child_of",
-            "backstops"
-        ] = Field(
+    relationship_type: Optional[RelationshipType] = Field(
         None,
         description=(
             "Optional relationship type. Values: 'overlaps_with', 'mitigates', 'supports', 'equivalent_to', "
@@ -106,7 +104,7 @@ class ControlRelationship(BaseModel):
         ..., description="Required quantitative overlap metadata for downstream math."
     )
 
-    confidence: float = Field(
+    confidence: Optional[float] = Field(
         None,
         ge=0.0,
         le=1.0,
@@ -137,6 +135,23 @@ class ControlRelationship(BaseModel):
     )
 
 
+class ControlRelationship(BaseModel):
+    """Grouped relationship mapping for a single source control id.
+
+    Intended use:
+    - A scenario references a (source) control A.
+    - A portfolio implements one or more (target) controls B1..Bn.
+    - This mapping expresses how each target relates to the source, including quantitative overlap metadata.
+    """
+
+    source: ControlId = Field(
+        ..., description="Source control id (often scenario/threat-centric)."
+    )
+    targets: List[RelationshipTarget] = Field(
+        ..., min_length=1, description="List of target relationship mappings for this source control id."
+    )
+
+
 class ControlRelationshipsPack(BaseModel):
     """Relationship pack payload.
 
@@ -148,7 +163,7 @@ class ControlRelationshipsPack(BaseModel):
         description="Optional identifier for this relationships pack (organization/community-owned).",
     )
     relationships: List[ControlRelationship] = Field(
-        ..., description="List of directed control relationship edges."
+        ..., description="List of grouped source-to-target relationship mappings."
     )
 
 

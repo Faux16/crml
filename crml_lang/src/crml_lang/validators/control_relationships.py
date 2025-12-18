@@ -31,62 +31,152 @@ def _schema_validation_errors(*, data: dict[str, Any]) -> list[ValidationMessage
     return errors
 
 
+def _semantic_error(*, path: str, message: str) -> ValidationMessage:
+    return ValidationMessage(
+        level="error",
+        source="semantic",
+        path=path,
+        message=message,
+    )
+
+
+def _extract_relationship_groups(data: dict[str, Any]) -> list[Any] | None:
+    payload = data.get("relationships")
+    rels = payload.get("relationships") if isinstance(payload, dict) else None
+    return rels if isinstance(rels, list) else None
+
+
+def _validate_relationship_target_entry(
+    *,
+    rel_index: int,
+    target_index: int,
+    source_id: str,
+    target_entry: Any,
+    errors: list[ValidationMessage],
+    keys: list[tuple[str, str, str]],
+) -> None:
+    if not isinstance(target_entry, dict):
+        errors.append(
+            _semantic_error(
+                path=f"relationships -> relationships -> {rel_index} -> targets -> {target_index}",
+                message="Each target entry must be an object with at least 'target' and 'overlap'.",
+            )
+        )
+        return
+
+    target_id = target_entry.get("target")
+    rtype = target_entry.get("relationship_type")
+    rtype_norm = rtype if isinstance(rtype, str) else ""
+
+    if not isinstance(target_id, str):
+        errors.append(
+            _semantic_error(
+                path=f"relationships -> relationships -> {rel_index} -> targets -> {target_index} -> target",
+                message="Relationship target entry 'target' must be a string control id.",
+            )
+        )
+        return
+
+    keys.append((source_id, target_id, rtype_norm))
+
+    if source_id == target_id:
+        errors.append(
+            _semantic_error(
+                path=f"relationships -> relationships -> {rel_index} -> targets -> {target_index}",
+                message="Relationship source and target must not be the same control id.",
+            )
+        )
+
+
+def _validate_relationship_group_entry(
+    *,
+    rel_index: int,
+    entry: Any,
+    errors: list[ValidationMessage],
+    sources: list[str],
+    keys: list[tuple[str, str, str]],
+) -> None:
+    if not isinstance(entry, dict):
+        errors.append(
+            _semantic_error(
+                path=f"relationships -> relationships -> {rel_index}",
+                message="Each relationship entry must be an object with 'source' and 'targets'.",
+            )
+        )
+        return
+
+    source_id = entry.get("source")
+    targets = entry.get("targets")
+
+    if not isinstance(source_id, str):
+        errors.append(
+            _semantic_error(
+                path=f"relationships -> relationships -> {rel_index} -> source",
+                message="Relationship 'source' must be a string control id.",
+            )
+        )
+        return
+
+    sources.append(source_id)
+
+    if not isinstance(targets, list) or not targets:
+        errors.append(
+            _semantic_error(
+                path=f"relationships -> relationships -> {rel_index} -> targets",
+                message="Relationship 'targets' must be a non-empty list.",
+            )
+        )
+        return
+
+    for j, t in enumerate(targets):
+        _validate_relationship_target_entry(
+            rel_index=rel_index,
+            target_index=j,
+            source_id=source_id,
+            target_entry=t,
+            errors=errors,
+            keys=keys,
+        )
+
+
 def _semantic_validation_errors(*, data: dict[str, Any]) -> list[ValidationMessage]:
     errors: list[ValidationMessage] = []
 
-    payload = data.get("relationships")
-    rels = payload.get("relationships") if isinstance(payload, dict) else None
-    if not isinstance(rels, list):
+    rels = _extract_relationship_groups(data)
+    if rels is None:
         return errors
 
+    sources: list[str] = []
     keys: list[tuple[str, str, str]] = []
+
     for idx, r in enumerate(rels):
-        if not isinstance(r, dict):
-            continue
+        _validate_relationship_group_entry(
+            rel_index=idx,
+            entry=r,
+            errors=errors,
+            sources=sources,
+            keys=keys,
+        )
 
-        source_id = r.get("source")
-        target_id = r.get("target")
-        rtype = r.get("relationship_type")
-        rtype_norm = rtype if isinstance(rtype, str) else ""
-
-        if not isinstance(source_id, str):
-            errors.append(
-                ValidationMessage(
-                    level="error",
-                    source="semantic",
-                    path=f"relationships -> relationships -> {idx} -> source",
-                    message="Relationship 'source' must be a string control id.",
-                )
+    # Encourage canonical 1:N representation: a source should appear only once.
+    if len(sources) != len(set(sources)):
+        errors.append(
+            ValidationMessage(
+                level="error",
+                source="semantic",
+                path="relationships -> relationships",
+                message="Control relationships document contains duplicate sources; group all targets under one source.",
             )
-        if not isinstance(target_id, str):
-            errors.append(
-                ValidationMessage(
-                    level="error",
-                    source="semantic",
-                    path=f"relationships -> relationships -> {idx} -> target",
-                    message="Relationship 'target' must be a string control id.",
-                )
-            )
+        )
 
-        if isinstance(source_id, str) and isinstance(target_id, str):
-            keys.append((source_id, target_id, rtype_norm))
-            if source_id == target_id:
-                errors.append(
-                    ValidationMessage(
-                        level="error",
-                        source="semantic",
-                        path=f"relationships -> relationships -> {idx}",
-                        message="Relationship source and target must not be the same control id.",
-                    )
-                )
-
+    # No duplicate (source,target,relationship_type) mappings.
     if len(keys) != len(set(keys)):
         errors.append(
             ValidationMessage(
                 level="error",
                 source="semantic",
                 path="relationships -> relationships",
-                message="Control relationships document contains duplicate relationship edges.",
+                message="Control relationships document contains duplicate (source,target,relationship_type) mappings.",
             )
         )
 

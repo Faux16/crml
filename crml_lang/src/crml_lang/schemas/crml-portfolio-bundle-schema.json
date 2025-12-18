@@ -605,17 +605,9 @@
       "title": "ControlCataloge",
       "type": "object"
     },
-    "ControlRelationship": {
-      "description": "A directed relationship edge between two canonical control ids.\n\nIntended use:\n- A scenario references a (source) control A.\n- A portfolio implements a (target) control B.\n- This edge expresses how B relates to A (e.g. overlaps/equivalent_to) with quantitative overlap metadata.",
+    "ControlRelationshipTarget": {
+      "description": "Target-specific relationship metadata for a given relationship source.",
       "properties": {
-        "source": {
-          "description": "Source control id (often scenario/threat-centric).",
-          "maxLength": 256,
-          "minLength": 1,
-          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
-          "title": "Source",
-          "type": "string"
-        },
         "target": {
           "description": "Target control id (often portfolio/implementation-centric).",
           "maxLength": 256,
@@ -626,7 +618,7 @@
         },
         "relationship_type": {
           "default": null,
-          "description": "Optional relationship type. Values: 'overlaps_with', 'mitigates', 'supports', 'equivalent_to', 'parent_of', 'child_of'.",
+          "description": "Optional relationship type. Values: 'overlaps_with', 'mitigates', 'supports', 'equivalent_to', 'parent_of', 'child_of', 'backstops'.",
           "enum": [
             "overlaps_with",
             "mitigates",
@@ -698,9 +690,36 @@
         }
       },
       "required": [
-        "source",
         "target",
         "overlap"
+      ],
+      "title": "ControlRelationshipTarget",
+      "type": "object"
+    },
+    "ControlRelationship": {
+      "description": "Grouped relationship mapping for a single source control id.\n\nIntended use:\n- A scenario references a (source) control A.\n- A portfolio implements one or more (target) controls B1..Bn.\n- This mapping expresses how each target relates to the source, including quantitative overlap metadata.",
+      "properties": {
+        "source": {
+          "description": "Source control id (often scenario/threat-centric).",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "title": "Source",
+          "type": "string"
+        },
+        "targets": {
+          "description": "List of target relationship mappings for this source control id.",
+          "items": {
+            "$ref": "#/$defs/ControlRelationshipTarget"
+          },
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "targets"
       ],
       "title": "ControlRelationship",
       "type": "object"
@@ -722,7 +741,7 @@
           "title": "Id"
         },
         "relationships": {
-          "description": "List of directed control relationship edges.",
+          "description": "List of grouped source-to-target relationship mappings.",
           "items": {
             "$ref": "#/$defs/ControlRelationship"
           },

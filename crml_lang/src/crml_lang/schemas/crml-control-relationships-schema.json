@@ -28,7 +28,8 @@
             "supports",
             "equivalent_to",
             "parent_of",
-            "child_of"
+            "child_of",
+            "backstops"
           ],
           "title": "Relationship Type",
           "type": "string"

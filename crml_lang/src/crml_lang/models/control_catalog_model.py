@@ -22,6 +22,12 @@ class ControlCatalogEntry(BaseModel):
     title: Optional[str] = Field(None, description="Optional short human-readable title for the control.")
     url: Optional[str] = Field(None, description="Optional URL for additional reference material.")
     tags: Optional[List[str]] = Field(None, description="Optional list of tags for grouping/filtering.")
+    defense_in_depth_layers: Optional[List[Literal["prevent", "detect", "respond", "recover"]]] = Field(
+        None,
+        description=(
+            "Optional defense-in-depth layer tags. Allowed values: prevent, detect, respond, recover."
+        ),
+    )
 
 
 class ControlCataloge(BaseModel):

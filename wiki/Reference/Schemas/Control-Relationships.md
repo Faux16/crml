@@ -38,7 +38,7 @@ Each edge has:
 - `source` (required): canonical control id (often scenario/threat-centric)
 - `target` (required): canonical control id (often portfolio/implementation-centric)
 - `relationship_type` (optional): one of
-  - `overlaps_with`, `mitigates`, `supports`, `equivalent_to`, `parent_of`, `child_of`
+  - `overlaps_with`, `mitigates`, `supports`, `equivalent_to`, `parent_of`, `child_of`, `backstops`
 - `overlap` (required): quantitative overlap metadata
 - `confidence` (optional, 0..1)
 - `groupings` (optional): framework-agnostic taxonomy tags

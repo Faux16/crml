@@ -64,6 +64,28 @@
           "default": null,
           "description": "Optional list of tags for grouping/filtering.",
           "title": "Tags"
+        },
+        "defense_in_depth_layers": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "prevent",
+                  "detect",
+                  "respond",
+                  "recover"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional defense-in-depth layer tags. Allowed values: prevent, detect, respond, recover.",
+          "title": "Defense In Depth Layers"
         }
       },
       "required": [

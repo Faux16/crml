@@ -72,3 +72,21 @@ relationships:
     report = validate_control_relationships(yaml_text, source_kind="yaml")
     assert report.ok is False
     assert any("must not be the same" in e.message.lower() for e in report.errors)
+
+
+def test_validate_control_relationships_allows_backstops_relationship_type() -> None:
+    yaml_text = """
+crml_control_relationships: "1.0"
+meta:
+  name: "backstops"
+relationships:
+  relationships:
+    - source: "scf:PR-01"
+      target: "org:incident-response"
+      relationship_type: "backstops"
+      overlap:
+        weight: 0.4
+"""
+
+    report = validate_control_relationships(yaml_text, source_kind="yaml")
+    assert report.ok, report.render_text(source_label="inline")

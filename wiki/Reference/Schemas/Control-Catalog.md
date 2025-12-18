@@ -70,6 +70,20 @@ Each entry is intentionally minimal:
 - `url` (optional): pointer to reference material
 - `tags` (optional): free-form tags
 - `ref` (optional): structured locator metadata for tools
+- `defense_in_depth_layers` (optional): list of layer tags with allowed values: `prevent`, `detect`, `respond`, `recover`
+
+### `defense_in_depth_layers` (defense-in-depth)
+
+Optional metadata to help tools and humans represent *defense-in-depth* in a portfolio/catalog.
+
+This field allows multiple tags per control, but only from a fixed set of values.
+
+Example:
+
+```yaml
+- id: "org:siem"
+  defense_in_depth_layers: ["detect", "respond"]
+```
 
 ### `ref` (structured locator)
 

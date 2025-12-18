@@ -38,3 +38,40 @@ catalog:
     report = validate_control_catalog(yaml_text, source_kind="yaml")
     assert report.ok is False
     assert any("duplicate" in e.message.lower() for e in report.errors)
+
+
+def test_validate_control_catalog_allows_defense_in_depth_layers() -> None:
+    yaml_text = """
+crml_control_catalog: "1.0"
+meta:
+  name: "layered-catalog"
+catalog:
+  framework: "Example"
+  controls:
+    - id: "org:backup"
+      defense_in_depth_layers: ["recover"]
+    - id: "org:siem"
+      defense_in_depth_layers:
+        - "detect"
+        - "respond"
+"""
+
+    report = validate_control_catalog(yaml_text, source_kind="yaml")
+    assert report.ok, report.render_text(source_label="inline")
+
+
+def test_validate_control_catalog_rejects_invalid_defense_in_depth_layers_value() -> None:
+    yaml_text = """
+crml_control_catalog: "1.0"
+meta:
+  name: "layered-catalog-invalid"
+catalog:
+  framework: "Example"
+  controls:
+    - id: "org:control"
+      defense_in_depth_layers: ["nonsense"]
+"""
+
+    report = validate_control_catalog(yaml_text, source_kind="yaml")
+    assert report.ok is False
+    assert any("defense" in e.path.lower() or "defense" in e.message.lower() for e in report.errors)

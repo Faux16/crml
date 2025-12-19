@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, unlink, mkdir } from "node:fs/promises";
-import { exec } from "node:child_process";
+import { existsSync } from "node:fs";
+import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import path from "node:path";
 import os from "node:os";
 import yaml from "js-yaml";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const FAILED_SUMMARY_RE = /failed CRML.*validation with \d+ error\(s\)/i;
 const NUMBERED_ERROR_RE = /^\s*\d+\./;
@@ -56,13 +57,55 @@ function parseYaml(yamlContent: string): Result<unknown> {
     }
 }
 
+function getLocaleFromMeta(meta: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+    return meta && isRecord(meta["locale"]) ? meta["locale"] : undefined;
+}
+
+function getDocumentVersionFromRoot(parsedObj: Record<string, unknown>): string | undefined {
+    const versionKeys = [
+        "crml_scenario",
+        "crml_portfolio",
+        "crml_assessment",
+        "crml_control_catalog",
+        "crml_attack_catalog",
+        "crml_control_relationships",
+        "crml_attack_control_relationships",
+    ] as const;
+
+    for (const key of versionKeys) {
+        const version = asString(parsedObj[key]);
+        if (version) return version;
+    }
+
+    return undefined;
+}
+
+function extractPortfolioBundleMeta(
+    parsedObj: Record<string, unknown>,
+    portfolioBundleVersion: string
+): {
+    meta: Record<string, unknown> | undefined;
+    locale: Record<string, unknown> | undefined;
+    documentVersion: string | undefined;
+} {
+    const bundle = isRecord(parsedObj["portfolio_bundle"]) ? parsedObj["portfolio_bundle"] : undefined;
+
+    const bundleMeta = bundle && isRecord(bundle["meta"]) ? bundle["meta"] : undefined;
+    const portfolio = bundle && isRecord(bundle["portfolio"]) ? bundle["portfolio"] : undefined;
+    const portfolioMeta = portfolio && isRecord(portfolio["meta"]) ? portfolio["meta"] : undefined;
+
+    const meta = bundleMeta ?? portfolioMeta;
+    const locale = getLocaleFromMeta(meta);
+
+    return { meta, locale, documentVersion: portfolioBundleVersion };
+}
+
 function extractMeta(parsedYaml: unknown): {
     meta: Record<string, unknown> | undefined;
     locale: Record<string, unknown> | undefined;
     documentVersion: string | undefined;
 } {
     const parsedObj = isRecord(parsedYaml) ? parsedYaml : undefined;
-
     if (!parsedObj) {
         return { meta: undefined, locale: undefined, documentVersion: undefined };
     }
@@ -72,29 +115,12 @@ function extractMeta(parsedYaml: unknown): {
     // - portfolio_bundle.portfolio.meta (embedded portfolio)
     const portfolioBundleVersion = asString(parsedObj["crml_portfolio_bundle"]);
     if (portfolioBundleVersion) {
-        const bundle = isRecord(parsedObj["portfolio_bundle"]) ? parsedObj["portfolio_bundle"] : undefined;
-
-        const bundleMeta = bundle && isRecord(bundle["meta"]) ? bundle["meta"] : undefined;
-        const portfolio = bundle && isRecord(bundle["portfolio"]) ? bundle["portfolio"] : undefined;
-        const portfolioMeta = portfolio && isRecord(portfolio["meta"]) ? portfolio["meta"] : undefined;
-
-        const meta = bundleMeta ?? portfolioMeta;
-        const locale = meta && isRecord(meta["locale"]) ? meta["locale"] : undefined;
-        return { meta, locale, documentVersion: portfolioBundleVersion };
+        return extractPortfolioBundleMeta(parsedObj, portfolioBundleVersion);
     }
 
     const meta = isRecord(parsedObj["meta"]) ? parsedObj["meta"] : undefined;
-    const locale = meta && isRecord(meta["locale"]) ? meta["locale"] : undefined;
-
-    const documentVersion =
-        asString(parsedObj["crml_scenario"]) ||
-        asString(parsedObj["crml_portfolio"]) ||
-        asString(parsedObj["crml_assessment"]) ||
-        asString(parsedObj["crml_control_catalog"]) ||
-        asString(parsedObj["crml_attack_catalog"]) ||
-        asString(parsedObj["crml_control_relationships"]) ||
-        asString(parsedObj["crml_attack_control_relationships"]) ||
-        undefined;
+    const locale = getLocaleFromMeta(meta);
+    const documentVersion = getDocumentVersionFromRoot(parsedObj);
 
     return { meta, locale, documentVersion };
 }
@@ -154,12 +180,49 @@ function parseErrorsFromOutput(output: string): string[] {
         .map((line) => line.replace("[ERROR]", "").trim());
 }
 
-async function execCrmlValidate(tmpFile: string): Promise<{ stdout: string; stderr: string; ok: boolean; message?: string }> {
+type ExecResult = { stdout: string; stderr: string; ok: boolean; message?: string };
+
+function findRepoRoot(startDir: string): string | undefined {
+    let current = startDir;
+    for (let i = 0; i < 6; i++) {
+        const engineCli = path.join(current, "crml_engine", "src", "crml_engine", "cli.py");
+        const langPkg = path.join(current, "crml_lang", "src", "crml_lang");
+        if (existsSync(engineCli) && existsSync(langPkg)) return current;
+
+        const parent = path.dirname(current);
+        if (parent === current) break;
+        current = parent;
+    }
+    return undefined;
+}
+
+function shouldFallbackToPython(message: string, combinedOutput: string): boolean {
+    const text = `${message}\n${combinedOutput}`.toLowerCase();
+
+    // Common "can't execute" / missing module symptoms on Windows.
+    return (
+        text.includes("enoent") ||
+        text.includes("is not recognized as an internal or external command") ||
+        text.includes("modulenotfounderror") ||
+        text.includes("no module named") ||
+        text.includes("importerror")
+    );
+}
+
+async function runExecFile(cmd: string, args: string[], env?: NodeJS.ProcessEnv): Promise<ExecResult> {
     try {
-        const { stdout, stderr } = await execAsync(`crml validate "${tmpFile}"`);
-        return { stdout, stderr, ok: true };
+        const { stdout, stderr } = await execFileAsync(cmd, args, {
+            env,
+            windowsHide: true,
+            maxBuffer: 10 * 1024 * 1024,
+        });
+        return { stdout: stdout ?? "", stderr: stderr ?? "", ok: true };
     } catch (execError: unknown) {
-        const err = execError as { stdout?: string; stderr?: string; message?: string };
+        const err = execError as {
+            stdout?: string;
+            stderr?: string;
+            message?: string;
+        };
         return {
             stdout: err.stdout || "",
             stderr: err.stderr || "",
@@ -167,6 +230,56 @@ async function execCrmlValidate(tmpFile: string): Promise<{ stdout: string; stde
             message: err.message,
         };
     }
+}
+
+async function execCrmlValidate(tmpFile: string): Promise<ExecResult> {
+    // First try the installed CLI (best for deployed servers).
+    const direct = await runExecFile("crml", ["validate", tmpFile], process.env);
+    if (direct.ok) return direct;
+
+    const combined = `${direct.stdout}\n${direct.stderr}`;
+    const message = direct.message || "";
+    if (!shouldFallbackToPython(message, combined)) {
+        return direct;
+    }
+
+    // Fallback: run the CLI module directly from the repo sources.
+    // This avoids brittle Windows entrypoints like crml.exe importing a missing module.
+    const repoRoot = findRepoRoot(process.cwd()) ?? path.resolve(process.cwd(), "..");
+    const pythonPathParts = [
+        path.join(repoRoot, "crml_lang", "src"),
+        path.join(repoRoot, "crml_engine", "src"),
+    ];
+
+    const delimiter = process.platform === "win32" ? ";" : ":";
+    const pythonpath = [process.env.PYTHONPATH, ...pythonPathParts].filter(Boolean).join(delimiter);
+    const env = { ...process.env, PYTHONPATH: pythonpath };
+
+    // Try common Python launchers.
+    const candidates: Array<{ cmd: string; argsPrefix: string[] }> =
+        process.platform === "win32"
+            ? [
+                  { cmd: "py", argsPrefix: ["-3"] },
+                  { cmd: "python", argsPrefix: [] },
+              ]
+            : [
+                  { cmd: "python3", argsPrefix: [] },
+                  { cmd: "python", argsPrefix: [] },
+              ];
+
+    let last: ExecResult | undefined;
+    for (const candidate of candidates) {
+        const attempt = await runExecFile(
+            candidate.cmd,
+            [...candidate.argsPrefix, "-m", "crml_engine.cli", "validate", tmpFile],
+            env
+        );
+        if (attempt.ok) return attempt;
+        last = attempt;
+    }
+
+    // If fallback fails too, return the original error (it typically has the best hint).
+    return last ?? direct;
 }
 
 export async function POST(request: NextRequest) {

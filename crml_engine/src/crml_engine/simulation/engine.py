@@ -268,7 +268,22 @@ def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: Opt
         std_dev=float(np.std(losses)),
     )
 
-    hist, bin_edges = np.histogram(losses, bins=50)
+    # Histogram binning:
+    # - Smaller steps (more bins) improve readability near $0.
+    # - But too many bins makes the chart noisy for a finite number of runs.
+    # Use a simple, stable heuristic: bins ~ sqrt(n_runs), clamped.
+    n_runs = int(losses.size)
+    bin_count = int(np.clip(int(np.sqrt(max(n_runs, 1))), 50, 200))
+
+    max_loss = float(np.max(losses)) if n_runs > 0 else 0.0
+    if max_loss <= 0:
+        # All-zero (or empty) distribution: keep a minimal, well-defined range.
+        bin_edges = np.asarray([0.0, 1.0], dtype=np.float64)
+        hist = np.asarray([n_runs], dtype=np.int64)
+    else:
+        # Force the range to start at 0 so the histogram consistently represents
+        # "nothing happens" mass (loss==0) and plots from $0 in the UI.
+        hist, bin_edges = np.histogram(losses, bins=bin_count, range=(0.0, max_loss))
     if raw_data_limit is None:
         raw = losses.tolist()
     else:

@@ -249,7 +249,9 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
     const chartData = distribution?.bins && distribution?.frequencies
         ? distribution.bins.slice(0, -1).map((binStart, idx) => {
             const binEnd = distribution.bins[idx + 1];
-            const x = (binStart + binEnd) / 2;
+            // Plot at bin start so the step histogram visibly begins at $0
+            // (midpoints make the first step start > 0 and hide zero-loss mass).
+            const x = binStart;
             return {
                 x,
                 frequency: distribution.frequencies[idx],

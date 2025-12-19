@@ -5,6 +5,13 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from ..yamlio import (
+    dump_yaml_to_path,
+    dump_yaml_to_str,
+    load_yaml_mapping_from_path,
+    load_yaml_mapping_from_str,
+)
+
 
 class CurrencyUnit(BaseModel):
     kind: Literal["currency"] = Field("currency", description="Unit kind discriminator.")
@@ -83,7 +90,7 @@ class ResultPayload(BaseModel):
 
 
 class SimulationResult(BaseModel):
-    """Simulation result payload for `SimulationResultEnvelope`."""
+    """Simulation result payload for `CRSimulationResult`."""
 
     success: bool = Field(False, description="True if the run completed successfully.")
     errors: List[str] = Field(default_factory=list, description="List of error messages (if any).")
@@ -97,8 +104,8 @@ class SimulationResult(BaseModel):
     results: ResultPayload = Field(default_factory=ResultPayload, description="The result payload (measures/artifacts).")
 
 
-class SimulationResultEnvelope(BaseModel):
-    """Engine-agnostic, visualization-agnostic simulation result envelope.
+class CRSimulationResult(BaseModel):
+    """Engine-agnostic, visualization-agnostic simulation result document.
 
     This model lives in `crml_lang` so engines and UIs can share a stable contract.
     """
@@ -109,6 +116,32 @@ class SimulationResultEnvelope(BaseModel):
     )
 
     result: SimulationResult = Field(..., description="The simulation result payload.")
+
+    @classmethod
+    def load_from_yaml(cls, path: str) -> "CRSimulationResult":
+        """Load a simulation result envelope from a YAML file path."""
+
+        data = load_yaml_mapping_from_path(path)
+        return cls.model_validate(data)
+
+    @classmethod
+    def load_from_yaml_str(cls, yaml_text: str) -> "CRSimulationResult":
+        """Load a simulation result envelope from a YAML string."""
+
+        data = load_yaml_mapping_from_str(yaml_text)
+        return cls.model_validate(data)
+
+    def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
+        """Serialize this envelope to a YAML file at `path`."""
+
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+
+    def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
+        """Serialize this envelope to a YAML string."""
+
+        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        return dump_yaml_to_str(data, sort_keys=sort_keys)
 
 
 def now_utc() -> datetime:

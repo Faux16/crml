@@ -58,7 +58,7 @@ export interface CrmlResultPayload {
     artifacts: CrmlArtifact[];
 }
 
-export interface SimulationResultEnvelope {
+export interface CRSimulationResult {
     schema_id: "crml.simulation.result";
     schema_version: string;
     success: boolean;
@@ -105,7 +105,7 @@ export interface SimulationMetadata {
     }>;
 }
 
-export type SimulationResult = SimulationResultEnvelope;
+export type SimulationResult = CRSimulationResult;
 
 interface SimulationResultsProps {
     readonly result: SimulationResult | null;

@@ -381,7 +381,7 @@
       "type": "object"
     },
     "SimulationResult": {
-      "description": "Simulation result payload for `SimulationResultEnvelope`.",
+      "description": "Simulation result payload for `CRSimulationResult`.",
       "properties": {
         "success": {
           "default": false,
@@ -474,7 +474,7 @@
       "type": "object"
     }
   },
-  "description": "Engine-agnostic, visualization-agnostic simulation result envelope.\n\nThis model lives in `crml_lang` so engines and UIs can share a stable contract.",
+  "description": "Engine-agnostic, visualization-agnostic simulation result document.\n\nThis model lives in `crml_lang` so engines and UIs can share a stable contract.",
   "properties": {
     "crml_simulation_result": {
       "const": "1.0",
@@ -491,6 +491,6 @@
   "required": [
     "result"
   ],
-  "title": "SimulationResultEnvelope",
+  "title": "CRSimulationResult",
   "type": "object"
 }

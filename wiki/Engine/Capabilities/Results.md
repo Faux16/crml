@@ -3,7 +3,7 @@
 The reference engine exposes two result representations:
 
 - **Engine-native**: `crml_engine.models.result_model.SimulationResult`
-- **Engine-agnostic envelope**: `crml_lang.models.result_envelope.SimulationResultEnvelope` (`crml_simulation_result: "1.0"`)
+- **Engine-agnostic result document**: `crml_lang.models.result_envelope.CRSimulationResult` (`crml_simulation_result: "1.0"`)
 
 ---
 
@@ -24,7 +24,7 @@ Model definition: `crml_engine/src/crml_engine/models/result_model.py`
 
 ---
 
-## Envelope result (`SimulationResultEnvelope`)
+## Result document (`CRSimulationResult`)
 
 The envelope lives in `crml_lang` so engines and UIs can share a stable contract.
 

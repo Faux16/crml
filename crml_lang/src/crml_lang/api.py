@@ -49,6 +49,7 @@ from .models.attack_control_relationships_model import (
 from .models.control_relationships_model import CRControlRelationshipsSchema as _CRControlRelationshipsSchema
 from .models.portfolio_model import CRPortfolioSchema as _CRPortfolioSchema
 from .models.portfolio_bundle import CRPortfolioBundle as _CRPortfolioBundle
+from .models.result_envelope import CRSimulationResult
 from .validators import ValidationMessage, ValidationReport, validate, validate_portfolio
 from .validators import validate_attack_catalog
 from .validators import validate_attack_control_relationships
@@ -277,6 +278,7 @@ __all__ = [
     "CRAssessment",
     "CRControlRelationships",
     "CRAttackControlRelationships",
+    "CRSimulationResult",
     "load_from_yaml",
     "load_from_yaml_str",
     "dump_to_yaml",

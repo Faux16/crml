@@ -85,7 +85,7 @@ flowchart TD
     DOC --> BUNDLE
     BUNDLE -->|CRPortfolioBundle| PIPE
     PIPE -->|PortfolioExecutionPlan| ENG
-    ENG --> RES[SimulationResultEnvelope]
+    ENG --> RES[CRSimulationResult]
     RES --> WEB
 ```
 
@@ -110,7 +110,7 @@ An additional (common) integration artifact is **attack-to-control mapping**:
 
 The language layer then provides a deterministic bundling step that inlines the referenced material into a self-contained `CRPortfolioBundle`, which can be handed to any risk engine without requiring filesystem access.
 
-Engines are expected to return results using the **language-owned result envelope** (`SimulationResultEnvelope`). This creates a stable interface for any visualization tool (web UI, BI dashboards, reporting pipelines) to consume outputs without being coupled to a specific engine implementation.
+Engines are expected to return results using the **language-owned result document** (`CRSimulationResult`). This creates a stable interface for any visualization tool (web UI, BI dashboards, reporting pipelines) to consume outputs without being coupled to a specific engine implementation.
 
 ```mermaid
 flowchart LR
@@ -157,7 +157,7 @@ flowchart LR
 
     subgraph E2["Engines + tools (outside language responsibility)"]
         ENG["Risk engines<br/>engine A, engine B"]
-        OUT["SimulationResultEnvelope<br/>standard contract"]
+        OUT["CRSimulationResult<br/>standard contract"]
         VIZ["Visualization tools<br/>dashboards and reports"]
     end
 

@@ -32,7 +32,7 @@ It intentionally does **not** run simulations.
 ### Outputs
 
 - `ValidationReport`: structured validation (errors + warnings) with optional text rendering
-- `SimulationResultEnvelope`: standardized, engine-agnostic output contract for risk engines and visualization tools
+- `CRSimulationResult`: standardized, engine-agnostic output contract for risk engines and visualization tools
 
 ## Bundle contract
 

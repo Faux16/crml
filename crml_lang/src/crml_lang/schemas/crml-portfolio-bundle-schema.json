@@ -296,6 +296,22 @@
           "default": null,
           "description": "Optional list of tags for grouping/filtering.",
           "title": "Tags"
+        },
+        "kill_chain_phases": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional STIX kill chain phases, expressed as strings. Recommended format is '<kill_chain_name>:<phase_name>' (e.g. 'mitre-attack:execution').",
+          "title": "Kill Chain Phases"
         }
       },
       "required": [

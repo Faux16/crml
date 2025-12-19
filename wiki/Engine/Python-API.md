@@ -48,7 +48,7 @@ assert res.success
 
 ## Results
 
-The runtime returns a `SimulationResult` (engine-native) and can also produce an engine-agnostic `SimulationResultEnvelope`.
+The runtime returns a `SimulationResult` (engine-native) and can also produce an engine-agnostic `CRSimulationResult`.
 
 See: [Engine capabilities: Results](Capabilities/Results.md)
 

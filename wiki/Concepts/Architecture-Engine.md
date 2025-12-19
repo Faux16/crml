@@ -100,7 +100,7 @@ Important:
 The engine supports two result layers:
 
 - `SimulationResult`: runtime-friendly result model used by CLI text output.
-- `SimulationResultEnvelope`: engine-agnostic contract designed for tools/UIs.
+- `CRSimulationResult`: engine-agnostic contract designed for tools/UIs.
 
 `run_simulation_envelope(...)` converts the runtime result into a stable envelope format.
 

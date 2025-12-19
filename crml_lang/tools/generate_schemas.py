@@ -11,7 +11,7 @@ from crml_lang.models.attack_control_relationships_model import CRAttackControlR
 from crml_lang.models.control_relationships_model import CRControlRelationshipsSchema
 from crml_lang.models.portfolio_model import CRPortfolioSchema
 from crml_lang.models.portfolio_bundle import CRPortfolioBundle
-from crml_lang.models.result_envelope import SimulationResultEnvelope
+from crml_lang.models.result_envelope import CRSimulationResult
 
 
 def main() -> None:
@@ -27,7 +27,7 @@ def main() -> None:
     attack_control_relationships_schema = CRAttackControlRelationshipsSchema.model_json_schema()
     control_relationships_schema = CRControlRelationshipsSchema.model_json_schema()
     portfolio_bundle_schema = CRPortfolioBundle.model_json_schema()
-    simulation_result_schema = SimulationResultEnvelope.model_json_schema()
+    simulation_result_schema = CRSimulationResult.model_json_schema()
 
     (schemas_dir / "crml-scenario-schema.json").write_text(
         json.dumps(scenario_schema, indent=2, ensure_ascii=False) + "\n",

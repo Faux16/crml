@@ -4,7 +4,7 @@ This module provides user-facing convenience functions that:
 
 - Run a single CRML scenario (YAML string, dict, or file path)
 - Run a CRML portfolio (portfolio YAML with scenario references)
-- Produce the engine-agnostic `SimulationResultEnvelope`
+- Produce the engine-agnostic `CRSimulationResult`
 - Provide CLI-friendly wrappers (printing / JSON output)
 
 The numerical model implementation lives in `crml_engine.simulation.*`.
@@ -26,7 +26,7 @@ from crml_lang.models.result_envelope import (
     Measure,
     RunInfo,
     SamplesArtifact,
-    SimulationResultEnvelope,
+    CRSimulationResult,
     Units,
     now_utc,
 )
@@ -628,7 +628,7 @@ def run_simulation_envelope(
     n_runs: int = 10000,
     seed: int | None = None,
     fx_config: Optional[FXConfig] = None,
-) -> SimulationResultEnvelope:
+) -> CRSimulationResult:
     """Run a simulation and return the engine-agnostic result envelope.
 
     The envelope type is defined by `crml_lang` to provide a stable interchange
@@ -641,7 +641,7 @@ def run_simulation_envelope(
         fx_config: Optional FX configuration.
 
     Returns:
-        A `SimulationResultEnvelope` with engine info, run info, measures, and
+        A `CRSimulationResult` with engine info, run info, measures, and
         artifacts.
     """
 
@@ -675,7 +675,7 @@ def run_simulation_envelope(
     if currency_code is not None:
         currency_unit = CurrencyUnit(code=currency_code, symbol=currency_symbol)
 
-    envelope = SimulationResultEnvelope(
+    envelope = CRSimulationResult(
         result=SimulationResult(
             success=result.success,
             errors=list(result.errors or []),

@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import CodeEditor from "@/components/CodeEditor";
 import ValidationResults, { ValidationResult } from "@/components/ValidationResults";
-import SimulationResults, { SimulationResultEnvelope } from "@/components/SimulationResults";
+import SimulationResults, { CRSimulationResult } from "@/components/SimulationResults";
 import {
     Download,
     FileText,
@@ -77,7 +77,7 @@ export default function PlaygroundClient() {
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
     const [isValidating, setIsValidating] = useState(false);
 
-    const [simulationResult, setSimulationResult] = useState<SimulationResultEnvelope | null>(null);
+    const [simulationResult, setSimulationResult] = useState<CRSimulationResult | null>(null);
     const [isSimulating, setIsSimulating] = useState(false);
     const [runs, setRuns] = useState("10000");
     const [seed, setSeed] = useState("");
@@ -155,7 +155,7 @@ export default function PlaygroundClient() {
             });
 
             const result = await response.json();
-            setSimulationResult(result as SimulationResultEnvelope);
+            setSimulationResult(result as CRSimulationResult);
         } catch (error) {
             setSimulationResult({
                 schema_id: "crml.simulation.result",

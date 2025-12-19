@@ -8,7 +8,7 @@ from .result_envelope import (
 	ResultPayload,
 	RunInfo,
 	SamplesArtifact,
-	SimulationResultEnvelope,
+	CRSimulationResult,
 	Units,
 )
 
@@ -29,7 +29,7 @@ __all__ = [
 	"ResultPayload",
 	"RunInfo",
 	"SamplesArtifact",
-	"SimulationResultEnvelope",
+	"CRSimulationResult",
 	"Units",
 	"CRScenarioSchema",
 	"CRPortfolioSchema",

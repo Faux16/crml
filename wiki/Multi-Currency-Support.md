@@ -58,7 +58,7 @@ After the simulation, if `base_currency != output_currency`, the engine converts
 The output currency appears in:
 
 - `SimulationResult.metadata.currency_code` / `SimulationResult.metadata.currency`
-- The engine-agnostic envelope: `SimulationResultEnvelope.result.units.currency`
+- The engine-agnostic result document: `CRSimulationResult.result.units.currency`
 
 ### Notes / current limitations
 

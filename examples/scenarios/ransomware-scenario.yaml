@@ -1,0 +1,29 @@
+crml_scenario: "1.0"
+meta:
+  name: "ransomware-scenario"
+  version: "1.0"
+  description: "Real-world ransomware risk model based on industry statistics"
+  author: CRML Team
+  tags:
+    - ransomware
+    - extortion
+  company_size:
+    - enterprise
+    - large-enterprise
+  industries:
+    - all
+  locale:
+    regions: ["world"]
+    countries: ["US"]
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.08  # ~8% annual probability per asset (industry average)
+  severity:
+    model: lognormal
+    parameters:
+      median: "700 000"  # $700K median loss
+      currency: USD
+      sigma: 1.8  # High variability in ransomware losses

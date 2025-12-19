@@ -1,0 +1,91 @@
+crml_scenario: "1.0"
+meta:
+  name: qber-enterprise-v1
+  version: "2025.1"
+  description: |
+    QBER-inspired enterprise scenario example.
+
+    CRML standardizes the document structure (scenario + portfolio), but it does not
+    standardize Bayesian inference pipelines (e.g. MCMC), diagnostics, or export settings.
+    Those belong to your chosen engine/tool configuration.
+  author: CRML Team
+  tags:
+    - qber
+    - enterprise
+    - bayesian
+    - pam
+    - dlp
+    - iam
+    - xdr
+    - waf
+  industries:
+    - all
+  locale:
+    regions: [world]
+    countries: [US]
+
+data:
+  sources:
+    pam:
+      type: pam
+      data_schema:
+        priv_escalations: int
+        failed_sudo: int
+        vault_access: int
+        rotation_failures: int
+    dlp:
+      type: dlp
+      data_schema:
+        usb_alerts: int
+        dpi_hits: int
+        exfil_attempts: int
+        channel_entropy: float
+    iam:
+      type: iam
+      data_schema:
+        mfa_failures: int
+        role_drift: int
+        privilege_anomalies: int
+        identity_graph_entropy: float
+    xdr:
+      type: xdr
+      data_schema:
+        malware_detections: int
+        lateral_movement: int
+        process_tree_entropy: float
+    waf:
+      type: waf
+      data_schema:
+        sqli_attempts: int
+        rce_attempts: int
+        bot_traffic: int
+        request_entropy: float
+  feature_mapping:
+    pam_entropy: pam.pam_entropy
+    dlp_entropy: dlp.channel_entropy
+    iam_entropy: iam.identity_graph_entropy
+    xdr_entropy: xdr.process_tree_entropy
+    waf_entropy: waf.request_entropy
+
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: hierarchical_gamma_poisson
+    parameters:
+      alpha_base: 2.0
+      beta_base: 1.0
+
+  severity:
+    model: mixture
+    parameters: {}
+    components:
+      - lognormal:
+          weight: 0.7
+          median: "162 755"
+          currency: USD
+          sigma: 1.2
+      - gamma:
+          weight: 0.3
+          shape: 2.5
+          scale: "10 000"
+          currency: USD

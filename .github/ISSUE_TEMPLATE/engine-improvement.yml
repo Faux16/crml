@@ -1,0 +1,41 @@
+name: "Engine: Improvement"
+description: "Suggest an improvement to crml_engine (performance, APIs, correctness, UX of CLI)."
+title: "[engine][enhancement]: "
+labels: ["enhancement", "engine"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Propose an improvement for **crml_engine**.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What pain point are you trying to solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should change? Include API shape if applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Who/what is impacted? Any backward-compatibility concerns?
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context

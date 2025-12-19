@@ -1,0 +1,55 @@
+name: "Language: Bug report"
+description: "Report a bug in crml_lang (schemas, validation, parsing, semantics)."
+title: "[lang][bug]: "
+labels: ["bug", "language"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue with **crml_lang**.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+    validations:
+      required: true
+
+  - type: textarea
+    id: minimal
+    attributes:
+      label: Minimal repro (YAML/JSON)
+      description: Provide the smallest CRML document that triggers the issue.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: |
+        - Python:
+        - crml_lang:
+        - crml_engine (if relevant):
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context

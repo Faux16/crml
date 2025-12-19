@@ -1,0 +1,11 @@
+crml_scenario: "1.0"
+meta:
+  name: "Correlation Test"
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters: {lambda: 10}
+  severity:
+    model: lognormal
+    parameters: {median: 100, sigma: 1}

@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crml-lang"
+version = "1.1.0"
+description = "CRML language/spec models, schema validator, and YAML IO"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+  {name = "Zeron Research Labs"},
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "pyyaml",
+  "jsonschema",
+  "pydantic",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+xlsx = ["openpyxl>=3.1"]
+
+[project.scripts]
+crml-xlsx = "crml_lang.mapping.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+crml_lang = ["schemas/*.json"]

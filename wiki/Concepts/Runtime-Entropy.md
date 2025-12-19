@@ -1,89 +1,29 @@
-# Entropy & Criticality
+# Runtime (Entropy)
 
-CRML supports **entropy-based asset criticality** as a bridge between
-security-control telemetry and risk parameters.
+This page is a conceptual reference for entropy-style measures.
 
----
-
-## 1. Shannon entropy
-
-Given category counts \(c_1, \dots, c_K\) (e.g., counts of different alert
-types or states), define probabilities:
-
-\[
-p_k = \frac{c_k}{\sum_{j=1}^K c_j}
-\]
-
-The Shannon entropy is:
-
-\[
-H = - \sum_{k=1}^K p_k \log_2 p_k
-\]
-
-- Higher \(H\) = more *uncertainty* / *disorder* in the signal.
-- Lower \(H\) = more concentrated behavior.
-
-Reference runtime:
-
-```python
-from crml.entropy import entropy_from_counts
-
-counts = {"normal": 900, "failed": 80, "anomalous": 20}
-H = entropy_from_counts(counts)
-```
+Entropy can be used to summarize uncertainty, dispersion, or heterogeneity.
 
 ---
 
-## 2. Entropy-based criticality index (CI)
+## Shannon entropy (concept)
 
-CRML often maps entropy features into a **Criticality Index (CI)**:
+For a discrete distribution with probabilities $p_i$:
 
-\[
-\text{CI}_i = g\left( \sum_f w_f H_f(i) \right)
-\]
+$$
+H = -\sum_i p_i \log p_i
+$$
 
-where:
-
-- \(H_f(i)\) is the entropy of feature family \(f\) for asset \(i\)
-- \(w_f\) are weights (sum to 1)
-- \(g\) is a squashing/transform function (e.g., clip to [1, 5])
-
-Example in CRML:
-
-```yaml
-model:
-  assets:
-    cardinality: 18000
-    criticality_index:
-      type: entropy-weighted
-      inputs:
-        - pam_entropy
-        - dlp_entropy
-        - iam_entropy
-      weights:
-        pam_entropy: 0.4
-        dlp_entropy: 0.3
-        iam_entropy: 0.3
-      transform: "clip(1 + total_entropy * 3, 1, 5)"
-```
+For continuous variables, differential entropy exists but is not directly comparable across unit changes.
 
 ---
 
-## 3. Using CI in frequency/severity
+## Reference engine status
 
-A QBER-style model might derive frequency parameters from CI:
+The reference engine in this repo does **not** currently compute entropy-based risk metrics as first-class outputs.
 
-\[
-\alpha_i = \alpha_0 + c_1 \cdot \text{CI}_i, \quad
-\beta_i = \beta_0 + c_2 \cdot \text{CI}_i
-\]
+What it *does* have today:
 
-CRML does not hard-code the formula in the spec; instead, it leaves room for
-runtime implementations to incorporate CI in:
+- A **planning-time warning** when a bound asset set appears heterogeneous (tags and/or `criticality_index.type` differ). This is used as a guardrail, not as an entropy measure.
 
-- `frequency.parameters.alpha_base`
-- `frequency.parameters.beta_base`
-- or in extensions to hierarchical models.
-
-This keeps the **specification clean** while allowing **Bayesian richness** in
-implementations.
+If you want entropy-based measures in results, they should be treated as an engine-defined extension.

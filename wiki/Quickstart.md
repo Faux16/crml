@@ -4,40 +4,40 @@ Get up and running with CRML in just 5 minutes!
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - pip package manager
 
 ## Step 1: Install CRML (30 seconds)
 
+Install the engine package to get the `crml` CLI:
+
 ```bash
-pip install crml-lang
+pip install crml-engine
 ```
 
 Verify installation:
 ```bash
-crml --version
+crml --help
 ```
 
 ---
 
 ## Step 2: Create Your First Model (2 minutes)
 
-Create a file called `my-first-model.yaml`:
+Create a file called `my-first-scenario.yaml`:
 
 ```yaml
-crml: "1.1"
+crml_scenario: "1.0"
 meta:
   name: "my-first-risk-model"
   description: "A simple phishing risk model"
 
-model:
-  assets:
-    cardinality: 100  # 100 employees
-    
+scenario:
   frequency:
+    basis: per_organization_per_year
     model: poisson
     parameters:
-      lambda: 0.10  # 10% chance per employee per year
+      lambda: 0.10  # 10% chance per organization per year
       
   severity:
     model: lognormal
@@ -48,16 +48,17 @@ model:
 ```
 
 **What this models:**
-- 100 employees, each with 10% chance of clicking a phishing link
-- Expected ~10 incidents per year
+- A single organization with a 10% annual chance of an incident
 - Each incident costs ~$22K on average
+
+If you want **multi-asset / per-asset** modeling (e.g. 100 employees, 500 endpoints), put assets in a **portfolio** document and reference one or more scenarios.
 
 ---
 
 ## Step 3: Validate Your Model (30 seconds)
 
 ```bash
-crml validate my-first-model.yaml
+crml validate my-first-scenario.yaml
 ```
 
 You should see:
@@ -70,7 +71,7 @@ You should see:
 ## Step 4: Run Simulation (1 minute)
 
 ```bash
-crml simulate my-first-model.yaml --runs 10000
+crml simulate my-first-scenario.yaml --runs 10000
 ```
 
 You'll see results like:
@@ -87,9 +88,9 @@ Simulation completed in 1.2s
 
 ---
 
-## Step 5: Try the Web Platform (1 minute)
+## Step 5: Try CRML Studio (1 minute)
 
-Want a visual interface? Try the interactive simulation page:
+Want a visual interface? Try CRML Studio:
 
 ```bash
 # Clone the repo (if you haven't)
@@ -118,18 +119,19 @@ Visit http://localhost:3000/simulation
 ## Next Steps
 
 ### Learn More
-- **[Writing CRML Models](Guides/Writing-CRML)** - Comprehensive guide
-- **[Understanding Parameters](Guides/Understanding-Parameters)** - How to choose values
+- **[CRML Specification](Reference/CRML-Specification)** - Current language contracts + semantics
+- **[Best Practices](Examples/Best-Practices)** - Practical modeling guidance and limitations
 - **[Examples](Examples/Full-Examples)** - Pre-built models
 
 ### Try Different Scenarios
-- Modify `lambda` to see how frequency affects risk
-- Change `median` to model different loss amounts
+- Modify `lambda` to see how baseline threat frequency (threat likelihood) affects risk
+- Change `median` to model different threat impacts (loss per event)
 - Increase `cardinality` for larger organizations
 
 ### Advanced Features
 - Export results: `crml simulate model.yaml --format json > results.json`
-- Use in Python: `from crml import CRMLModel`
+- Use in Python (language API): `from crml_lang import CRScenario`
+- Use in Python (engine runtime): `from crml_engine.runtime import run_simulation`
 - Build complex models with mixture distributions
 
 ---
@@ -138,7 +140,7 @@ Visit http://localhost:3000/simulation
 
 **"Command not found: crml"**
 - Make sure Python's bin directory is in your PATH
-- Try: `python -m crml.cli --help`
+- Try: `python -m crml_engine.cli --help`
 
 **"Invalid YAML"**
 - Check indentation (use spaces, not tabs)
@@ -157,4 +159,4 @@ Visit http://localhost:3000/simulation
 - 💬 [GitHub Issues](https://github.com/Faux16/crml/issues)
 - 📧 [Email Support](mailto:research@zeron.one)
 
-**Ready to build real risk models?** Check out the [Writing CRML guide](Guides/Writing-CRML)!
+**Ready to build real risk models?** Start with [Best Practices](Examples/Best-Practices) and then consult the [CRML Specification](Reference/CRML-Specification).

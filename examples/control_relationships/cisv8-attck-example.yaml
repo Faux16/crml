@@ -1,0 +1,24 @@
+crml_control_relationships: "1.0"
+meta:
+  name: "CIS v8 ↔ ATT&CK relationships (example)"
+  description: "Example mapping: CIS Safeguard mitigates ATT&CK technique/sub-technique."
+  tags:
+    - example
+    - cisv8
+    - attck
+    - control-relationships
+relationships:
+  id: "cisv8-attck-example"
+  relationships:
+    - source: "cisv8:4.1"
+      targets:
+        - target: "attck:T1566.001"
+          relationship_type: "mitigates"
+          overlap:
+            weight: 0.6
+          confidence: 0.5
+          description: "Example relationship showing how a CIS Safeguard can be linked to an ATT&CK sub-technique."
+          references:
+            - type: "url"
+              label: "CIS Community Defense Model 2.0"
+              url: "https://www.cisecurity.org/insights/white-papers/cis-community-defense-model-2-0"

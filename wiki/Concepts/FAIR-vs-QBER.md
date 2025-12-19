@@ -1,60 +1,32 @@
-# FAIR vs QBER in CRML
+# FAIR vs QBER
 
-This page compares FAIR-style models and QBER-style models, and shows how CRML
-can represent both.
+This page compares two common *styles* of cyber risk modeling and how they map to CRML.
 
----
+- **FAIR-style** models often focus on decomposing loss event frequency and loss magnitude using expert-driven factor models.
+- **QBER-style** models often emphasize a more explicit threat-action view and may include richer control-state and dependency structures.
 
-## 1. FAIR-style (non-Bayesian Monte Carlo)
-
-Characteristics:
-
-- Inputs: TEF, VF, LM (primary/secondary)
-- Frequency: deterministic or PERT/traditional distributions
-- Severity: lognormal (or similar)
-- Independence assumptions by default
-- No explicit Bayesian updating
-
-In CRML, this maps to:
-
-- simple `poisson` frequency
-- single `lognormal` severity
-- no `dependency` section
-
-See: [Example: FAIR Baseline](models/example-fair-baseline.md).
+CRML is flexible: both styles can be represented as scenario documents plus optional portfolio context.
 
 ---
 
-## 2. QBER-style (Bayesian hierarchical + MCMC)
+## Mapping into CRML
 
-Characteristics:
+In CRML terms:
 
-- Hierarchical Gamma–Poisson for frequency
-- Mixture severity with heavy tails
-- Copula dependencies across components
-- Entropy-based criticality indices
-- Bayesian posterior inference (MCMC)
+- Frequency assumptions live in `crml_scenario.scenario.frequency`.
+- Severity assumptions live in `crml_scenario.scenario.severity`.
+- Exposure scaling is handled by portfolios via `scenario.frequency.basis` + portfolio asset binding.
+- Controls can be referenced by scenarios and implemented/measured in portfolios.
 
-In CRML, this maps to:
+See:
 
-- `hierarchical_gamma_poisson` frequency
-- `mixture` severity
-- `dependency.copula` defined
-- `assets.criticality_index` defined
-
-See: [Example: QBER Enterprise](models/example-qber-enterprise.md).
+- [CRML Specification (Overview)](../Reference/CRML-Specification.md)
+- [Best Practices](../Examples/Best-Practices.md)
 
 ---
 
-## 3. Key differences
+## Reference engine status
 
-| Aspect             | FAIR-style                   | QBER-style                           |
-|--------------------|------------------------------|--------------------------------------|
-| Frequency          | TEF, VF → point or simple MC | Gamma–Poisson, hierarchical          |
-| Severity           | Single lognormal             | Mixture (lognormal + Gamma, etc.)    |
-| Dependencies       | Often ignored                | Explicit copulas                     |
-| Updating           | Typically static             | Bayesian updates (MCMC)              |
-| Tail modeling      | Limited by LM params         | Rich heavy-tailed, multi-modal       |
+Some features (e.g., correlated control-state sampling via copula) are supported by the reference engine and documented under:
 
-CRML is agnostic: it provides the *language* to describe either style (or
-hybrids) and lets the runtime implement the appropriate math.
+- [Engine capabilities: Controls](../Engine/Capabilities/Controls.md)

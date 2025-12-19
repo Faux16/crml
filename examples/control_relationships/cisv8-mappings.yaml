@@ -1,0 +1,4548 @@
+crml_control_relationships: '1.0'
+meta:
+  name: CIS v8 mapping relationships (example)
+  description: Generated from CIS Controls and source ids use cisv8:<control>.<safeguard>
+    as defined in datasets/cisv8-control-catalog.yaml. Targets are derived from mappings.
+  tags:
+  - example
+  - cisv8
+  - control-relationships
+relationships:
+  id: cisv8-mappings
+  relationships:
+  - source: cisv8:1.1
+    targets:
+    - target: cobit19:BAI09
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.310(d)(2)(iii)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.AM-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.5.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:1.2
+    targets:
+    - target: pciv4:36933
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:1.3
+    targets:
+    - target: cobit19:BAI09
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:1.4
+    targets:
+    - target: nistcsf:DE.CM-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:1.5
+    targets:
+    - target: nistcsf:DE.CM-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:10.1
+    targets:
+    - target: cobit19:APO13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(5)(ii)(B)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:5.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:5.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:5.2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:5.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:10.2
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36955
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:10.3
+    targets:
+    - target: hipaa:164.310(d)(1)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-7.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:10.4
+    targets:
+    - target: hipaa:164.310(d)(1)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-7.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37685
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:10.5
+    targets:
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:10.6
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:10.7
+    targets:
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37320
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:11.1
+    targets:
+    - target: cobit19:APO14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(7)(ii)(A)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(7)(ii)(B)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.310(d)(2)(iv)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.SC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:A1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:11.2
+    targets:
+    - target: hipaa:164.308(a)(7)(ii)(A)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:11.3
+    targets:
+    - target: iso27002:subset-8.12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:A1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:11.4
+    targets:
+    - target: iso27002:subset-8.13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36990
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:11.5
+    targets:
+    - target: iso27002:subset-8.13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.4.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:A1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:12.2
+    targets:
+    - target: cobit19:APO01
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:APO03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.22
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.3.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.4.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.4.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:12.3
+    targets:
+    - target: cobit19:APO01
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:APO03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.21
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:12.4
+    targets:
+    - target: cobit19:APO13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.AM-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37653
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:12.6
+    targets:
+    - target: iso27002:subset-8.21
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:12.7
+    targets:
+    - target: iso27002:subset-6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.21
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:12.8
+    targets:
+    - target: iso27002:subset-8.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.22
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.1
+    targets:
+    - target: hipaa:164.312(b)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.7.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.11
+    targets:
+    - target: iso27002:subset-5.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.AE-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:38637
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:A1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.2
+    targets:
+    - target: iso27002:subset-8.16
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37352
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.3
+    targets:
+    - target: iso27002:subset-8.16
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.21
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.10.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.4
+    targets:
+    - target: iso27002:subset-8.16
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.22
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.6
+    targets:
+    - target: iso27002:subset-8.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.16
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.7
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.8
+    targets:
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.10.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:13.9
+    targets:
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.1
+    targets:
+    - target: cobit19:BAI08
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(5)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(5)(ii)(A)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:equivalent-6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.AM-6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.GV-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.6.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.6.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC1.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.2
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.6.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.3
+    targets:
+    - target: hipaa:164.308(a)(5)(ii)(C)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(5)(ii)(D)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:39515
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.4
+    targets:
+    - target: hipaa:164.310(d)(2)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.5
+    targets:
+    - target: cobit19:DSS06
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.6
+    targets:
+    - target: hipaa:164.308(a)(6)(ii)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-6.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.7
+    targets:
+    - target: iso27002:subset-6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.8
+    targets:
+    - target: iso27002:subset-6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.6.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:14.9
+    targets:
+    - target: cobit19:APO01
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.10.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.5.1.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:15.1
+    targets:
+    - target: iso27002:subset-5.19
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.SC-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37115
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:15.2
+    targets:
+    - target: cobit19:APO09
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:APO10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.19
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.20
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.23
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.GV-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.SC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:15.3
+    targets:
+    - target: cobit19:EDM03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.19
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.SC-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:38576
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:15.4
+    targets:
+    - target: cobit19:APO09
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:DSS06
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(4)(ii)(A)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(b)(1)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(b)(2)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(b)(3)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.20
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.21
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.23
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.SC-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.4.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.8.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.8.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.9.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.9.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:15.5
+    targets:
+    - target: cobit19:APO10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(8)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.19
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.22
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.23
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.SC-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.SC-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37845
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:15.6
+    targets:
+    - target: cobit19:APO09
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:APO10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.19
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.20
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.21
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.22
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.4.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.8.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.2.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:15.7
+    targets:
+    - target: iso27002:subset-5.19
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.20
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.1
+    targets:
+    - target: cobit19:BAI01
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:BAI11
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.27
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.3.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC1.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.11
+    targets:
+    - target: iso27002:subset-8.26
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36928
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.12
+    targets:
+    - target: iso27002:subset-8.25
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.28
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.29
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.2.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.2.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.13
+    targets:
+    - target: iso27002:subset-8.29
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:38023
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.14
+    targets:
+    - target: cobit19:EDM03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.29
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37327
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.2
+    targets:
+    - target: cobit19:DSS03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.AN-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36956
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.3
+    targets:
+    - target: cobit19:DSS03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.AN-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.4
+    targets:
+    - target: cobit19:EDM03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.26
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.30
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.AM-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.5
+    targets:
+    - target: iso27002:subset-8.26
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.3.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.3.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.6
+    targets:
+    - target: cobit19:APO12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:EDM03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(1)(ii)(B)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.AN-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36956
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.7
+    targets:
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36924
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.8
+    targets:
+    - target: iso27002:equivalent-8.31
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37747
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:16.9
+    targets:
+    - target: iso27002:subset-8.28
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37293
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.1
+    targets:
+    - target: cobit19:APO13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(2)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.24
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.DP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.10.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.10.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.2
+    targets:
+    - target: iso27002:subset-5.20
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.24
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.CO-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC2.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.3
+    targets:
+    - target: hipaa:164.308(a)(6)(ii)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:equivalent-6.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.4
+    targets:
+    - target: cobit19:DSS04
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:163.310(a)(2)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(1)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(6)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(7)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.24
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.26
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.DP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.GV-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.CO-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.10.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.10.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.5
+    targets:
+    - target: iso27002:subset-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.24
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.DP-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.CO-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.CO-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.CO-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37906
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.6
+    targets:
+    - target: iso27002:subset-5.24
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.7
+    targets:
+    - target: hipaa:164.308(a)(7)(ii)(D)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.30
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.8
+    targets:
+    - target: hipaa:164.308(a)(8)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.24
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.27
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.IM-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.IM-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:39002
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:17.9
+    targets:
+    - target: iso27002:subset-5.24
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.25
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.AN-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:38637
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:18.2
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37722
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:18.3
+    targets:
+    - target: hipaa:164.308(a)(1)(ii)(B)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:38088
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:18.4
+    targets:
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:18.5
+    targets:
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37357
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:2.1
+    targets:
+    - target: cobit19:BAI09
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:2.2
+    targets:
+    - target: nistcsf:ID.AM-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.3.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:2.3
+    targets:
+    - target: nistcsf:DE.CM-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:38058
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:2.4
+    targets:
+    - target: cobit19:BAI09
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:2.5
+    targets:
+    - target: iso27002:subset-8.19
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:2.6
+    targets:
+    - target: iso27002:subset-8.19
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:2.7
+    targets:
+    - target: nistcsf:PR.IP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.4.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.1
+    targets:
+    - target: cobit19:APO14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:DSS06
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(a)(2)(iv)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(e)(1)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(e)(2)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(e)(2)(ii)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:4.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:4.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:4.2.1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:4.2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.11
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:DSS06
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(a)(2)(iv)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(e)(2)(ii)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.33
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.3.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.5.1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.5.1.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.12
+    targets:
+    - target: iso27002:subset-8.20
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.22
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.4.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.13
+    targets:
+    - target: hipaa:164.312(e)(2)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(e)(2)(ii)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.14
+    targets:
+    - target: hipaa:164.312(b)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(c)(1)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(c)(2)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.2
+    targets:
+    - target: cobit19:APO14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.310(d)(2)(iii)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.AM-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.4.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:C1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.3
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(3)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(3)(ii)(A)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(a)(1)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.4
+    targets:
+    - target: cobit19:DSS06
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.33
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36925
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.5
+    targets:
+    - target: cobit19:APO14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.310(d)(2)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-7.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-7.14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.DS-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.4.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.4.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:C1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.6
+    targets:
+    - target: iso27002:subset-6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-7.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.7
+    targets:
+    - target: cobit19:APO14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.33
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.AM-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.RA-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37355
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.8
+    targets:
+    - target: cobit19:DSS06
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.AE-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.AM-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:12.5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:3.9
+    targets:
+    - target: cobit19:DSS06
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.310(d)(1)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.14
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-7.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:3.5.1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.1
+    targets:
+    - target: cobit19:APO13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:BAI06
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:BAI10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.11
+    targets:
+    - target: iso27002:equivalent-8.10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.12
+    targets:
+    - target: iso27002:subset-6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.2
+    targets:
+    - target: cobit19:BAI10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.3
+    targets:
+    - target: hipaa:164.312(a)(2)(iii)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:39486
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.4
+    targets:
+    - target: cobit19:APO13
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.5
+    targets:
+    - target: iso27002:subset-6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36923
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.6
+    targets:
+    - target: cobit19:BAI09
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.7
+    targets:
+    - target: iso27002:subset-8.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:4.8
+    targets:
+    - target: iso27002:subset-8.9
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:5.1
+    targets:
+    - target: hipaa:164.312(a)(2)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.16
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37388
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:5.2
+    targets:
+    - target: iso27002:subset-5.17
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.3.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.3.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:5.3
+    targets:
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:39149
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:5.4
+    targets:
+    - target: iso27002:subset-5.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:5.5
+    targets:
+    - target: iso27002:subset-5.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.18
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.2.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:5.6
+    targets:
+    - target: iso27002:subset-5.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:6.1
+    targets:
+    - target: hipaa:164.312(a)(2)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.16
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.18
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:6.2
+    targets:
+    - target: hipaa:164.308(a)(3)(ii)(C)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.16
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.18
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-6.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-11
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.2.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:6.3
+    targets:
+    - target: iso27002:subset-5.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:6.4
+    targets:
+    - target: iso27002:subset-6.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37719
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:6.5
+    targets:
+    - target: iso27002:subset-8.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:2.2.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:8.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:6.6
+    targets:
+    - target: iso27002:subset-8.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:37388
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:6.7
+    targets:
+    - target: iso27002:subset-5.18
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:6.8
+    targets:
+    - target: hipaa:164.308(a)(3)(ii)(B)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(4)(i)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(4)(ii)(C)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.2.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:7.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:7.1
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(1)(ii)(A)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(1)(ii)(B)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.RA-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.3.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:7.2
+    targets:
+    - target: cobit19:APO12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: cobit19:EDM03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(1)(ii)(A)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.308(a)(1)(ii)(B)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.RA-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC3.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC9.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:7.3
+    targets:
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:7.4
+    targets:
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.RA-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:7.5
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.1.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:7.6
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:ID.RA-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-12
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:7.7
+    targets:
+    - target: iso27002:subset-8.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:11.3.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.1
+    targets:
+    - target: hipaa:164.312(b)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:equivalent-8.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.28
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.5.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.11
+    targets:
+    - target: hipaa:164.308(a)(1)(ii)(D)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(b)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-5.25
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.AE-2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:RS.AN-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.4.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.4.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.12
+    targets:
+    - target: nistcsf:DE.AE-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.2
+    targets:
+    - target: cobit19:DSS03
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: hipaa:164.312(b)
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.20
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.AE-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:5.3.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:6.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.3
+    targets:
+    - target: iso27002:subset-8.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:A1.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.4
+    targets:
+    - target: iso27002:equivalent-8.17
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.6.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.6.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.6.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.5
+    targets:
+    - target: iso27002:subset-5.28
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.AE-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:10.2.1.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:9.4.5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC7.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.6
+    targets:
+    - target: nistcsf:DE.AE-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.7
+    targets:
+    - target: nistcsf:DE.AE-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.8
+    targets:
+    - target: iso27002:subset-8.15
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.AE-3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.PT-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.8
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:8.9
+    targets:
+    - target: pciv4:37690
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:PL1.4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:9.1
+    targets:
+    - target: cobit19:APO10
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.IP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:9.2
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.23
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36986
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:9.3
+    targets:
+    - target: iso27002:subset-8.23
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.2.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:1.4.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC6.6
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:9.4
+    targets:
+    - target: nistcsf:PR.IP-1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:38019
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:9.5
+    targets:
+    - target: pciv4:1.4.3
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:5.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: soc2:CC5.2
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:9.6
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:PR.AC-5
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:36986
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+  - source: cisv8:9.7
+    targets:
+    - target: cobit19:DSS05
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: iso27002:subset-8.7
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: nistcsf:DE.CM-4
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:5.2.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5
+    - target: pciv4:5.4.1
+      overlap:
+        weight: 0.5
+      relationship_type: overlaps_with
+      confidence: 0.5

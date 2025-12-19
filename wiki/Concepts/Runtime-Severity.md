@@ -1,128 +1,70 @@
-# Severity Models
+# Runtime (Severity)
 
-Severity models describe the **monetary impact** of individual events.
+This page explains common severity models used in CRML scenarios.
+
+CRML severity is expressed as:
+
+- `scenario.severity.model`: a model identifier (engine-defined support)
+- `scenario.severity.parameters`: model parameters (portable intent; engine may impose constraints)
+
+See: [Scenario schema](../Language/Schemas/Scenario.md)
 
 ---
 
-## 1. Lognormal severity
+## Lognormal
 
-Many cyber losses (breaches, outages) empirically follow a lognormal-like tail:
+A lognormal model is common for heavy-tailed loss severities.
 
-\[
-X \sim \text{Lognormal}(\mu, \sigma)
-\]
+If $X$ is the loss per event, then:
 
-meaning:
-
-\[
+$$
 \ln X \sim \mathcal{N}(\mu, \sigma^2)
-\]
+$$
 
-In CRML:
+CRML commonly uses a **median-first** parameterization for readability:
 
-```yaml
-model:
-  severity:
-    model: lognormal
-    parameters:
-      mu: 12.0
-      sigma: 1.25
-```
+- `median`: the median loss ($\text{median}(X)$)
+- `sigma`: log-space standard deviation
 
-Runtime:
+Relationship between median and $\mu$:
 
-```python
-from crml.severity import sample_lognormal
+$$
+\text{median}(X) = e^{\mu} \quad \Rightarrow \quad \mu = \ln(\text{median}(X))
+$$
 
-sev = sample_lognormal({"mu": 12.0, "sigma": 1.25}, size=n_events)
-```
+### Empirical calibration (`single_losses`)
+
+Some engines may support calibrating $(\mu, \sigma)$ from empirical single-event losses.
+
+Reference engine status:
+
+- Calibration helper exists: `crml_engine.runtime.calibrate_lognormal_from_single_losses`.
+- You can also provide `single_losses` directly in lognormal parameters (engine-defined behavior).
 
 ---
 
-## 2. Gamma severity
+## Gamma
 
-For operational loss tails that are lighter than lognormal, a Gamma model can be
-used:
+A gamma distribution is another positive-valued severity model.
 
-\[
+Common parameterization uses `shape` ($k$) and `scale` ($\theta$):
+
+$$
 X \sim \text{Gamma}(k, \theta)
-\]
-
-with shape parameter \(k\) and scale \(\theta\).
-
-In CRML:
-
-```yaml
-model:
-  severity:
-    model: gamma
-    parameters:
-      shape: 2.5
-      scale: 15000.0
-```
+$$
 
 ---
 
-## 3. Mixture severity (QBER-style)
+## Mixtures
 
-To capture **multi-modal** or **regime-based** behavior, CRML supports mixtures:
+A mixture model represents severity as a weighted combination of component distributions.
 
-\[
-X \sim w_1 f_1(x) + w_2 f_2(x) + \cdots
-\]
+Conceptually, you choose a component $C$ with probability $w_c$ and then sample $X \mid C$.
 
-Example: 2-component mixture of lognormal and gamma:
+**Important:** mixture support is engine-defined.
 
-```yaml
-model:
-  severity:
-    model: mixture
-    components:
-      - lognormal:
-          weight: 0.7
-          mu: 12.0
-          sigma: 1.25
-      - gamma:
-          weight: 0.3
-          shape: 2.8
-          scale: 15000.0
-```
+Reference engine limitation:
 
-Runtime implementation (simplified):
+- The current reference engine’s `mixture` severity uses only the first component and ignores weights.
 
-```python
-from crml.severity import sample_mixture
-
-sev = sample_mixture(components, size=n_events)
-```
-
----
-
-## 4. From frequency & severity to loss
-
-Total annual loss \(L\) in a Monte Carlo scenario:
-
-\[
-L = \sum_{i=1}^{N} X_i
-\]
-
-where:
-
-- \(N\) ~ frequency model (Poisson, Gamma–Poisson, ...)
-- \(X_i\) ~ severity model (Lognormal, Gamma, Mixture, ...)
-
-The CRML runtime loops over Monte Carlo runs, sampling frequency and severity
-and aggregating \(L\).
-
----
-
-## 5. Heavy tails and VaR
-
-For heavy-tailed lognormal (large \(\sigma\)), tail metrics like VaR are
-highly sensitive to:
-
-- the chosen \(\mu, \sigma\)
-- the assumed correlations (via copula)
-- the mixture weights in hybrid models
-
-CRML makes all of these parameters **explicit and versioned** in the model file.
+See: [Engine capabilities: Supported models](../Engine/Capabilities/Supported-Models.md)

@@ -1,0 +1,13 @@
+crml_scenario: "1.0"
+meta:
+  name: "Multi-Scenario Demo"
+  version: "1.0"
+  description: "A model demonstrating aggregation of distinct risk scenarios."
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters: {lambda: 0.1}
+  severity:
+    model: lognormal
+    parameters: {median: 5000000, sigma: 1.5}

@@ -1,77 +1,32 @@
-# Copula Dependencies
+# Runtime (Copula)
 
-CRML uses **Gaussian copulas** to model dependencies between risk components
-(threat classes, business units, etc.).
+Copulas are a way to model **dependence** between random variables while keeping marginal distributions unchanged.
 
----
+In Monte Carlo simulation, a common pattern is:
 
-## 1. Gaussian copula construction
-
-1. Sample \(Z \sim \mathcal{N}(0, \Sigma)\), where \(\Sigma\) is a
-   correlation matrix.
-2. Map each component \(Z_k\) to a uniform:
-
-\[
-U_k = \Phi(Z_k)
-\]
-
-where \(\Phi\) is the standard normal CDF.
-
-3. Obtain dependent losses:
-
-\[
-L_k = F_k^{-1}(U_k)
-\]
-
-where \(F_k\) is the marginal CDF of component \(k\) (e.g., its loss
-distribution implied by frequency + severity).
+1. Sample correlated uniforms $(U_1, \dots, U_d)$.
+2. Transform each uniform into a marginal sample using the inverse CDF of the marginal distribution.
 
 ---
 
-## 2. Toeplitz correlation in CRML
+## Gaussian copula (concept)
 
-CRML uses a simple Toeplitz structure parameterized by \(\rho\):
+A Gaussian copula uses a multivariate normal correlation structure:
 
-\[
-\Sigma_{ij} = \rho^{|i - j|}
-\]
+1. Sample $Z \sim \mathcal{N}(0, \Sigma)$
+2. Convert to uniforms: $U_i = \Phi(Z_i)$
 
-Example:
-
-```yaml
-model:
-  dependency:
-    copula:
-      type: gaussian
-      dim: 4
-      rho: 0.65
-```
-
-Runtime prototype:
-
-```python
-from crml.copula import gaussian_copula_samples
-
-u = gaussian_copula_samples(rho=0.65, dim=4, n=10000)
-```
-
-`u` is a `(n, dim)` matrix of uniforms; each column can be mapped through an
-inverse CDF to produce correlated losses.
+where $\Phi$ is the standard normal CDF.
 
 ---
 
-## 3. Why copulas matter for cyber risk
+## What CRML uses copulas for
 
-Without dependencies, total loss is often **underestimated**, because models
-assume:
+The CRML language does not mandate a universal “copula field” for all dependency modeling. Dependency constructs are generally engine/tool-specific.
 
-- events in different components are independent
-- large losses cannot co-occur
+In this repo, the reference engine supports **correlating control-state sampling** (binary up/down states) via a Gaussian copula specified in `portfolio.dependency.copula`.
 
-Copulas allow:
+See:
 
-- joint occurrence of high-severity events in multiple components
-- realistic clustering of bad scenarios
-
-CRML makes the presence or absence of copula dependencies **explicit** in the
-model file.
+- [Engine capabilities: Portfolio execution](../Engine/Capabilities/Portfolio-Execution.md)
+- [Engine capabilities: Controls](../Engine/Capabilities/Controls.md)

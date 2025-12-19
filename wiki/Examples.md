@@ -1,6 +1,6 @@
 # Examples
 
-Browse complete models and patterns.
+Browse example patterns organized by practical risk-management approaches.
 
 - [By Industry](Examples/By-Industry)
 - [Full Examples](Examples/Full-Examples)

@@ -1,201 +1,64 @@
-# Full CRML Examples
+# Full Examples
 
-This page provides complete examples of CRML models, ranging from simple baselines to complex enterprise-grade risk quantification models.
+This page points to the repo’s concrete example **documents** and explains how to use them for common risk-management workflows.
 
-## 1. FAIR Baseline Model
+Everything here is **engine agnostic** and **UI agnostic**: CRML defines the document contracts, while engines decide which model IDs and runtime features they support.
+Assume **CRML Studio** can be used to manage the documents, run validation, and trigger simulations/risk modelling through your configured engine.
 
-A simple FAIR-like model using Poisson frequency and Lognormal severity with pure Monte Carlo simulation. This is useful for quick estimates and baseline comparisons.
+## Example documents in this repository
 
-```yaml
-crml: '1.1'
-meta:
-  name: fair-baseline
-  version: '1.1'
-  description: Simple FAIR-like Poisson + Lognormal model
-model:
-  frequency:
-    model: poisson
-    scope: portfolio
-    parameters:
-      lambda: 1.2
-  severity:
-    model: lognormal
-    parameters:
-      median: "8 100"   # ~$8K median loss
-      currency: USD
-      sigma: 1.0
-pipeline:
-  simulation:
-    monte_carlo:
-      enabled: true
-      runs: 50000
-      random_seed: 7
-output:
-  metrics:
-  - EAL
-  - VaR_95
-  - VaR_99
-  distributions:
-    annual_loss: true
-```
+### Scenarios (threat-centric)
 
-## 2. QBER Enterprise Model
+- [examples/scenarios/fair-baseline.yaml](../../examples/scenarios/fair-baseline.yaml) (FAIR-inspired baseline)
+- [examples/scenarios/data-breach-simple.yaml](../../examples/scenarios/data-breach-simple.yaml) (simple breach baseline)
+- [examples/scenarios/ransomware-scenario.yaml](../../examples/scenarios/ransomware-scenario.yaml) (ransomware baseline)
+- [examples/scenarios/ransomware-with-controls.yaml](../../examples/scenarios/ransomware-with-controls.yaml) (control-relevant threat)
+- [examples/scenarios/multi-currency-example.yaml](../../examples/scenarios/multi-currency-example.yaml) (currency-tagged inputs)
+- [examples/scenarios/qber-simplified.yaml](../../examples/scenarios/qber-simplified.yaml) (QBER-inspired structure)
 
-A comprehensive QBER-style hierarchical Bayesian model. It features:
-- **Entropy-based Criticality Index (CI)** derived from multiple security tools (PAM, DLP, IAM, XDR, WAF).
-- **Hierarchical Gamma-Poisson** frequency model.
-- **Mixture Severity Model** combining Lognormal and Gamma distributions.
-- **Gaussian Copula** for dependency modeling.
-- **MCMC (Metropolis-Hastings)** and **Monte Carlo** simulation pipeline.
+### Portfolios (organization view)
 
-```yaml
-crml: '1.1'
-meta:
-  name: qber-enterprise-v1
-  version: '2025.1'
-  description: QBER-style hierarchical Bayesian model with entropy-based CI and MCMC
-  author: Zeron Research Labs
-  tags:
-  - qber
-  - bayesian
-  - mcmc
-  - pam
-  - dlp
-  - iam
-  - xdr
-  - waf
-data:
-  sources:
-    pam:
-      type: pam
-      data_schema:
-        priv_escalations: int
-        failed_sudo: int
-        vault_access: int
-        rotation_failures: int
-    dlp:
-      type: dlp
-      data_schema:
-        usb_alerts: int
-        dpi_hits: int
-        exfil_attempts: int
-        channel_entropy: float
-    iam:
-      type: iam
-      data_schema:
-        mfa_failures: int
-        role_drift: int
-        privilege_anomalies: int
-        identity_graph_entropy: float
-    xdr:
-      type: xdr
-      data_schema:
-        malware_detections: int
-        lateral_movement: int
-        process_tree_entropy: float
-    waf:
-      type: waf
-      data_schema:
-        sqli_attempts: int
-        rce_attempts: int
-        bot_traffic: int
-        request_entropy: float
-  feature_mapping:
-    pam_entropy: pam.pam_entropy
-    dlp_entropy: dlp.channel_entropy
-    iam_entropy: iam.identity_graph_entropy
-    xdr_entropy: xdr.process_tree_entropy
-    waf_entropy: waf.request_entropy
-model:
-  assets:
-    cardinality: 10000
-    criticality_index:
-      type: entropy-weighted
-      inputs:
-        pam_entropy: pam_entropy
-        dlp_entropy: dlp_entropy
-        iam_entropy: iam_entropy
-        xdr_entropy: xdr_entropy
-        waf_entropy: waf_entropy
-      weights:
-        pam_entropy: 0.2
-        dlp_entropy: 0.2
-        iam_entropy: 0.2
-        xdr_entropy: 0.2
-        waf_entropy: 0.2
-      transform: clip(1 + 4 * total_entropy, 1, 5)
-  frequency:
-    model: hierarchical_gamma_poisson
-    scope: asset
-    parameters:
-      alpha_base: 1 + CI * 0.5
-      beta_base: 1.5
-      hyperpriors:
-        alpha_shape: 2.0
-        alpha_rate: 1.0
-        beta_shape: 1.0
-        beta_rate: 1.0
-  severity:
-    model: mixture
-    components:
-    - lognormal:
-        weight: 0.7
-        median: "162 755"  # ~$163K median
-        currency: USD
-        sigma: 1.2
-    - gamma:
-        weight: 0.3
-        shape: 2.5
-        scale: 10000
-  dependency:
-    copula:
-      type: gaussian
-      dimension: 4
-      rho_matrix: toeplitz(0.7, 4)
-  temporal:
-    horizon: 24m
-    granularity: 1m
-    aggregation:
-      model: ridge_regression
-      inputs:
-      - lambda_interno * E[I_interno]
-      - lambda_externo * E[I_externo]
-      - lambda_vendor * E[I_vendor]
-      target: annual_loss
-      ewma_alpha: 0.3
-pipeline:
-  simulation:
-    monte_carlo:
-      enabled: true
-      runs: 20000
-      random_seed: 42
-    mcmc:
-      enabled: true
-      algorithm: metropolis_hastings
-      iterations: 15000
-      burn_in: 3000
-      chains: 4
-      thinning: 1
-  validation:
-    mcmc:
-      rhat_threshold: 1.05
-      ess_min: 5000
-    loss_distribution:
-      var_stability_tolerance: 0.02
-output:
-  metrics:
-  - EAL
-  - VaR_95
-  - VaR_99
-  - VaR_999
-  distributions:
-    annual_loss: true
-    component_losses: true
-  diagnostics:
-    mcmc_trace: true
-    rhat: true
-  export:
-    csv: qber_enterprise_results.csv
-    json: qber_posterior.json
-    latex_table: qber_results_table.tex
-```
+- [examples/portfolios/portfolio.yaml](../../examples/portfolios/portfolio.yaml) (scenario aggregation, assets/exposure, control packs)
+
+### Control catalogs and assessments
+
+- [examples/control_catalogs/control-catalog.yaml](../../examples/control_catalogs/control-catalog.yaml)
+- [examples/control_assessments/control-assessment.yaml](../../examples/control_assessments/control-assessment.yaml) (Assessment pack)
+
+### FX config (execution-time)
+
+- [examples/fx_configs/fx-config.yaml](../../examples/fx_configs/fx-config.yaml)
+- [examples/fx_configs/fx-config-eur.yaml](../../examples/fx_configs/fx-config-eur.yaml)
+
+## Practical workflows (how teams typically use these)
+
+### Baseline quantification
+
+1. Start with a baseline scenario (e.g., FAIR-style).
+2. Create a one-scenario portfolio that references it.
+3. Validate and run.
+4. Capture assumptions and data sources in the scenario `meta`.
+
+### Portfolio aggregation (enterprise view)
+
+1. Create multiple scenarios for distinct threat classes.
+2. Build a portfolio with explicit aggregation semantics.
+3. Add assets/exposure and bind scenarios to the relevant assets if applicable.
+
+### Control/posture driven analysis
+
+1. Maintain canonical control IDs in a control catalog.
+2. Track organization evidence in an assessment catalog.
+3. Reference both from the portfolio.
+4. Ensure each scenario declares which controls are relevant (scenario controls).
+
+### Multi-currency reporting
+
+1. Tag severity inputs with their currency.
+2. Provide an external FX config at execution time.
+
+## Limitations and portability notes
+
+- Scenario/portfolio schemas are strict; avoid adding engine-specific keys into the CRML documents unless your tooling explicitly supports that.
+- Model identifiers are engine-defined; not every engine will support `mixture` or hierarchical frequency models.
+- “Pipelines” (MCMC, diagnostics, exports) are deliberately outside the CRML core documents; treat them as engine/tool configuration.

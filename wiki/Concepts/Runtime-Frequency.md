@@ -1,115 +1,63 @@
-# Frequency Models
+# Runtime (Frequency)
 
-CRML frequency models describe how often **loss events** occur for assets or
-risk components.
+This page explains common frequency models used in CRML scenarios.
+
+CRML frequency is expressed as a **rate model** plus a **basis**:
+
+- `scenario.frequency.model`: a model identifier (engine-defined support)
+- `scenario.frequency.basis`: portable semantic meaning of the rate unit
+
+See: [CRML Specification (Overview)](../Reference/CRML-Specification.md)
 
 ---
 
-## 1. Poisson model
+## Basis semantics (portable)
 
-Mathematically:
+Two basis values are standardized by the language:
 
-\[
+- `per_organization_per_year`: the scenario’s frequency already represents the total org-wide annual rate.
+- `per_asset_unit_per_year`: the scenario’s frequency represents a per-unit annual rate and MUST be scaled by bound exposure $E$.
+
+For the normative definition of $E$ (how portfolios bind scenarios to assets), see [Exposure scaling and frequency basis](../Reference/CRML-Specification.md#exposure-scaling-and-frequency-basis-normative).
+
+---
+
+## Common models
+
+### Poisson
+
+A Poisson process is often used for independent event counts.
+
+If the annual rate is $\lambda$, then the event count $N$ in a year is:
+
+$$
 N \sim \text{Poisson}(\lambda)
-\]
+$$
 
-where:
+For `per_asset_unit_per_year`, the effective annual rate becomes:
 
-- \(N\) = number of events in a fixed period (e.g., 1 year)
-- \(\lambda > 0\) = expected number of events per period
+$$
+\lambda_{\text{total}} = \lambda \cdot E
+$$
 
-In CRML:
+### Gamma–Poisson (negative binomial)
 
-```yaml
-model:
-  frequency:
-    model: poisson
-    parameters:
-      lambda: 0.3
-```
+A common way to model over-dispersion is to treat the Poisson rate as random:
 
-Runtime mapping (reference implementation):
+$$
+\lambda \sim \text{Gamma}(k, \theta), \quad N \mid \lambda \sim \text{Poisson}(\lambda)
+$$
 
-```python
-from crml.frequency import sample_poisson_frequency
+The resulting marginal distribution for $N$ is negative binomial-like (engine parameterization may vary).
 
-freq = sample_poisson_frequency({"lambda": 0.3}, size=n_assets)
-```
+### Hierarchical Gamma–Poisson
+
+A hierarchical extension can model uncertainty in rate parameters across similar organizations or units. Details are engine-defined.
 
 ---
 
-## 2. Gamma–Poisson (Negative Binomial)
+## Reference engine status
 
-To model **over-dispersion** (variance > mean), CRML uses a Gamma–Poisson model:
+Implemented frequency models in the reference engine are listed here:
 
-\[
-\lambda \sim \text{Gamma}(\alpha, \beta), \quad
-N \mid \lambda \sim \text{Poisson}(\lambda)
-\]
-
-Marginally, \(N\) follows a Negative Binomial distribution.
-
-In CRML:
-
-```yaml
-model:
-  frequency:
-    model: gamma_poisson
-    parameters:
-      alpha_base: 1.2
-      beta_base: 1.5
-```
-
-Reference runtime:
-
-```python
-from crml.frequency import sample_gamma_poisson_frequency
-
-params = {"alpha": 1.2, "beta": 1.5}
-freq = sample_gamma_poisson_frequency(params, size=n_assets)
-```
-
----
-
-## 3. Hierarchical Gamma–Poisson (QBER-style)
-
-In QBER-like models, \(\alpha\) and \(\beta\) may themselves depend on
-asset-level features (e.g., criticality index CI):
-
-\[
-\alpha_i = f_\alpha(\text{CI}_i), \quad
-\beta_i = f_\beta(\text{CI}_i)
-\]
-
-The full hierarchical model (conceptually):
-
-\[
-\begin{aligned}
-\lambda_i &\sim \text{Gamma}(\alpha_i, \beta_i) \\
-N_i \mid \lambda_i &\sim \text{Poisson}(\lambda_i)
-\end{aligned}
-\]
-
-CRML expresses only the *base form*:
-
-```yaml
-model:
-  frequency:
-    model: hierarchical_gamma_poisson
-    parameters:
-      alpha_base: 0.8
-      beta_base: 1.3
-```
-
-The reference runtime currently interprets this similarly to `gamma_poisson` but
-can be extended to use CI-dependent parameters.
-
----
-
-## 4. Practical guidance
-
-- Use **Poisson** for simple, independent, low-variance event counts.
-- Use **Gamma–Poisson** when you observe **fat-tailed** or **over-dispersed**
-  count data across assets.
-- Use **hierarchical** forms when you have **entropy-based criticality indices**
-  or other asset-level features.
+- [Engine capabilities: Supported models](../Engine/Capabilities/Supported-Models.md)

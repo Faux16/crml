@@ -1,0 +1,17 @@
+crml_scenario: "1.0"
+meta:
+  name: "Multi-Asset Demo (Scenario-Only)"
+  version: "1.0"
+  description: "Scenario-only example. Multi-asset / per-asset modeling belongs in a portfolio."
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 12.0
+  severity:
+    model: lognormal
+    parameters:
+      median: 2000
+      sigma: 0.5
+      currency: USD

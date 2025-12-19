@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, ExternalLink, Copy, Check } from "lucide-react";
 
 interface Example {
@@ -52,10 +51,9 @@ export default function ExamplesPage() {
         }
     };
 
-    const handleLoadInValidator = (example: Example) => {
-        // Store the example content in sessionStorage
-        sessionStorage.setItem("crml-validator-content", example.content);
-        router.push("/validator");
+    const handleOpenInPlayground = (example: Example) => {
+        const qs = new URLSearchParams({ example: example.id, tab: "validate" });
+        router.push(`/playground?${qs.toString()}`);
     };
 
     if (loading) {
@@ -136,11 +134,11 @@ export default function ExamplesPage() {
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     <Button
-                                        onClick={() => handleLoadInValidator(example)}
+                                        onClick={() => handleOpenInPlayground(example)}
                                         className="gap-2"
                                     >
                                         <ExternalLink className="h-4 w-4" />
-                                        Load in Validator
+                                        Open in Playground
                                     </Button>
                                     <Button
                                         variant="outline"

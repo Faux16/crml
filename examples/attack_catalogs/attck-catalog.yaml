@@ -1,0 +1,25 @@
+crml_attack_catalog: "1.0"
+meta:
+  name: "ATT&CK catalog (example)"
+  description: "Example attack catalog for ATT&CK tactics and (sub-)techniques. Metadata only; no framework text."
+  tags:
+    - example
+    - attck
+catalog:
+  id: "attck"
+  framework: "MITRE ATT&CK (Enterprise)"
+  attacks:
+    - id: "attck:TA0001"
+      title: "Initial Access"
+      url: "https://attack.mitre.org/tactics/TA0001/"
+      tags: ["tactic"]
+    - id: "attck:T1566"
+      title: "Phishing"
+      url: "https://attack.mitre.org/techniques/T1566/"
+      tags: ["technique"]
+      kill_chain_phases: ["mitre-attack:initial-access"]
+    - id: "attck:T1566.001"
+      title: "Spearphishing Attachment"
+      url: "https://attack.mitre.org/techniques/T1566/001/"
+      tags: ["sub-technique"]
+      kill_chain_phases: ["mitre-attack:initial-access"]

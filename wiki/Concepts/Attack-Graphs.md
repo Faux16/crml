@@ -1,44 +1,24 @@
-# Attack Graphs & CRML
+# Attack Graphs
 
-Attack graphs model how adversaries move through states (assets, privileges,
-controls) to realize an impact.
+Attack graphs model multi-step attacker progression through a system.
 
-While CRML itself does not *define* a full attack-graph DSL, it is often used
-together with attack graphs:
+CRML is **not** an attack-graph language. Instead, CRML is designed as a portable layer for:
 
-- attack graph → probabilities / rates for edges
-- CRML → frequency/severity of resulting loss events
-
----
-
-## 1. Simple attack graph (Mermaid)
-
-```mermaid
-graph TD
-  A[External Attacker] --> B[Phishing Email]
-  B --> C[Credential Theft]
-  C --> D[Internal Lateral Movement]
-  D --> E[Domain Admin Compromise]
-  E --> F[Data Exfiltration Event]
-```
-
-In a more advanced setup:
-
-- The transition frequencies / probabilities from A→F are estimated from
-  telemetry and red-team data.
-- Resulting **exfiltration events** are modeled in CRML as losses.
+- describing scenario frequency/severity assumptions,
+- referencing attack catalogs (e.g. ATT&CK), and
+- connecting those scenarios to portfolios and controls.
 
 ---
 
-## 2. Mapping to CRML
+## How attack graphs relate to CRML
 
-Example:
+Typical integration patterns:
 
-- Node **F: Data Exfiltration Event** → CRML severity model (lognormal mixture)
-- Edge rates **B→C, C→D, D→E** → contribute to CRML frequency parameters
+- Use an attack-graph tool to generate scenario candidates or calibrate scenario frequencies.
+- Reference attack-pattern ids and metadata via `crml_attack_catalog` and `crml_attack_control_relationships`.
+- Use CRML portfolios and controls to evaluate “what if we implement control X?” across multiple scenarios.
 
-CRML does not need the **graph topology**; it needs the **aggregated frequency
-and severity characteristics** derived from the graph.
+See:
 
-You can store attack-graph definitions in a separate repo, and CRML as the final
-risk aggregation layer.
+- [Language schemas](../Reference/CRML-Schema.md)
+- [CRML System Architecture](Architecture.md)

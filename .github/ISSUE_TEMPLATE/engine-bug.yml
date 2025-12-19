@@ -1,0 +1,70 @@
+name: "Engine: Bug report"
+description: "Report a bug in crml_engine (simulation runtime, portfolio, CLI)."
+title: "[engine][bug]: "
+labels: ["bug", "engine"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue with **crml_engine**.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide minimal steps and inputs to reproduce the issue.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Versions and OS details.
+      placeholder: |
+        - OS:
+        - Python:
+        - crml_engine:
+        - crml_lang:
+        - Install method (pip/poetry/editable):
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack traces
+      description: Paste any error output.
+      render: shell
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Links, screenshots, related issues, etc.

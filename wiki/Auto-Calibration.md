@@ -1,7 +1,9 @@
-# Auto-Calibration
+# Auto-calibration
 
-CRML can infer distribution parameters from historical loss data.
+“Auto-calibration” refers to fitting parameters from empirical evidence rather than manually choosing them.
 
-- Walkthrough example: [Getting Started](Getting-Started)
-- Deeper guide: [Guides/Calibrate-from-Data](Guides/Calibrate-from-Data)
-- Full reference: [CRML Specification](Reference/CRML-Specification)
+In this repo, the reference engine supports a limited but practical form:
+
+- lognormal calibration from `single_losses`
+
+See: [Calibrate from Data](Guides/Calibrate-from-Data.md)

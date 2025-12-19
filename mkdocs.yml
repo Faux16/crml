@@ -13,20 +13,39 @@ theme:
 nav:
   - Home: Home.md
 
+  - Language (crml_lang):
+    - Overview: Language/Overview.md
+    - Installation: Language/Installation.md
+    - Python API: Language/Python-API.md
+    - Validation: Language/Validation.md
+    - CRML 1.1 Specification: Reference/CRML-1.1.md
+    - CRML Schema: Reference/CRML-Schema.md
+
+  - Engine (crml_engine):
+    - Overview: Engine/Overview.md
+    - Installation: Engine/Installation.md
+    - CLI: Engine/CLI.md
+    - Python API: Engine/Python-API.md
+    - Capabilities:
+      - Supported Models: Engine/Capabilities/Supported-Models.md
+      - Portfolio Execution: Engine/Capabilities/Portfolio-Execution.md
+      - Controls: Engine/Capabilities/Controls.md
+      - Results: Engine/Capabilities/Results.md
+    - Multi-Currency Support: Multi-Currency-Support.md
+    - Control Effectiveness: Control-Effectiveness.md
+
   - Getting Started:
-    - Installation: Installation.md
     - Quickstart: Quickstart.md
     - Getting Started: Getting-Started.md
 
   - Guides:
     - Writing CRML Models: Guides/Writing-CRML.md
+    - Excel Controls & Mappings: Guides/Excel-Controls-and-Mappings.md
     - Understanding Parameters: Guides/Understanding-Parameters.md
-    - Control Effectiveness: Control-Effectiveness.md
     - Executive Reporting: Guides/Executive-Reporting.md
     - Tool Integration: Guides/Tool-Integration.md
     - Calibrate from Data: Guides/Calibrate-from-Data.md
     - Add New Distribution: Guides/Add-New-Distribution.md
-    - Multi-Currency Support: Multi-Currency-Support.md
     - Auto-Calibration: Auto-Calibration.md
 
   - Examples:
@@ -52,16 +71,11 @@ nav:
 
   - Reference:
     - CRML Specification (Overview): Reference/CRML-Specification.md
-    - CRML 1.1 Specification: Reference/CRML-1.1.md
-    - CRML Schema: Reference/CRML-Schema.md
-    - CLI Commands: Reference/CLI-Commands.md
-    - Python API: Python-API.md
     - FAQ: Reference/FAQ.md
     - Troubleshooting: Reference/Troubleshooting.md
     - Glossary: Reference/Glossary.md
 
   - Project:
-    - Roadmap: Roadmap.md
     - Contributing: Contributing.md
 
 markdown_extensions:
@@ -81,6 +95,8 @@ extra:
       link: https://github.com/Faux16/crml
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/crml-lang/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/crml-engine/
     - icon: fontawesome/solid/envelope
       link: mailto:research@zeron.one
     - icon: fontawesome/solid/globe

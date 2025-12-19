@@ -9,108 +9,19 @@ import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import CodeEditor from "@/components/CodeEditor";
-import SimulationResults, { SimulationResult } from "@/components/SimulationResults";
+import SimulationResults, { CRSimulationResult } from "@/components/SimulationResults";
 import { Play, RotateCcw, FileText, Settings2, HelpCircle, Info, BookOpen } from "lucide-react";
 import Link from "next/link";
+import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
 
 const EXAMPLE_MODELS = {
-"data-breach": {
-    name: "Data Breach (Simple)",
-    description: "50 databases with PII, 5% annual breach probability, $100K median cost",
-    explanation: "This model represents a small-medium organization with customer data. Lambda=0.05 means 5% chance per database per year (industry average). Median=100000 means $100K typical loss per breach.",
-    content: `crml: "1.1"
-meta:
-  name: "data-breach-simple"
-  description: "Simple data breach risk model"
-model:
-  assets:
-    - name: "database"
-      cardinality: 50
-  frequency:
-    model: poisson  # Rare, random events
-    parameters:
-      lambda: 0.05  # 5% annual probability per database
-  severity:
-    model: lognormal  # Typical small losses, rare large ones
-    parameters:
-      median: "100 000"  # $100K median loss
-      currency: USD
-      sigma: 1.2  # Moderate variability`
-    },
-    "ransomware": {
-        name: "Ransomware Scenario",
-        description: "500 critical servers, 8% annual ransomware probability, $700K median loss",
-        explanation: "Enterprise ransomware model based on 2023 industry data. Lambda=0.08 reflects ~8% of organizations hit annually. Median=700000 means $700K median loss (ransom + downtime + recovery).",
-        content: `crml: "1.1"
-meta:
-  name: "ransomware-scenario"
-  description: "Ransomware risk based on industry statistics"
-model:
-  assets:
-    - name: "critical_system"
-      cardinality: 500
-  frequency:
-    model: poisson
-    parameters:
-      lambda: 0.08  # 8% annual probability (Sophos 2023)
-  severity:
-    model: lognormal
-    parameters:
-      median: "700 000"  # $700K median (industry avg)
-      currency: USD
-      sigma: 1.8  # High variability (some pay $50K, others $5M)`
-    },
-    "fair-baseline": {
-    name: "FAIR Baseline",
-    description: "Simple FAIR-style portfolio model with 1.2 events/year, $8K median loss",
-    explanation: "Basic FAIR model for portfolio-level analysis. Lambda=1.2 means ~1-2 events expected per year across all assets. Median=8100 means $8100 median loss.",
-    content: `crml: "1.1"
-meta:
-  name: "fair-baseline"
-  description: "Simple FAIR-like Poisson + Lognormal model"
-model:
-  frequency:
-    model: poisson
-    scope: portfolio  # Portfolio-level (not per-asset)
-    parameters:
-      lambda: 1.2  # ~1-2 events per year total
-  severity:
-    model: lognormal
-    parameters:
-      median: "8 100"  # $8,100 median loss
-      currency: USD
-      sigma: 1.0  # Low variability`
-    },
-    "qber-simplified": {
-    name: "QBER Simplified",
-    description: "1000 assets, hierarchical Bayesian model with mixture severity",
-    explanation: "Simplified QBER-style model using hierarchical_gamma_poisson for frequency and mixture distributions for severity. Note: Full QBER uses MCMC; this is a Monte Carlo approximation.",
-    content: `crml: "1.1"
-meta:
-  name: "qber-simplified"
-  description: "Simplified QBER-style model"
-model:
-  assets:
-    - name: "endpoint"
-      cardinality: 1000
-  frequency:
-    model: hierarchical_gamma_poisson  # Bayesian hierarchical
-    parameters:
-      alpha_base: 1.5
-      beta_base: 1.5
-  severity:
-    model: mixture  # 70% lognormal, 30% gamma
-    components:
-      - lognormal:
-          weight: 0.7
-          median: "162 755"  # ~$163K median loss
-          currency: USD
-          sigma: 1.2
-      - gamma:
-          weight: 0.3
-          shape: 2.5
-          scale: 10000`
-    }
+        "portfolio-bundle": {
+                name: "Portfolio Bundle (Documented)",
+                description: "A full CRML PortfolioBundle with inlined scenarios and catalogs",
+                explanation:
+                        "This example is a self-contained portfolio bundle: it includes a portfolio, inlined scenarios, and optional catalogs/relationships for portable engine execution and audit-ready exchange.",
+                content: PORTFOLIO_BUNDLE_DOCUMENTED_YAML
+        },
 };
 
 // Supported output currencies (rate = value of 1 unit in USD)
@@ -126,9 +37,9 @@ const OUTPUT_CURRENCIES = {
 };
 
 export default function SimulationPage() {
-    const [yamlContent, setYamlContent] = useState(EXAMPLE_MODELS["data-breach"].content);
-    const [selectedExample, setSelectedExample] = useState("data-breach");
-    const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+    const [yamlContent, setYamlContent] = useState(EXAMPLE_MODELS["portfolio-bundle"].content);
+    const [selectedExample, setSelectedExample] = useState("portfolio-bundle");
+    const [simulationResult, setSimulationResult] = useState<CRSimulationResult | null>(null);
     const [isSimulating, setIsSimulating] = useState(false);
     const [runs, setRuns] = useState("10000");
     const [seed, setSeed] = useState("");
@@ -147,6 +58,13 @@ export default function SimulationPage() {
 
     const handleSimulate = async () => {
         setIsSimulating(true);
+
+        const parsedRuns = Number.parseInt(runs, 10);
+        const runsValue = Number.isNaN(parsedRuns) ? 10000 : parsedRuns;
+
+        const parsedSeed = seed ? Number.parseInt(seed, 10) : undefined;
+        const seedValue = parsedSeed === undefined || Number.isNaN(parsedSeed) ? undefined : parsedSeed;
+
         try {
             const response = await fetch("/api/simulate", {
                 method: "POST",
@@ -155,18 +73,26 @@ export default function SimulationPage() {
                 },
                 body: JSON.stringify({
                     yaml: yamlContent,
-                    runs: parseInt(runs) || 10000,
-                    seed: seed ? parseInt(seed) : undefined,
+                    runs: runsValue,
+                    seed: seedValue,
                     outputCurrency: outputCurrency
                 }),
             });
 
             const result = await response.json();
-            setSimulationResult(result);
+            setSimulationResult(result as CRSimulationResult);
         } catch (error) {
             setSimulationResult({
-                success: false,
-                errors: ["Failed to run simulation: " + (error as Error).message],
+                crml_simulation_result: "1.0",
+                result: {
+                    success: false,
+                    errors: ["Failed to run simulation: " + (error as Error).message],
+                    warnings: [],
+                    engine: { name: "web", version: undefined },
+                    run: { runs: runsValue, seed: seedValue },
+                    inputs: {},
+                    results: { measures: [], artifacts: [] },
+                },
             });
         } finally {
             setIsSimulating(false);
@@ -255,9 +181,13 @@ export default function SimulationPage() {
                                     max="100000"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    {parseInt(runs) < 5000 && "⚡ Fast but less accurate"}
-                                    {parseInt(runs) >= 5000 && parseInt(runs) <= 20000 && "✓ Good balance"}
-                                    {parseInt(runs) > 20000 && "🎯 High accuracy"}
+                                    {(() => {
+                                        const runsParsed = Number.parseInt(runs, 10);
+                                        const runsForHint = Number.isNaN(runsParsed) ? 0 : runsParsed;
+                                        if (runsForHint < 5000) return "⚡ Fast but less accurate";
+                                        if (runsForHint <= 20000) return "✓ Good balance";
+                                        return "🎯 High accuracy";
+                                    })()}
                                 </p>
                             </div>
                             <div className="space-y-2">
@@ -383,6 +313,7 @@ export default function SimulationPage() {
                             <div>
                                 <h3 className="mb-3 font-semibold flex items-center gap-2">
                                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">1</span>
+                                    {" "}
                                     Frequency (Poisson)
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-2">
@@ -398,34 +329,39 @@ export default function SimulationPage() {
                             <div>
                                 <h3 className="mb-3 font-semibold flex items-center gap-2">
                                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">2</span>
+                                    {" "}
                                     Severity (Lognormal)
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-2">
                                     <strong>Median:</strong> Typical loss amount (recommended)
                                 </p>
                                 <ul className="text-sm space-y-1 text-muted-foreground">
-                                    <li>• "8 000" → ~$8K (minor incidents)</li>
-                                    <li>• "100 000" → ~$100K (data breaches)</li>
-                                    <li>• "700 000" → ~$700K (ransomware)</li>
-                                    <li>• "9 000 000" → ~$9M (major breaches)</li>
+                                    <li>• &quot;8 000&quot; → ~$8K (minor incidents)</li>
+                                    <li>• &quot;100 000&quot; → ~$100K (data breaches)</li>
+                                    <li>• &quot;700 000&quot; → ~$700K (ransomware)</li>
+                                    <li>• &quot;9 000 000&quot; → ~$9M (major breaches)</li>
                                 </ul>
                                 <p className="text-sm text-muted-foreground mt-3">
                                     <strong>Sigma (σ):</strong> Variability (0.5=low, 1.5=medium, 2.0+=high)
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-2 italic">
-                                    💡 Use median instead of mu - it's more intuitive!
+                                    💡 Use median instead of mu - it&apos;s more intuitive!
                                 </p>
                             </div>
                         </div>
                         <div className="mt-6 p-4 bg-muted rounded-lg">
                             <p className="text-sm">
-                                <strong>💡 Tip:</strong> Start with an example model, modify one parameter at a time, and observe how results change.
-                                Check the <Link href="/docs/understanding-parameters" className="text-primary hover:underline">full guide</Link> for detailed explanations and data sources.
+                                <strong>💡 Tip:</strong>{" "}
+                                Start with an example model, modify one parameter at a time, and observe how results change.
+                                {" "}Check the{" "}
+                                <Link href="/docs/understanding-parameters" className="text-primary hover:underline">full guide</Link>
+                                {" "}for detailed explanations and data sources.
                             </p>
                         </div>
                         <div className="mt-4 p-4 border border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800 rounded-lg">
                             <p className="text-sm">
-                                <strong>ℹ️ About Simulation Methods:</strong> This simulation uses <strong>Monte Carlo</strong> simulation (random sampling).
+                                <strong>ℹ️ About Simulation Methods:</strong>{" "}
+                                This simulation uses <strong>Monte Carlo</strong> simulation (random sampling).
                                 Advanced CRML models (like QBER) can specify <strong>MCMC</strong> (Markov Chain Monte Carlo) for full Bayesian inference,
                                 but this requires specialized tools like PyMC3 or Stan. This page approximates these models using Monte Carlo for speed and simplicity.
                             </p>

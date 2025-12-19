@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CRML FX Config",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "crml_fx_config": {
+      "const": "1.0",
+      "type": "string",
+      "description": "CRML FX config document version"
+    },
+    "base_currency": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_currency": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": ["string", "null"],
+      "default": null
+    },
+    "rates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    }
+  },
+  "required": ["crml_fx_config", "base_currency", "output_currency", "rates"]
+}

@@ -1,48 +1,83 @@
-# CRML Examples
+# Specification Examples
 
-This directory contains example CRML 1.1 models
+This page highlights small, spec-level examples using the **current CRML document contracts**.
 
-- `data-breach-simple.yaml` — Simple data breach model with 50 databases, 5% annual probability, $100K median loss
-- `ransomware-scenario.yaml` — Enterprise ransomware risk with 500 servers, 8% probability, $700K median loss
-- `fair-baseline.yaml` — Simple FAIR-like model using Poisson frequency and Lognormal severity with median-based parameterization
-- `qber-simplified.yaml` — Simplified QBER-style model with mixture severity distribution
-- `qber-enterprise.yaml` — Full QBER-style hierarchical Bayesian model with entropy-based Criticality Index, mixture severity, Gaussian copula, and MCMC + Monte Carlo pipeline
+In this repository:
 
-## Key Changes in CRML 1.1
+- Scenario documents use `crml_scenario: "1.0"`.
+- Portfolio documents use `crml_portfolio: "1.0"`.
+- FX config is an execution-time config document (`crml_fx_config: "1.0"`).
 
-### Median-Based Parameterization
-Instead of using `mu` (log-space mean), models now support `median` directly:
+For full, runnable examples, see [Full Examples](Full-Examples).
+
+## Scenario document header
 
 ```yaml
-severity:
-  model: lognormal
-  parameters:
-    median: "100 000"  # $100K - intuitive!
-    currency: USD
-    sigma: 1.2
+crml_scenario: "1.0"
+meta:
+  name: "example"
+  version: "2025.1"
+  description: "Short description."
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.2
+  severity:
+    model: lognormal
+    parameters:
+      median: "100 000"
+      currency: USD
+      sigma: 1.2
 ```
 
-### Explicit Currency Declaration
-All monetary parameters should declare their currency:
+## Median-based parameterization (recommended)
+
+Using `median` is often more auditable than `mu`:
 
 ```yaml
 severity:
   model: lognormal
   parameters:
     median: "250 000"
-    currency: EUR   # Explicit currency
+    currency: EUR
     sigma: 1.2
 ```
 
-### FX Context (Optional)
-For multi-currency models, define an FX context:
+## Multi-currency inputs + external FX config
+
+CRML scenarios can tag monetary inputs with a currency. FX rates are not embedded into the risk model; they are supplied at execution time.
+
+FX config document:
 
 ```yaml
-fx_context:
-  base_currency: EUR
-  rates:
-    USD: 0.92
-    GBP: 1.17
+crml_fx_config: "1.0"
+base_currency: USD
+output_currency: EUR
+rates:
+  USD: 1.0
+  EUR: 1.08
 ```
 
-See the [specification](../crml-1.1.md) for full details.
+## Portfolio document header
+
+```yaml
+crml_portfolio: "1.0"
+meta:
+  name: "example-portfolio"
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      validate_scenarios: true
+  scenarios:
+    - id: s1
+      path: ./scenario.yaml
+```
+
+## Limitations and portability notes
+
+- Model identifiers (e.g., `poisson`, `mixture`) are engine-defined.
+- Component structures (e.g., `severity.components`) are engine-defined.
+- Any inference pipelines, exports, or runtime options belong in engine/tool configuration, not in the CRML documents.

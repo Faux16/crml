@@ -1,0 +1,57 @@
+crml_scenario: "1.0"
+meta:
+  name: "multinational-pii-compliance-risk"
+  version: "1.0"
+  description: |
+    Multinational PII compliance risk model for a company operating in both
+    the EU (Germany) and US (California).
+    
+    This model captures two distinct regulatory risks:
+    - GDPR violations in Germany (fines in EUR)
+    - CCPA violations in California (fines in USD)
+    
+    Use with --fx-config to normalize currencies for consolidated reporting:
+      crml simulate multi-currency-example.yaml --fx-config examples/fx_configs/fx-config.yaml
+  author: CRML Team
+  locale:
+    regions: ["europe", "north-america"]
+    countries: ["DE", "US"]
+  tags:
+    - multi-currency
+    - compliance
+    - gdpr
+    - ccpa
+    - pii
+  industries:
+    - all
+
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.03  # 3% annual probability per database
+
+  severity:
+    model: mixture
+    parameters: {}
+    components:
+      # GDPR fines (Germany / EU)
+      # German DPAs have issued fines ranging from €10K to €35M
+      # Median fine for SME violations: ~€50K
+      # For serious violations: €500K-€2M typical
+      - lognormal:
+          weight: 0.27        # 45/165 = ~27% of databases in EU
+          median: "175 000"   # €175K median GDPR fine
+          currency: EUR
+          sigma: 1.8          # High variability (€10K to €20M range)
+      
+      # CCPA fines (California)
+      # CCPA: $2,500 per unintentional violation, $7,500 per intentional
+      # Typical settlements: $100K - $5M depending on records affected
+      # California AG has been aggressive with enforcement since 2023
+      - lognormal:
+          weight: 0.73        # 120/165 = ~73% of databases in US
+          median: "250 000"   # $250K median CCPA fine/settlement
+          currency: USD
+          sigma: 1.5          # Moderate variability

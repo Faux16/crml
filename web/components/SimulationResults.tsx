@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Download, TrendingUp, AlertCircle, BarChart3, HelpCircle, Info, DollarSign } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 export interface SimulationMetrics {
     eal: number;
@@ -16,6 +16,63 @@ export interface SimulationMetrics {
     max: number;
     median: number;
     std_dev: number;
+}
+
+export interface CrmlCurrencyUnit {
+    kind: "currency";
+    code: string;
+    symbol?: string;
+}
+
+export interface CrmlMeasure {
+    id: string;
+    value?: number;
+    unit?: CrmlCurrencyUnit;
+    parameters?: Record<string, unknown>;
+    label?: string;
+}
+
+export interface CrmlHistogramArtifact {
+    kind: "histogram";
+    id: string;
+    unit?: CrmlCurrencyUnit;
+    bin_edges: number[];
+    counts: number[];
+    binning?: Record<string, unknown>;
+}
+
+export interface CrmlSamplesArtifact {
+    kind: "samples";
+    id: string;
+    unit?: CrmlCurrencyUnit;
+    values: number[];
+    sample_count_total?: number;
+    sample_count_returned?: number;
+    sampling?: Record<string, unknown>;
+}
+
+export type CrmlArtifact = CrmlHistogramArtifact | CrmlSamplesArtifact;
+
+export interface CrmlResultPayload {
+    measures: CrmlMeasure[];
+    artifacts: CrmlArtifact[];
+}
+
+export interface CRSimulationResultInner {
+    success: boolean;
+    errors?: string[];
+    warnings?: string[];
+    engine?: { name: string; version?: string };
+    run?: { runs?: number; seed?: number; runtime_ms?: number; started_at?: string };
+    inputs?: { model_name?: string; model_version?: string; description?: string };
+    units?: { currency: CrmlCurrencyUnit; horizon?: string };
+    results?: CrmlResultPayload;
+}
+
+// Canonical CRML-Lang envelope returned by the Python engine.
+export interface CRSimulationResult {
+    crml_simulation_result: "1.0";
+    result: CRSimulationResultInner;
 }
 
 export interface SimulationDistribution {
@@ -52,17 +109,11 @@ export interface SimulationMetadata {
     }>;
 }
 
-export interface SimulationResult {
-    success: boolean;
-    metrics?: SimulationMetrics;
-    distribution?: SimulationDistribution;
-    metadata?: SimulationMetadata;
-    errors?: string[];
-}
+export type SimulationResult = CRSimulationResult;
 
 interface SimulationResultsProps {
-    result: SimulationResult | null;
-    isSimulating: boolean;
+    readonly result: SimulationResult | null;
+    readonly isSimulating: boolean;
 }
 
 export default function SimulationResults({ result, isSimulating }: SimulationResultsProps) {
@@ -103,14 +154,17 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                     <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                         <TrendingUp className="mb-4 h-12 w-12 opacity-50" />
                         <p>No results yet</p>
-                        <p className="text-sm">Click "Simulate" to start</p>
+                        <p className="text-sm">Click &quot;Simulate&quot; to start</p>
                     </div>
                 </CardContent>
             </Card>
         );
     }
 
-    if (!result.success) {
+    const inner = result.result;
+
+    if (!inner.success) {
+        const errorKeyCounts = new Map<string, number>();
         return (
             <Card className="h-full border-destructive">
                 <CardHeader>
@@ -123,9 +177,11 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                     <Alert variant="destructive">
                         <AlertDescription>
                             <ul className="list-disc space-y-1 pl-4">
-                                {result.errors?.map((error, idx) => (
-                                    <li key={idx}>{error}</li>
-                                ))}
+                                {inner.errors?.map((error) => {
+                                    const count = errorKeyCounts.get(error) ?? 0;
+                                    errorKeyCounts.set(error, count + 1);
+                                    return <li key={`${error}::${count}`}>{error}</li>;
+                                })}
                             </ul>
                         </AlertDescription>
                     </Alert>
@@ -134,26 +190,114 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
         );
     }
 
-    const { metrics, distribution, metadata } = result;
+    const measures = inner.results?.measures ?? [];
+    const artifacts = inner.results?.artifacts ?? [];
 
-    // Get currency from metadata, default to $
-    const currency = metadata?.currency || '$';
+    const currency = inner.units?.currency?.symbol || inner.units?.currency?.code || '$';
 
-    // Prepare chart data
-    const chartData = distribution?.bins && distribution?.frequencies
-        ? distribution.bins.slice(0, -1).map((bin, idx) => ({
-            range: `${currency}${(bin / 1000).toFixed(0)}K`,
-            frequency: distribution.frequencies[idx],
-            binStart: bin
-        }))
-        : [];
+    const getMeasure = (id: string) => measures.find(m => m.id === id);
+    const getVar = (level: number) => measures.find((m) => {
+        if (m.id !== "loss.var") return false;
+        const candidate = m.parameters?.["level"];
+        return typeof candidate === "number" && candidate === level;
+    });
+    const histogram = artifacts.find((a): a is CrmlHistogramArtifact => a.kind === "histogram" && a.id === "loss.annual");
+    const samples = artifacts.find((a): a is CrmlSamplesArtifact => a.kind === "samples" && a.id === "loss.annual");
+
+    const metrics: SimulationMetrics = {
+        eal: (getMeasure("loss.eal")?.value as number) || 0,
+        var_95: (getVar(0.95)?.value as number) || 0,
+        var_99: (getVar(0.99)?.value as number) || 0,
+        var_999: (getVar(0.999)?.value as number) || 0,
+        min: (getMeasure("loss.min")?.value as number) || 0,
+        max: (getMeasure("loss.max")?.value as number) || 0,
+        median: (getMeasure("loss.median")?.value as number) || 0,
+        std_dev: (getMeasure("loss.std_dev")?.value as number) || 0,
+    };
+
+    const metadata: SimulationMetadata = {
+        runs: inner.run?.runs || 0,
+        runtime_ms: inner.run?.runtime_ms || 0,
+        model_name: inner.inputs?.model_name || "",
+        model_version: inner.inputs?.model_version,
+        description: inner.inputs?.description,
+        seed: inner.run?.seed,
+        currency,
+    };
+
+    const distribution: SimulationDistribution | undefined = histogram
+        ? {
+            bins: histogram.bin_edges,
+            frequencies: histogram.counts,
+            raw_data: samples?.values,
+        }
+        : undefined;
 
     const formatCurrency = (value: number) => {
-        if (value >= 1000000) {
+        if (!Number.isFinite(value)) return `${currency}0`;
+        const abs = Math.abs(value);
+        if (abs >= 1000000) {
             return `${currency}${(value / 1000000).toFixed(2)}M`;
         }
-        return `${currency}${(value / 1000).toFixed(0)}K`;
+        if (abs >= 1000) {
+            return `${currency}${(value / 1000).toFixed(0)}K`;
+        }
+        return `${currency}${value.toFixed(0)}`;
     };
+
+    // Prepare chart data (numeric axis to avoid duplicate categorical labels)
+    const chartData = distribution?.bins && distribution?.frequencies
+        ? distribution.bins.slice(0, -1).map((binStart, idx) => {
+            const binEnd = distribution.bins[idx + 1];
+            const x = (binStart + binEnd) / 2;
+            return {
+                x,
+                frequency: distribution.frequencies[idx],
+                binStart,
+                binEnd,
+            };
+        })
+        : [];
+
+    // Staged x-axis scaling for heavy-tailed distributions.
+    // If the max is much larger than a percentile metric (VaR), use that VaR
+    // as the display cap (with slight headroom) so the left cluster is readable.
+    const toPositiveFinite = (v: unknown): number | null => {
+        if (typeof v !== "number") return null;
+        if (!Number.isFinite(v) || v <= 0) return null;
+        return v;
+    };
+
+    const maxEdge = distribution?.bins?.length ? (distribution.bins.at(-1) ?? null) : null;
+    const maxX = toPositiveFinite(maxEdge ?? metrics.max) ?? 0;
+
+    const STAGE_RATIO_TRIGGER = 1.8;
+    const STAGE_HEADROOM = 1.05;
+
+    const var95 = toPositiveFinite(metrics.var_95);
+    const var99 = toPositiveFinite(metrics.var_99);
+    const var999 = toPositiveFinite(metrics.var_999);
+
+    const pickDomainMax = (): number => {
+        if (maxX <= 0) return 0;
+
+        if (var999 && maxX / var999 >= STAGE_RATIO_TRIGGER) {
+            return Math.min(maxX, var999 * STAGE_HEADROOM);
+        }
+        if (var99 && maxX / var99 >= STAGE_RATIO_TRIGGER) {
+            return Math.min(maxX, var99 * STAGE_HEADROOM);
+        }
+        if (var95 && maxX / var95 >= STAGE_RATIO_TRIGGER) {
+            return Math.min(maxX, var95 * STAGE_HEADROOM);
+        }
+
+        return maxX;
+    };
+
+    const domainMax = pickDomainMax();
+    const displayChartData = domainMax > 0
+        ? chartData.filter((d) => typeof d.x === "number" && d.x >= 0 && d.x <= domainMax)
+        : chartData;
 
     const handleDownloadJSON = () => {
         const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
@@ -163,7 +307,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
         a.download = `${metadata?.model_name || 'simulation'}_results.json`;
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        a.remove();
         URL.revokeObjectURL(url);
     };
 
@@ -178,7 +322,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
         a.download = `${metadata?.model_name || 'simulation'}_data.csv`;
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        a.remove();
         URL.revokeObjectURL(url);
     };
 
@@ -213,8 +357,8 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                         <CardContent className="space-y-2">
                             <div className="text-xs font-medium text-muted-foreground mb-2">Active Correlations:</div>
                             <div className="grid grid-cols-1 gap-1">
-                                {metadata.correlation_info.map((c, i) => (
-                                    <div key={i} className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded border border-blue-100 dark:border-blue-900 text-xs">
+                                {metadata.correlation_info.map((c) => (
+                                    <div key={`${c.assets.join("|")}::${c.value}`} className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded border border-blue-100 dark:border-blue-900 text-xs">
                                         <div className="flex items-center gap-2">
                                             <span className="font-semibold">{c.assets[0]}</span>
                                             <span className="text-muted-foreground">↔</span>
@@ -284,8 +428,8 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                         Individual Controls ({metadata.control_details.length})
                                     </p>
                                     <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                                        {metadata.control_details.slice(0, 5).map((ctrl, idx) => (
-                                            <div key={idx} className="flex items-center justify-between text-xs p-1.5 bg-white dark:bg-gray-900 rounded">
+                                        {metadata.control_details.slice(0, 5).map((ctrl) => (
+                                            <div key={`${ctrl.id}::${ctrl.type}`} className="flex items-center justify-between text-xs p-1.5 bg-white dark:bg-gray-900 rounded">
                                                 <div className="flex-1">
                                                     <span className="font-medium">{ctrl.id}</span>
                                                     <span className="text-muted-foreground ml-1">({ctrl.type})</span>
@@ -414,23 +558,34 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                     <CardContent>
                         <div className="h-[250px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData}>
+                                <AreaChart data={displayChartData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                                     <XAxis
-                                        dataKey="range"
+                                        dataKey="x"
+                                        type="number"
+                                        scale="linear"
+                                        domain={[0, domainMax > 0 ? domainMax : 'auto']}
+                                        tickFormatter={(v: number) => formatCurrency(v)}
                                         angle={-45}
                                         textAnchor="end"
                                         height={70}
-                                        interval={Math.floor(chartData.length / 8)}
+                                        tickCount={7}
+                                        interval={0}
                                         className="text-xs"
                                     />
                                     <YAxis className="text-xs" />
                                     <RechartsTooltip
                                         formatter={(value: number) => [value, 'Occurrences']}
-                                        labelFormatter={(label) => `Loss: ${label}`}
+                                        labelFormatter={(label) => `Loss: ${formatCurrency(Number(label))}`}
                                     />
-                                    <Bar dataKey="frequency" fill="hsl(var(--primary))" />
-                                </BarChart>
+                                    <Area
+                                        type="stepAfter"
+                                        dataKey="frequency"
+                                        stroke="hsl(var(--primary))"
+                                        fill="hsl(var(--primary))"
+                                        fillOpacity={0.25}
+                                    />
+                                </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </CardContent>

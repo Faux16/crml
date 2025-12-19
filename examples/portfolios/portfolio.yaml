@@ -1,0 +1,41 @@
+crml_portfolio: "1.0"
+meta:
+  name: "Example portfolio"
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+      validate_scenarios: true
+
+  assets:
+    - name: "employees"
+      cardinality: 250
+      tags: ["workforce"]
+    - name: "endpoints"
+      cardinality: 450
+      tags: ["it", "endpoint"]
+
+  control_catalogs:
+    - ../control_catalogs/control-catalog.yaml
+    - ../../datasets/cisv8-control-catalog.yaml
+  assessments:
+    - ../assessments/assessment.yaml
+
+  # Additional packs (examples)
+  # mapping edges derived from CIS Controls
+  control_relationships:
+    - ../control_relationships/cisv8-mappings.yaml
+
+  dependency:
+    copula:
+      type: gaussian
+      targets:
+        - "control:org:iam.mfa:state"
+        - "control:org:edr:state"
+      structure: toeplitz
+      rho: 0.35
+
+  scenarios:
+    - id: phishing
+      path: ../scenarios/scenario-phishing.yaml

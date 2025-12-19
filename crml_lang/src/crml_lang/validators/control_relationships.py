@@ -226,9 +226,9 @@ def validate_control_relationships(
 
     if strict_model and not errors:
         try:
-            from ..models.control_relationships_model import CRControlRelationshipsSchema
+            from ..models.control_relationships_model import CRControlRelationships
 
-            CRControlRelationshipsSchema.model_validate(data)
+            CRControlRelationships.model_validate(data)
         except Exception as e:
             errors.append(
                 ValidationMessage(

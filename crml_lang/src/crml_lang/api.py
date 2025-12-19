@@ -39,15 +39,15 @@ from .yamlio import (
     load_yaml_mapping_from_str,
 )
 
-from .models.scenario_model import CRScenarioSchema as _CRScenarioSchema
-from .models.assessment_model import CRAssessmentSchema as _CRAssessmentSchema
-from .models.control_catalog_model import CRControlCatalogSchema as _CRControlCatalogSchema
-from .models.attack_catalog_model import CRAttackCatalogSchema as _CRAttackCatalogSchema
+from .models.scenario_model import CRScenario as _CRScenario
+from .models.assessment_model import CRAssessment as _CRAssessment
+from .models.control_catalog_model import CRControlCatalog as _CRControlCatalog
+from .models.attack_catalog_model import CRAttackCatalog as _CRAttackCatalog
 from .models.attack_control_relationships_model import (
-    CRAttackControlRelationshipsSchema as _CRAttackControlRelationshipsSchema,
+    CRAttackControlRelationships as _CRAttackControlRelationships,
 )
-from .models.control_relationships_model import CRControlRelationshipsSchema as _CRControlRelationshipsSchema
-from .models.portfolio_model import CRPortfolioSchema as _CRPortfolioSchema
+from .models.control_relationships_model import CRControlRelationships as _CRControlRelationships
+from .models.portfolio_model import CRPortfolio as _CRPortfolio
 from .models.portfolio_bundle import CRPortfolioBundle as _CRPortfolioBundle
 from .models.simulation_result import CRSimulationResult
 from .validators import ValidationMessage, ValidationReport, validate, validate_portfolio
@@ -55,7 +55,7 @@ from .validators import validate_attack_catalog
 from .validators import validate_attack_control_relationships
 
 
-class CRScenario(_CRScenarioSchema):
+class CRScenario(_CRScenario):
     """Root CRML Scenario document model.
 
     This is a small subclass of the internal Pydantic model that adds
@@ -138,7 +138,7 @@ def dump_to_yaml_str(model: CRScenario | Mapping[str, Any], *, sort_keys: bool =
     return dump_yaml_to_str(dict(model), sort_keys=sort_keys)
 
 
-class CRPortfolio(_CRPortfolioSchema):
+class CRPortfolio(_CRPortfolio):
     """Root CRML Portfolio document model."""
 
     @classmethod
@@ -160,7 +160,7 @@ class CRPortfolio(_CRPortfolioSchema):
         return dump_yaml_to_str(data, sort_keys=sort_keys)
 
 
-class CRControlCatalog(_CRControlCatalogSchema):
+class CRControlCatalog(_CRControlCatalog):
     """Root CRML Control Catalog document model."""
 
     @classmethod
@@ -182,7 +182,7 @@ class CRControlCatalog(_CRControlCatalogSchema):
         return dump_yaml_to_str(data, sort_keys=sort_keys)
 
 
-class CRAttackCatalog(_CRAttackCatalogSchema):
+class CRAttackCatalog(_CRAttackCatalog):
     """Root CRML Attack Catalog document model."""
 
     @classmethod
@@ -204,7 +204,7 @@ class CRAttackCatalog(_CRAttackCatalogSchema):
         return dump_yaml_to_str(data, sort_keys=sort_keys)
 
 
-class CRAssessment(_CRAssessmentSchema):
+class CRAssessment(_CRAssessment):
     """Root CRML Assessment document model."""
 
     @classmethod
@@ -226,7 +226,7 @@ class CRAssessment(_CRAssessmentSchema):
         return dump_yaml_to_str(data, sort_keys=sort_keys)
 
 
-class CRControlRelationships(_CRControlRelationshipsSchema):
+class CRControlRelationships(_CRControlRelationships):
     """Root CRML Control Relationships document model."""
 
     @classmethod
@@ -248,7 +248,7 @@ class CRControlRelationships(_CRControlRelationshipsSchema):
         return dump_yaml_to_str(data, sort_keys=sort_keys)
 
 
-class CRAttackControlRelationships(_CRAttackControlRelationshipsSchema):
+class CRAttackControlRelationships(_CRAttackControlRelationships):
     """Root CRML Attack-to-Control Relationships document model."""
 
     @classmethod

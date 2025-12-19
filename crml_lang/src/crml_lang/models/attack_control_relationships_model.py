@@ -103,7 +103,7 @@ class AttackControlRelationshipsPack(BaseModel):
     )
 
 
-class CRAttackControlRelationshipsSchema(BaseModel):
+class CRAttackControlRelationships(BaseModel):
     crml_attack_control_relationships: Literal["1.0"] = Field(
         ..., description="Attack-to-control relationships document version identifier."
     )

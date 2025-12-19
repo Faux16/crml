@@ -798,7 +798,7 @@ def _relevance_control_namespace_warnings(
 
 
 def _load_scenario_doc(resolved_path: str) -> tuple[Any | None, str | None]:
-    """Load a scenario YAML file and validate it as a CRScenarioSchema.
+    """Load a scenario YAML file and validate it as a CRScenario.
 
     Returns:
         (scenario_doc, error_message). If loading/validation fails, scenario_doc is None.
@@ -809,9 +809,9 @@ def _load_scenario_doc(resolved_path: str) -> tuple[Any | None, str | None]:
         with open(resolved_path, "r", encoding="utf-8") as f:
             scenario_data = yaml.safe_load(f)
 
-        from ..models.scenario_model import CRScenarioSchema
+        from ..models.scenario_model import CRScenario
 
-        scenario_doc = CRScenarioSchema.model_validate(scenario_data)
+        scenario_doc = CRScenario.model_validate(scenario_data)
         return scenario_doc, None
     except Exception as e:
         return None, str(e)

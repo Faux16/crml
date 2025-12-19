@@ -133,7 +133,7 @@ class AssessmentCataloge(BaseModel):
     model_config: ConfigDict = ConfigDict(extra="forbid")
 
 
-class CRAssessmentSchema(BaseModel):
+class CRAssessment(BaseModel):
     crml_assessment: Literal["1.0"] = Field(
         ...,
         description="Assessment document version identifier.",

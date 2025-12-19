@@ -37,7 +37,7 @@ class ControlCataloge(BaseModel):
     controls: List[ControlCatalogEntry] = Field(..., description="List of catalog entries.")
 
 
-class CRControlCatalogSchema(BaseModel):
+class CRControlCatalog(BaseModel):
     crml_control_catalog: Literal["1.0"] = Field(
         ..., description="Control catalog document version identifier."
     )

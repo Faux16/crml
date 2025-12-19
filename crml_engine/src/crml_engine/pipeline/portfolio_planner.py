@@ -6,10 +6,10 @@ import os
 from pydantic import BaseModel, Field
 
 from crml_lang.models.portfolio_bundle import CRPortfolioBundle
-from crml_lang.models.portfolio_model import CRPortfolioSchema, Portfolio, ScenarioRef
-from crml_lang.models.scenario_model import CRScenarioSchema, ScenarioControl as ScenarioControlModel
-from crml_lang.models.assessment_model import CRAssessmentSchema, Assessment
-from crml_lang.models.control_catalog_model import CRControlCatalogSchema
+from crml_lang.models.portfolio_model import CRPortfolio, Portfolio, ScenarioRef
+from crml_lang.models.scenario_model import CRScenario, ScenarioControl as ScenarioControlModel
+from crml_lang.models.assessment_model import CRAssessment, Assessment
+from crml_lang.models.control_catalog_model import CRControlCatalog
 
 
 CONTROL_STATE_PREFIX = "control:"
@@ -99,7 +99,7 @@ class ResolvedScenario(BaseModel):
     resolved_path: Optional[str] = Field(None, description="Resolved absolute path for loading the scenario.")
     weight: Optional[float] = Field(None, description="Optional scenario weight (portfolio semantics dependent).")
 
-    scenario: Optional[CRScenarioSchema] = Field(
+    scenario: Optional[CRScenario] = Field(
         None,
         description=(
             "Optional inlined scenario document. When present, runtimes should prefer this "
@@ -412,7 +412,7 @@ def plan_portfolio(  # NOSONAR
         data = source
 
     try:
-        doc = CRPortfolioSchema.model_validate(data)
+        doc = CRPortfolio.model_validate(data)
     except Exception as e:
         return PlanReport(ok=False, errors=[PlanMessage(level="error", path="(schema)", message=str(e))])
 
@@ -440,7 +440,7 @@ def plan_portfolio(  # NOSONAR
             errors.append(PlanMessage(level="error", path=f"portfolio.control_catalogs[{idx}]", message=f"File not found: {p}"))
             continue
         try:
-            cat_doc = CRControlCatalogSchema.model_validate(_load_yaml_file(p))
+            cat_doc = CRControlCatalog.model_validate(_load_yaml_file(p))
             for entry in cat_doc.catalog.controls:
                 catalog_ids.add(entry.id)
         except Exception as e:
@@ -451,7 +451,7 @@ def plan_portfolio(  # NOSONAR
             errors.append(PlanMessage(level="error", path=f"portfolio.assessments[{idx}]", message=f"File not found: {p}"))
             continue
         try:
-            assess_doc = CRAssessmentSchema.model_validate(_load_yaml_file(p))
+            assess_doc = CRAssessment.model_validate(_load_yaml_file(p))
             for a in assess_doc.assessment.assessments:
                 if a.id in assessment_by_id:
                     warnings.append(
@@ -565,7 +565,7 @@ def plan_portfolio(  # NOSONAR
             continue
 
         try:
-            scenario_doc = CRScenarioSchema.model_validate(_load_yaml_file(scenario_path))
+            scenario_doc = CRScenario.model_validate(_load_yaml_file(scenario_path))
         except Exception as e:
             errors.append(
                 PlanMessage(
@@ -897,7 +897,7 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:  # NOSONAR
                     }
 
     # Scenario lookup by id (bundle payload holds the inlined scenarios)
-    scenario_by_id: dict[str, CRScenarioSchema] = {s.id: s.scenario for s in (payload.scenarios or [])}
+    scenario_by_id: dict[str, CRScenario] = {s.id: s.scenario for s in (payload.scenarios or [])}
 
     resolved_scenarios: list[ResolvedScenario] = []
     for idx, sref in enumerate(portfolio.scenarios):

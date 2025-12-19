@@ -4,13 +4,13 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import AliasChoices, BaseModel, Field
 
-from .scenario_model import CRScenarioSchema
-from .portfolio_model import CRPortfolioSchema
-from .control_catalog_model import CRControlCatalogSchema
-from .assessment_model import CRAssessmentSchema
-from .control_relationships_model import CRControlRelationshipsSchema
-from .attack_catalog_model import CRAttackCatalogSchema
-from .attack_control_relationships_model import CRAttackControlRelationshipsSchema
+from .scenario_model import CRScenario
+from .portfolio_model import CRPortfolio
+from .control_catalog_model import CRControlCatalog
+from .assessment_model import CRAssessment
+from .control_relationships_model import CRControlRelationships
+from .attack_catalog_model import CRAttackCatalog
+from .attack_control_relationships_model import CRAttackControlRelationships
 
 
 class BundleMessage(BaseModel):
@@ -25,7 +25,7 @@ class BundledScenario(BaseModel):
     # Traceability only; engines should not require filesystem access.
     source_path: Optional[str] = Field(None, description="Original scenario path reference (if any).")
 
-    scenario: CRScenarioSchema = Field(..., description="Inlined, validated CRML scenario document.")
+    scenario: CRScenario = Field(..., description="Inlined, validated CRML scenario document.")
 
 
 class PortfolioBundlePayload(BaseModel):
@@ -34,36 +34,36 @@ class PortfolioBundlePayload(BaseModel):
     This is intentionally the inlined artifact content; engines should not require filesystem access.
     """
 
-    portfolio: CRPortfolioSchema = Field(..., description="The CRML portfolio document.")
+    portfolio: CRPortfolio = Field(..., description="The CRML portfolio document.")
 
     scenarios: List[BundledScenario] = Field(
         default_factory=list,
         description="Scenario documents referenced by the portfolio, inlined.",
     )
 
-    control_catalogs: List[CRControlCatalogSchema] = Field(
+    control_catalogs: List[CRControlCatalog] = Field(
         default_factory=list,
         description="Optional inlined control catalog packs referenced by the portfolio.",
     )
 
-    assessments: List[CRAssessmentSchema] = Field(
+    assessments: List[CRAssessment] = Field(
         default_factory=list,
         validation_alias=AliasChoices("assessments"),
         serialization_alias="assessments",
         description="Optional inlined assessment packs referenced by the portfolio.",
     )
 
-    control_relationships: List[CRControlRelationshipsSchema] = Field(
+    control_relationships: List[CRControlRelationships] = Field(
         default_factory=list,
         description="Optional inlined control relationships packs referenced by the portfolio.",
     )
 
-    attack_catalogs: List[CRAttackCatalogSchema] = Field(
+    attack_catalogs: List[CRAttackCatalog] = Field(
         default_factory=list,
         description="Optional inlined attack catalogs (e.g., MITRE ATT&CK) referenced by the portfolio.",
     )
 
-    attack_control_relationships: List[CRAttackControlRelationshipsSchema] = Field(
+    attack_control_relationships: List[CRAttackControlRelationships] = Field(
         default_factory=list,
         description="Optional inlined attack-to-control relationships mappings referenced by the portfolio.",
     )

@@ -15,7 +15,7 @@ import time
 import numpy as np
 from typing import Union, Optional, Dict, List
 
-from crml_lang.models.scenario_model import load_crml_from_yaml_str, CRScenarioSchema
+from crml_lang.models.scenario_model import load_crml_from_yaml_str, CRScenario
 from ..models.result_model import SimulationResult, Metrics, Distribution, Metadata
 from ..models.fx_model import FXConfig, convert_currency, get_currency_symbol, normalize_fx_config
 from ..models.constants import DEFAULT_FX_RATES
@@ -80,7 +80,7 @@ def _coerce_multiplier(
     return arr
 
 
-def _load_scenario_document(yaml_content: Union[str, dict], *, result: SimulationResult) -> Optional[CRScenarioSchema]:
+def _load_scenario_document(yaml_content: Union[str, dict], *, result: SimulationResult) -> Optional[CRScenario]:
     """Parse and validate a CRML scenario from supported input types.
 
     Args:
@@ -89,7 +89,7 @@ def _load_scenario_document(yaml_content: Union[str, dict], *, result: Simulatio
         result: Result object used to collect parsing/validation errors.
 
     Returns:
-        A validated `CRScenarioSchema` on success, otherwise None.
+        A validated `CRScenario` on success, otherwise None.
 
     Notes:
         Errors are recorded in `result.errors` rather than raised.
@@ -105,7 +105,7 @@ def _load_scenario_document(yaml_content: Union[str, dict], *, result: Simulatio
             return load_crml_from_yaml_str(yaml_content)
 
         if isinstance(yaml_content, dict):
-            return CRScenarioSchema.model_validate(yaml_content)
+            return CRScenario.model_validate(yaml_content)
 
         result.errors.append("Invalid input type")
         return None

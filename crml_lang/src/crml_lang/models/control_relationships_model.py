@@ -167,7 +167,7 @@ class ControlRelationshipsPack(BaseModel):
     )
 
 
-class CRControlRelationshipsSchema(BaseModel):
+class CRControlRelationships(BaseModel):
     crml_control_relationships: Literal["1.0"] = Field(
         ..., description="Control relationships document version identifier."
     )

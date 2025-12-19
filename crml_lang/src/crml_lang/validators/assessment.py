@@ -65,9 +65,9 @@ def _validate_against_schema(data: dict[str, Any]) -> list[ValidationMessage]:
 def _strict_validate_model(data: dict[str, Any]) -> Optional[ValidationMessage]:
     """Validate against the Pydantic model and return a single error (if any)."""
     try:
-        from ..models.assessment_model import CRAssessmentSchema
+        from ..models.assessment_model import CRAssessment
 
-        CRAssessmentSchema.model_validate(data)
+        CRAssessment.model_validate(data)
         return None
     except Exception as e:
         return ValidationMessage(

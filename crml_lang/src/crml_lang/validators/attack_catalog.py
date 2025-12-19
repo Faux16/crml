@@ -91,9 +91,9 @@ def _semantic_attack_id_errors(data: dict[str, Any]) -> list[ValidationMessage]:
 def _pydantic_strict_errors(data: dict[str, Any]) -> list[ValidationMessage]:
     """Validate using the Pydantic model (strict mode)."""
     try:
-        from ..models.attack_catalog_model import CRAttackCatalogSchema
+        from ..models.attack_catalog_model import CRAttackCatalog
 
-        CRAttackCatalogSchema.model_validate(data)
+        CRAttackCatalog.model_validate(data)
         return []
     except Exception as e:
         return [

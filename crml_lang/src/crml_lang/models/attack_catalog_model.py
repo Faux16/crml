@@ -35,7 +35,7 @@ class AttackCataloge(BaseModel):
     attacks: List[AttackCatalogEntry] = Field(..., description="List of attack pattern catalog entries.")
 
 
-class CRAttackCatalogSchema(BaseModel):
+class CRAttackCatalog(BaseModel):
     crml_attack_catalog: Literal["1.0"] = Field(
         ..., description="Attack catalog document version identifier."
     )

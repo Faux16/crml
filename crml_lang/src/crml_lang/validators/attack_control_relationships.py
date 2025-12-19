@@ -201,9 +201,9 @@ def validate_attack_control_relationships(
 
     if strict_model and not errors:
         try:
-            from ..models.attack_control_relationships_model import CRAttackControlRelationshipsSchema
+            from ..models.attack_control_relationships_model import CRAttackControlRelationships
 
-            CRAttackControlRelationshipsSchema.model_validate(data)
+            CRAttackControlRelationships.model_validate(data)
         except Exception as e:
             errors.append(
                 ValidationMessage(

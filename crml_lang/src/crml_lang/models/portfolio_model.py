@@ -253,7 +253,7 @@ class Portfolio(BaseModel):
     )
 
 
-class CRPortfolioSchema(BaseModel):
+class CRPortfolio(BaseModel):
     crml_portfolio: Literal["1.0"] = Field(..., description="Portfolio document version identifier.")
     meta: Meta = Field(..., description="Document metadata (name, description, tags, etc.).")
     portfolio: Portfolio = Field(..., description="The portfolio payload.")

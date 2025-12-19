@@ -7,10 +7,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
-from ..models.control_catalog_model import CRControlCatalogSchema
-from ..models.attack_catalog_model import CRAttackCatalogSchema
-from ..models.control_relationships_model import CRControlRelationshipsSchema
-from ..models.attack_control_relationships_model import CRAttackControlRelationshipsSchema
+from ..models.control_catalog_model import CRControlCatalog
+from ..models.attack_catalog_model import CRAttackCatalog
+from ..models.control_relationships_model import CRControlRelationships
+from ..models.attack_control_relationships_model import CRAttackControlRelationships
 
 
 _WORKBOOK_FORMAT = "crml_xlsx_mapping"
@@ -385,22 +385,22 @@ def _group_last_or_new(rel_list: list[dict[str, Any]], *, key_field: str, key_va
 
 @dataclass(frozen=True)
 class ImportedXlsx:
-    control_catalogs: list[CRControlCatalogSchema]
-    attack_catalogs: list[CRAttackCatalogSchema]
-    control_relationships: list[CRControlRelationshipsSchema]
-    attack_control_relationships: list[CRAttackControlRelationshipsSchema]
+    control_catalogs: list[CRControlCatalog]
+    attack_catalogs: list[CRAttackCatalog]
+    control_relationships: list[CRControlRelationships]
+    attack_control_relationships: list[CRAttackControlRelationships]
 
 
 def export_xlsx(
     out_path: str,
     *,
-    control_catalogs: Iterable[CRControlCatalogSchema] = (),
+    control_catalogs: Iterable[CRControlCatalog] = (),
     control_catalog_paths: Iterable[str | Path] = (),
-    attack_catalogs: Iterable[CRAttackCatalogSchema] = (),
+    attack_catalogs: Iterable[CRAttackCatalog] = (),
     attack_catalog_paths: Iterable[str | Path] = (),
-    control_relationships: Iterable[CRControlRelationshipsSchema] = (),
+    control_relationships: Iterable[CRControlRelationships] = (),
     control_relationship_paths: Iterable[str | Path] = (),
-    attack_control_relationships: Iterable[CRAttackControlRelationshipsSchema] = (),
+    attack_control_relationships: Iterable[CRAttackControlRelationships] = (),
     attack_control_relationship_paths: Iterable[str | Path] = (),
 ) -> None:
     """Export CRML documents into a strict XLSX workbook.
@@ -411,16 +411,16 @@ def export_xlsx(
     openpyxl = _xlsx_module()
 
     catalogs = list(control_catalogs) + _load_docs_from_paths(
-        control_catalog_paths, CRControlCatalogSchema
+        control_catalog_paths, CRControlCatalog
     )
     attack_catalogs_list = list(attack_catalogs) + _load_docs_from_paths(
-        attack_catalog_paths, CRAttackCatalogSchema
+        attack_catalog_paths, CRAttackCatalog
     )
     rels = list(control_relationships) + _load_docs_from_paths(
-        control_relationship_paths, CRControlRelationshipsSchema
+        control_relationship_paths, CRControlRelationships
     )
     attck_rels = list(attack_control_relationships) + _load_docs_from_paths(
-        attack_control_relationship_paths, CRAttackControlRelationshipsSchema
+        attack_control_relationship_paths, CRAttackControlRelationships
     )
 
     wb = openpyxl.Workbook()
@@ -688,7 +688,7 @@ def _write_human_header(ws, columns: list[tuple[str, str, str]]) -> None:
         ws.cell(row=2, column=idx).comment = Comment(desc, "crml")
 
 
-def _write_control_catalogs_sheet(wb, docs: list[CRControlCatalogSchema]) -> None:
+def _write_control_catalogs_sheet(wb, docs: list[CRControlCatalog]) -> None:
     ws = wb.create_sheet(_SHEET_CONTROL_CATALOGS)
     _write_human_header(
         ws,
@@ -741,7 +741,7 @@ def _write_control_catalogs_sheet(wb, docs: list[CRControlCatalogSchema]) -> Non
             )
 
 
-def _write_attack_catalogs_sheet(wb, docs: list[CRAttackCatalogSchema]) -> None:
+def _write_attack_catalogs_sheet(wb, docs: list[CRAttackCatalog]) -> None:
     ws = wb.create_sheet(_SHEET_ATTACK_CATALOGS)
     _write_human_header(
         ws,
@@ -782,7 +782,7 @@ def _write_attack_catalogs_sheet(wb, docs: list[CRAttackCatalogSchema]) -> None:
             )
 
 
-def _read_control_catalogs_sheet(wb, *, header_rows: int) -> list[CRControlCatalogSchema]:
+def _read_control_catalogs_sheet(wb, *, header_rows: int) -> list[CRControlCatalog]:
     header, body_rows = _read_sheet_rows(wb, _SHEET_CONTROL_CATALOGS, header_rows=header_rows)
     if not header:
         return []
@@ -826,10 +826,10 @@ def _read_control_catalogs_sheet(wb, *, header_rows: int) -> list[CRControlCatal
             }
         )
 
-    return [CRControlCatalogSchema.model_validate(d) for d in out_by_doc.values()]
+    return [CRControlCatalog.model_validate(d) for d in out_by_doc.values()]
 
 
-def _read_attack_catalogs_sheet(wb, *, header_rows: int) -> list[CRAttackCatalogSchema]:
+def _read_attack_catalogs_sheet(wb, *, header_rows: int) -> list[CRAttackCatalog]:
     header, body_rows = _read_sheet_rows(wb, _SHEET_ATTACK_CATALOGS, header_rows=header_rows)
     if not header:
         return []
@@ -882,10 +882,10 @@ def _read_attack_catalogs_sheet(wb, *, header_rows: int) -> list[CRAttackCatalog
             }
         )
 
-    return [CRAttackCatalogSchema.model_validate(d) for d in out_by_doc.values()]
+    return [CRAttackCatalog.model_validate(d) for d in out_by_doc.values()]
 
 
-def _write_control_relationships_sheet(wb, docs: list[CRControlRelationshipsSchema]) -> None:
+def _write_control_relationships_sheet(wb, docs: list[CRControlRelationships]) -> None:
     ws = wb.create_sheet(_SHEET_CONTROL_RELATIONSHIPS)
     _write_human_header(
         ws,
@@ -949,7 +949,7 @@ def _write_control_relationships_sheet(wb, docs: list[CRControlRelationshipsSche
 
 def _read_control_relationships_sheet(
     wb, *, header_rows: int
-) -> list[CRControlRelationshipsSchema]:
+) -> list[CRControlRelationships]:
     header, body_rows = _read_sheet_rows(wb, _SHEET_CONTROL_RELATIONSHIPS, header_rows=header_rows)
     if not header:
         return []
@@ -1019,11 +1019,11 @@ def _read_control_relationships_sheet(
             }
         )
 
-    return [CRControlRelationshipsSchema.model_validate(d) for d in out_by_doc.values()]
+    return [CRControlRelationships.model_validate(d) for d in out_by_doc.values()]
 
 
 def _write_attack_control_relationships_sheet(
-    wb, docs: list[CRAttackControlRelationshipsSchema]
+    wb, docs: list[CRAttackControlRelationships]
 ) -> None:
     ws = wb.create_sheet(_SHEET_ATTACK_CONTROL_RELATIONSHIPS)
     _write_human_header(
@@ -1078,7 +1078,7 @@ def _write_attack_control_relationships_sheet(
 
 def _read_attack_control_relationships_sheet(
     wb, *, header_rows: int
-) -> list[CRAttackControlRelationshipsSchema]:
+) -> list[CRAttackControlRelationships]:
     header, body_rows = _read_sheet_rows(wb, _SHEET_ATTACK_CONTROL_RELATIONSHIPS, header_rows=header_rows)
     if not header:
         return []
@@ -1147,7 +1147,7 @@ def _read_attack_control_relationships_sheet(
             }
         )
 
-    return [CRAttackControlRelationshipsSchema.model_validate(d) for d in out_by_doc.values()]
+    return [CRAttackControlRelationships.model_validate(d) for d in out_by_doc.values()]
 
 
 def write_imported_as_yaml(

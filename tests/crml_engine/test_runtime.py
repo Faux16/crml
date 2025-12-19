@@ -1,5 +1,6 @@
-from crml_engine.runtime import run_simulation, DEFAULT_FX_RATES
+from crml_engine.runtime import run_simulation, run_simulation_envelope, DEFAULT_FX_RATES
 from crml_engine.models.result_model import SimulationResult
+from crml_lang import CRSimulationResult
 
 def test_run_simulation_valid(valid_crml_file):
     # Mock numpy random to make test deterministic if needed, 
@@ -31,6 +32,27 @@ scenario:
     p.write_text(content)
     result = run_simulation(str(p), n_runs=10, seed=123)
     assert result.success is False
+
+
+  def test_run_simulation_envelope_valid(valid_crml_content):
+    env = run_simulation_envelope(
+      valid_crml_content,
+      n_runs=200,
+      seed=123,
+      fx_config={
+        "base_currency": "USD",
+        "output_currency": "EUR",
+        "rates": None,
+      },
+    )
+    assert isinstance(env, CRSimulationResult)
+    assert env.result.engine.name == "crml_engine"
+    assert env.result.success is True
+
+    # Web UI relies on measures/artifacts being present and JSON-serializable.
+    dumped = env.model_dump()
+    assert dumped["crml_simulation_result"] == "1.0"
+    assert dumped["result"]["success"] is True
 
 
 def test_lognormal_mu_currency_matches_single_losses_with_output_currency_conversion():

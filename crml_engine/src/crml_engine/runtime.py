@@ -20,10 +20,17 @@ import os
 from crml_engine.pipeline import plan_bundle, plan_portfolio
 import numpy as np
 
-from .models.result_model import SimulationResult, Metrics, Distribution, Metadata, print_result
+from .models.result_model import (
+    SimulationResult as EngineSimulationResult,
+    Metrics,
+    Distribution,
+    Metadata,
+    print_result,
+)
 from crml_lang.models.simulation_result import (
     CurrencyUnit,
     EngineInfo,
+    SimulationResult as EnvelopeSimulationResult,
     HistogramArtifact,
     InputInfo,
     Measure,
@@ -221,7 +228,7 @@ def _approx_right_tail_expectation_from_histogram(
 def _populate_envelope_summaries(
     *,
     envelope: CRSimulationResult,
-    result: SimulationResult,
+    result: EngineSimulationResult,
     currency_unit: CurrencyUnit | None,
     runs: int | None,
 ) -> None:
@@ -407,7 +414,7 @@ def _route_simulation_document(
     n_runs: int,
     seed: int | None,
     fx_config: Optional[FXConfig],
-) -> SimulationResult | None:
+) -> EngineSimulationResult | None:
     """Route a parsed YAML root to the appropriate simulation function."""
     kind = _infer_source_kind(source)
 
@@ -432,7 +439,7 @@ def _route_simulation_document(
     return None
 
 
-def _portfolio_error_result(msg: str) -> SimulationResult:
+def _portfolio_error_result(msg: str) -> EngineSimulationResult:
     """Create a standardized failure `SimulationResult` for portfolio execution.
 
     Args:
@@ -441,7 +448,7 @@ def _portfolio_error_result(msg: str) -> SimulationResult:
     Returns:
         A `SimulationResult` with `success=False` and `errors=[msg]`.
     """
-    return SimulationResult(
+    return EngineSimulationResult(
         success=False,
         metrics=None,
         distribution=None,
@@ -678,7 +685,9 @@ def _run_single_portfolio_scenario(
     # Prefer inlined scenario docs (bundle mode) to avoid filesystem dependency.
     scenario_doc = getattr(sc, "scenario", None)
     if scenario_doc is not None:
-        scenario_input: object = scenario_doc.model_dump(exclude_none=True)
+        # `run_monte_carlo` expects CRML-shaped keys (e.g. "lambda"), but Pydantic
+        # models dump field names by default (e.g. "lambda_"). Use aliases here.
+        scenario_input: object = scenario_doc.model_dump(exclude_none=True, by_alias=True)
     else:
         scenario_path = sc.resolved_path or sc.path
         if not scenario_path:
@@ -775,7 +784,7 @@ def run_portfolio_simulation(
     n_runs: int = 10000,
     seed: int | None = None,
     fx_config: Optional[FXConfig] = None,
-) -> SimulationResult:
+) -> EngineSimulationResult:
     """Run a CRML portfolio simulation.
 
     This function is a reference implementation demonstrating CRML portfolio
@@ -820,7 +829,7 @@ def run_portfolio_simulation(
     report = plan_portfolio(portfolio_source, source_kind=source_kind)  # type: ignore[arg-type]
     if not report.ok or report.plan is None:
         errors = [e.message for e in (report.errors or [])]
-        return SimulationResult(success=False, errors=errors)
+        return EngineSimulationResult(success=False, errors=errors)
 
     plan = report.plan
     semantics = plan.semantics_method
@@ -861,7 +870,7 @@ def run_portfolio_simulation(
         return _portfolio_error_result(str(e))
 
     metrics, distribution = _compute_metrics_and_distribution(total, bin_count=50)
-    return SimulationResult(
+    return EngineSimulationResult(
         success=True,
         metrics=metrics,
         distribution=distribution,
@@ -886,7 +895,7 @@ def run_portfolio_bundle_simulation(
     n_runs: int = 10000,
     seed: int | None = None,
     fx_config: Optional[FXConfig] = None,
-) -> SimulationResult:
+) -> EngineSimulationResult:
     """Run a CRML portfolio bundle simulation.
 
     A portfolio bundle is a self-contained artifact produced by `crml_lang`
@@ -922,12 +931,12 @@ def run_portfolio_bundle_simulation(
             assert isinstance(bundle_source, dict)
             bundle = CRPortfolioBundle.model_validate(bundle_source)
     except Exception as e:
-        return SimulationResult(success=False, errors=[str(e)])
+        return EngineSimulationResult(success=False, errors=[str(e)])
 
     report = plan_bundle(bundle)
     if not report.ok or report.plan is None:
         errors = [e.message for e in (report.errors or [])]
-        return SimulationResult(success=False, errors=errors)
+        return EngineSimulationResult(success=False, errors=errors)
 
     plan = report.plan
     semantics = plan.semantics_method
@@ -968,7 +977,7 @@ def run_portfolio_bundle_simulation(
         return _portfolio_error_result(str(e))
 
     metrics, distribution = _compute_metrics_and_distribution(total, bin_count=50)
-    return SimulationResult(
+    return EngineSimulationResult(
         success=True,
         metrics=metrics,
         distribution=distribution,
@@ -990,7 +999,7 @@ def run_simulation(
     n_runs: int = 10000, 
     seed: int | None = None, 
     fx_config: Optional[FXConfig] = None
-) -> SimulationResult:
+) -> EngineSimulationResult:
     """Run a Monte Carlo simulation for CRML inputs.
 
     This convenience wrapper accepts multiple CRML document types:
@@ -1028,7 +1037,7 @@ def run_simulation_envelope(
     yaml_content: Union[str, dict],
     n_runs: int = 10000,
     seed: int | None = None,
-    fx_config: Optional[FXConfig] = None,
+    fx_config: Optional[FXConfig | dict] = None,
 ) -> CRSimulationResult:
     """Run a simulation and return the engine-agnostic result envelope.
 
@@ -1046,7 +1055,8 @@ def run_simulation_envelope(
         artifacts.
     """
 
-    result = run_simulation(yaml_content, n_runs=n_runs, seed=seed, fx_config=fx_config)
+    fx_config_norm = normalize_fx_config(fx_config)
+    result = run_simulation(yaml_content, n_runs=n_runs, seed=seed, fx_config=fx_config_norm)
 
     # Best-effort parsing for traceability extraction.
     parsed_scenario = _try_parse_scenario(yaml_content)
@@ -1080,7 +1090,7 @@ def run_simulation_envelope(
         currency_unit = CurrencyUnit(code=currency_code, symbol=currency_symbol)
 
     envelope = CRSimulationResult(
-        result=SimulationResult(
+        result=EnvelopeSimulationResult(
             success=result.success,
             errors=list(result.errors or []),
             warnings=list(getattr(result, "warnings", None) or []),
@@ -1102,7 +1112,11 @@ def run_simulation_envelope(
     )
 
     _populate_envelope_summaries(envelope=envelope, result=result, currency_unit=currency_unit, runs=runs)
-    envelope.result.trace = _build_traceability(yaml_content=yaml_content, parsed_scenario=parsed_scenario, fx_config=fx_config)
+    envelope.result.trace = _build_traceability(
+        yaml_content=yaml_content,
+        parsed_scenario=parsed_scenario,
+        fx_config=fx_config_norm,
+    )
 
     metrics = result.metrics
     if metrics is not None:

@@ -126,7 +126,8 @@ fx_config = {
 }
 
 result = run_simulation_envelope(yaml_content, n_runs=${runs}${seedArg}, fx_config=fx_config)
-print(json.dumps(result.model_dump()))
+payload = result.model_dump(mode='json')
+print(json.dumps(payload, ensure_ascii=True))
 `;
 
     const { stdout, stderr, exitCode, timedOut } = await runPythonWithStdin(pythonCmd, pythonCode, yamlContent, 30000);

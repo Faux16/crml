@@ -4,7 +4,9 @@
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Version:** 1.2
+> **⚠️ WARNING**
+> This codebase is currently being developed on the **`1.2` branch**. For the latest work-in-progress and source of truth, see: https://github.com/Faux16/crml/tree/crml-dev-1.2
+**Version:** 1.1
 **Maintained by:** Zeron Research Labs
 
 CRML is an open, declarative, implementation-agnostic language for expressing cyber risk models, telemetry mappings, simulation pipelines, dependencies, and output requirements.

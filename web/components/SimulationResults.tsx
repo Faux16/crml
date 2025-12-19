@@ -58,17 +58,21 @@ export interface CrmlResultPayload {
     artifacts: CrmlArtifact[];
 }
 
-export interface CRSimulationResult {
-    schema_id: "crml.simulation.result";
-    schema_version: string;
+export interface CRSimulationResultInner {
     success: boolean;
     errors?: string[];
     warnings?: string[];
-    engine: { name: string; version?: string };
+    engine?: { name: string; version?: string };
     run?: { runs?: number; seed?: number; runtime_ms?: number; started_at?: string };
     inputs?: { model_name?: string; model_version?: string; description?: string };
     units?: { currency: CrmlCurrencyUnit; horizon?: string };
-    results: CrmlResultPayload;
+    results?: CrmlResultPayload;
+}
+
+// Canonical CRML-Lang envelope returned by the Python engine.
+export interface CRSimulationResult {
+    crml_simulation_result: "1.0";
+    result: CRSimulationResultInner;
 }
 
 export interface SimulationDistribution {
@@ -157,7 +161,9 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
         );
     }
 
-    if (!result.success) {
+    const inner = result.result;
+
+    if (!inner.success) {
         const errorKeyCounts = new Map<string, number>();
         return (
             <Card className="h-full border-destructive">
@@ -171,7 +177,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                     <Alert variant="destructive">
                         <AlertDescription>
                             <ul className="list-disc space-y-1 pl-4">
-                                {result.errors?.map((error) => {
+                                {inner.errors?.map((error) => {
                                     const count = errorKeyCounts.get(error) ?? 0;
                                     errorKeyCounts.set(error, count + 1);
                                     return <li key={`${error}::${count}`}>{error}</li>;
@@ -184,10 +190,10 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
         );
     }
 
-    const measures = result.results?.measures ?? [];
-    const artifacts = result.results?.artifacts ?? [];
+    const measures = inner.results?.measures ?? [];
+    const artifacts = inner.results?.artifacts ?? [];
 
-    const currency = result.units?.currency?.symbol || result.units?.currency?.code || '$';
+    const currency = inner.units?.currency?.symbol || inner.units?.currency?.code || '$';
 
     const getMeasure = (id: string) => measures.find(m => m.id === id);
     const getVar = (level: number) => measures.find((m) => {
@@ -210,12 +216,12 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
     };
 
     const metadata: SimulationMetadata = {
-        runs: result.run?.runs || 0,
-        runtime_ms: result.run?.runtime_ms || 0,
-        model_name: result.inputs?.model_name || "",
-        model_version: result.inputs?.model_version,
-        description: result.inputs?.description,
-        seed: result.run?.seed,
+        runs: inner.run?.runs || 0,
+        runtime_ms: inner.run?.runtime_ms || 0,
+        model_name: inner.inputs?.model_name || "",
+        model_version: inner.inputs?.model_version,
+        description: inner.inputs?.description,
+        seed: inner.run?.seed,
         currency,
     };
 

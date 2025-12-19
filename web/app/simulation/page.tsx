@@ -12,105 +12,16 @@ import CodeEditor from "@/components/CodeEditor";
 import SimulationResults, { CRSimulationResult } from "@/components/SimulationResults";
 import { Play, RotateCcw, FileText, Settings2, HelpCircle, Info, BookOpen } from "lucide-react";
 import Link from "next/link";
+import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
 
 const EXAMPLE_MODELS = {
-"data-breach": {
-    name: "Data Breach (Simple)",
-    description: "50 databases with PII, 5% annual breach probability, $100K median cost",
-    explanation: "This model represents a small-medium organization with customer data. Lambda=0.05 means 5% chance per database per year (industry average). Median=100000 means $100K typical loss per breach.",
-    content: `crml: "1.1"
-meta:
-  name: "data-breach-simple"
-  description: "Simple data breach risk model"
-model:
-  assets:
-    - name: "database"
-      cardinality: 50
-  frequency:
-    model: poisson  # Rare, random events
-    parameters:
-      lambda: 0.05  # 5% annual probability per database
-  severity:
-    model: lognormal  # Typical small losses, rare large ones
-    parameters:
-      median: "100 000"  # $100K median loss
-      currency: USD
-      sigma: 1.2  # Moderate variability`
-    },
-    "ransomware": {
-        name: "Ransomware Scenario",
-        description: "500 critical servers, 8% annual ransomware probability, $700K median loss",
-        explanation: "Enterprise ransomware model based on 2023 industry data. Lambda=0.08 reflects ~8% of organizations hit annually. Median=700000 means $700K median loss (ransom + downtime + recovery).",
-        content: `crml: "1.1"
-meta:
-  name: "ransomware-scenario"
-  description: "Ransomware risk based on industry statistics"
-model:
-  assets:
-    - name: "critical_system"
-      cardinality: 500
-  frequency:
-    model: poisson
-    parameters:
-      lambda: 0.08  # 8% annual probability (Sophos 2023)
-  severity:
-    model: lognormal
-    parameters:
-      median: "700 000"  # $700K median (industry avg)
-      currency: USD
-      sigma: 1.8  # High variability (some pay $50K, others $5M)`
-    },
-    "fair-baseline": {
-    name: "FAIR Baseline",
-    description: "Simple FAIR-style portfolio model with 1.2 events/year, $8K median loss",
-    explanation: "Basic FAIR model for portfolio-level analysis. Lambda=1.2 means ~1-2 events expected per year across all assets. Median=8100 means $8100 median loss.",
-    content: `crml: "1.1"
-meta:
-  name: "fair-baseline"
-  description: "Simple FAIR-like Poisson + Lognormal model"
-model:
-  frequency:
-    model: poisson
-    scope: portfolio  # Portfolio-level (not per-asset)
-    parameters:
-      lambda: 1.2  # ~1-2 events per year total
-  severity:
-    model: lognormal
-    parameters:
-      median: "8 100"  # $8,100 median loss
-      currency: USD
-      sigma: 1.0  # Low variability`
-    },
-    "qber-simplified": {
-    name: "QBER Simplified",
-    description: "1000 assets, hierarchical Bayesian model with mixture severity",
-    explanation: "Simplified QBER-style model using hierarchical_gamma_poisson for frequency and mixture distributions for severity. Note: Full QBER uses MCMC; this is a Monte Carlo approximation.",
-    content: `crml: "1.1"
-meta:
-  name: "qber-simplified"
-  description: "Simplified QBER-style model"
-model:
-  assets:
-    - name: "endpoint"
-      cardinality: 1000
-  frequency:
-    model: hierarchical_gamma_poisson  # Bayesian hierarchical
-    parameters:
-      alpha_base: 1.5
-      beta_base: 1.5
-  severity:
-    model: mixture  # 70% lognormal, 30% gamma
-    components:
-      - lognormal:
-          weight: 0.7
-          median: "162 755"  # ~$163K median loss
-          currency: USD
-          sigma: 1.2
-      - gamma:
-          weight: 0.3
-          shape: 2.5
-          scale: 10000`
-    }
+        "portfolio-bundle": {
+                name: "Portfolio Bundle (Documented)",
+                description: "A full CRML PortfolioBundle with inlined scenarios and catalogs",
+                explanation:
+                        "This example is a self-contained portfolio bundle: it includes a portfolio, inlined scenarios, and optional catalogs/relationships for portable engine execution and audit-ready exchange.",
+                content: PORTFOLIO_BUNDLE_DOCUMENTED_YAML
+        },
 };
 
 // Supported output currencies (rate = value of 1 unit in USD)
@@ -126,8 +37,8 @@ const OUTPUT_CURRENCIES = {
 };
 
 export default function SimulationPage() {
-    const [yamlContent, setYamlContent] = useState(EXAMPLE_MODELS["data-breach"].content);
-    const [selectedExample, setSelectedExample] = useState("data-breach");
+    const [yamlContent, setYamlContent] = useState(EXAMPLE_MODELS["portfolio-bundle"].content);
+    const [selectedExample, setSelectedExample] = useState("portfolio-bundle");
     const [simulationResult, setSimulationResult] = useState<CRSimulationResult | null>(null);
     const [isSimulating, setIsSimulating] = useState(false);
     const [runs, setRuns] = useState("10000");
@@ -172,15 +83,16 @@ export default function SimulationPage() {
             setSimulationResult(result as CRSimulationResult);
         } catch (error) {
             setSimulationResult({
-                schema_id: "crml.simulation.result",
-                schema_version: "1.0.0",
-                success: false,
-                errors: ["Failed to run simulation: " + (error as Error).message],
-                warnings: [],
-                engine: { name: "web", version: undefined },
-                run: { runs: runsValue, seed: seedValue },
-                inputs: {},
-                results: { measures: [], artifacts: [] },
+                crml_simulation_result: "1.0",
+                result: {
+                    success: false,
+                    errors: ["Failed to run simulation: " + (error as Error).message],
+                    warnings: [],
+                    engine: { name: "web", version: undefined },
+                    run: { runs: runsValue, seed: seedValue },
+                    inputs: {},
+                    results: { measures: [], artifacts: [] },
+                },
             });
         } finally {
             setIsSimulating(false);

@@ -6,25 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import CodeEditor from "@/components/CodeEditor";
 import ValidationResults, { ValidationResult } from "@/components/ValidationResults";
 import { Upload, Play, FileText, Download } from "lucide-react";
+import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
 
-const DEFAULT_YAML = `crml: "1.1"
-meta:
-  name: "my-risk-model"
-  description: "A simple cyber risk model"
-model:
-  assets:
-    - name: "PIIdatabase"
-      cardinality: 50  # 50 databases with PII
-  frequency:
-    model: poisson
-    parameters:
-      lambda: 0.1
-  severity:
-    model: lognormal
-    parameters:
-      mu: 10.0
-      sigma: 1.0
-`;
+const DEFAULT_YAML = PORTFOLIO_BUNDLE_DOCUMENTED_YAML;
 
 export default function ValidatorPage() {
     const [yamlContent, setYamlContent] = useState(DEFAULT_YAML);

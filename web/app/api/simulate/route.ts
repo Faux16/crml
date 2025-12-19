@@ -21,6 +21,24 @@ function isValidCurrency(currency: string): boolean {
     return VALID_CURRENCIES.has(currency);
 }
 
+function errorEnvelope(message: string, status = 400, run?: { runs?: number; seed?: number }) {
+    return NextResponse.json(
+        {
+            crml_simulation_result: '1.0',
+            result: {
+                success: false,
+                errors: [message],
+                warnings: [],
+                engine: { name: 'web', version: undefined },
+                run,
+                inputs: {},
+                results: { measures: [], artifacts: [] },
+            },
+        },
+        { status },
+    );
+}
+
 async function commandExists(cmd: string): Promise<boolean> {
     return await new Promise((resolve) => {
         const which = process.platform === 'win32' ? 'where' : 'which';
@@ -45,43 +63,28 @@ export async function POST(request: NextRequest) {
         const outputCurrency = isRecord(body) && typeof body['outputCurrency'] === 'string' ? body['outputCurrency'] : 'USD';
 
         if (!yaml) {
-            return NextResponse.json(
-                { success: false, errors: ['YAML content is required'] },
-                { status: 400 }
-            );
+            return errorEnvelope('YAML content is required', 400);
         }
 
         // Validate runs parameter
         const numRuns = parseIntegerFromNumberOrString(runs);
         if (numRuns == null || numRuns < 100 || numRuns > 100000) {
-            return NextResponse.json(
-                { success: false, errors: ['Runs must be between 100 and 100,000'] },
-                { status: 400 }
-            );
+            return errorEnvelope('Runs must be between 100 and 100,000', 400);
         }
 
         // Validate currency
         if (!isValidCurrency(outputCurrency)) {
-            return NextResponse.json(
-                { success: false, errors: [`Invalid currency: ${outputCurrency}`] },
-                { status: 400 }
-            );
+            return errorEnvelope(`Invalid currency: ${outputCurrency}`, 400, { runs: numRuns });
         }
 
         // Run Python simulation
-    const seedNumber = parseIntegerFromNumberOrString(seed);
+        const seedNumber = parseIntegerFromNumberOrString(seed);
         const result = await runSimulation(yaml, numRuns, seedNumber, outputCurrency);
 
         return NextResponse.json(result);
     } catch (error) {
         console.error('Simulation error:', error);
-        return NextResponse.json(
-            {
-                success: false,
-                errors: [`Server error: ${error instanceof Error ? error.message : 'Unknown error'}`]
-            },
-            { status: 500 }
-        );
+        return errorEnvelope(`Server error: ${error instanceof Error ? error.message : 'Unknown error'}`, 500);
     }
 }
 
@@ -89,11 +92,16 @@ async function runSimulation(yamlContent: string, runs: number, seed: number | u
     const pythonCmd = await pickPythonCommand();
     if (!pythonCmd) {
         return {
-            success: false,
-            errors: ['Neither python3 nor python was found on the server.'],
-            metrics: {},
-            distribution: {},
-            metadata: {},
+            crml_simulation_result: '1.0',
+            result: {
+                success: false,
+                errors: ['Neither python3 nor python was found on the server.'],
+                warnings: [],
+                engine: { name: 'web', version: undefined },
+                run: { runs, seed },
+                inputs: {},
+                results: { measures: [], artifacts: [] },
+            },
         };
     }
 
@@ -101,20 +109,20 @@ async function runSimulation(yamlContent: string, runs: number, seed: number | u
 
     // Read YAML from stdin instead of embedding in code
     const pythonCode = `
-    import sys
-    import json
-    sys.path.insert(0, r'${path.join(process.cwd(), '..', 'crml_engine', 'src')}')
-    sys.path.insert(0, r'${path.join(process.cwd(), '..', 'crml_lang', 'src')}')
+import sys
+import json
+
+sys.path.insert(0, r'${path.join(process.cwd(), '..', 'crml_engine', 'src')}')
+sys.path.insert(0, r'${path.join(process.cwd(), '..', 'crml_lang', 'src')}')
 
 from crml_engine.runtime import run_simulation_envelope
 
-# Read YAML from stdin
 yaml_content = sys.stdin.read()
 
 fx_config = {
     "base_currency": "USD",
     "output_currency": "${outputCurrency}",
-    "rates": None  # Use default rates
+    "rates": None,
 }
 
 result = run_simulation_envelope(yaml_content, n_runs=${runs}${seedArg}, fx_config=fx_config)
@@ -124,35 +132,50 @@ print(json.dumps(result.model_dump()))
     const { stdout, stderr, exitCode, timedOut } = await runPythonWithStdin(pythonCmd, pythonCode, yamlContent, 30000);
     if (timedOut) {
         return {
-            success: false,
-            errors: ['Simulation timeout (30s exceeded)'],
-            metrics: {},
-            distribution: {},
-            metadata: {},
+            crml_simulation_result: '1.0',
+            result: {
+                success: false,
+                errors: ['Simulation timeout (30s exceeded)'],
+                warnings: [],
+                engine: { name: 'web', version: undefined },
+                run: { runs, seed },
+                inputs: {},
+                results: { measures: [], artifacts: [] },
+            },
         };
     }
 
     if (exitCode !== 0) {
         console.error('Python stderr:', stderr);
         return {
-            success: false,
-            errors: [`Simulation failed: ${stderr || 'Unknown error'}`],
-            metrics: {},
-            distribution: {},
-            metadata: {},
+            crml_simulation_result: '1.0',
+            result: {
+                success: false,
+                errors: [`Simulation failed: ${stderr || 'Unknown error'}`],
+                warnings: [],
+                engine: { name: 'web', version: undefined },
+                run: { runs, seed },
+                inputs: {},
+                results: { measures: [], artifacts: [] },
+            },
         };
     }
 
     try {
-        return JSON.parse(stdout);
+        return JSON.parse(stdout.trim());
     } catch {
         console.error('Failed to parse Python output:', stdout);
         return {
-            success: false,
-            errors: ['Failed to parse simulation results'],
-            metrics: {},
-            distribution: {},
-            metadata: {},
+            crml_simulation_result: '1.0',
+            result: {
+                success: false,
+                errors: ['Failed to parse simulation results'],
+                warnings: [],
+                engine: { name: 'web', version: undefined },
+                run: { runs, seed },
+                inputs: {},
+                results: { measures: [], artifacts: [] },
+            },
         };
     }
 }

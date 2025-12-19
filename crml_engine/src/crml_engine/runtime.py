@@ -14,6 +14,9 @@ Portfolio planning/binding resolution lives in `crml_engine.pipeline`.
 import json
 from typing import Union, Optional
 
+import hashlib
+import os
+
 from crml_engine.pipeline import plan_bundle, plan_portfolio
 import numpy as np
 
@@ -26,10 +29,20 @@ from crml_lang.models.simulation_result import (
     Measure,
     RunInfo,
     SamplesArtifact,
+    SummaryBlock,
+    SummaryEstimation,
+    SummaryStatistics,
+    Quantile,
+    TailExpectation,
+    Traceability,
+    InputReference,
+    ModelComponent,
+    DependencyStructure,
     CRSimulationResult,
     Units,
     now_utc,
 )
+from crml_lang.models.scenario_model import CRScenario, load_crml_from_yaml_str
 from .models.fx_model import (
     FXConfig,
     convert_currency,
@@ -46,6 +59,377 @@ from .copula import gaussian_copula_uniforms
 
 LOSS_VAR_ID = "loss.var"
 VALUE_AT_RISK_LABEL = "Value at Risk"
+
+LOSS_ANNUAL_ID = "loss.annual"
+LOSS_ANNUAL_LABEL = "Annual Loss"
+
+
+def _sha256_digest_bytes(data: bytes) -> str:
+    """Return a sha256 digest string with a stable prefix."""
+    h = hashlib.sha256()
+    h.update(data)
+    return "sha256:" + h.hexdigest()
+
+
+def _input_reference_from_yaml_content(yaml_content: Union[str, dict]) -> InputReference:
+    """Best-effort input reference for traceability.
+
+    This is intentionally engine-agnostic: it records where the input came from
+    and a digest to support audit/repro.
+    """
+    uri: str | None = None
+    digest: str | None = None
+
+    if isinstance(yaml_content, str):
+        if os.path.isfile(yaml_content):
+            uri = yaml_content
+            try:
+                with open(yaml_content, "rb") as f:
+                    digest = _sha256_digest_bytes(f.read())
+            except Exception:
+                digest = None
+        else:
+            digest = _sha256_digest_bytes(yaml_content.encode("utf-8"))
+    elif isinstance(yaml_content, dict):
+        try:
+            stable = json.dumps(yaml_content, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+            digest = _sha256_digest_bytes(stable.encode("utf-8"))
+        except Exception:
+            digest = None
+
+    return InputReference(type="scenario", uri=uri, digest=digest)
+
+
+def _try_parse_scenario(yaml_content: Union[str, dict]) -> CRScenario | None:
+    """Parse a scenario for traceability extraction.
+
+    This is separate from the simulation engine's parsing so trace extraction
+    does not depend on internal engine state.
+    """
+    try:
+        if isinstance(yaml_content, str) and os.path.isfile(yaml_content):
+            with open(yaml_content, "r", encoding="utf-8") as f:
+                return load_crml_from_yaml_str(f.read())
+        if isinstance(yaml_content, str):
+            return load_crml_from_yaml_str(yaml_content)
+        if isinstance(yaml_content, dict):
+            return CRScenario.model_validate(yaml_content)
+    except Exception:
+        return None
+    return None
+
+
+def _approx_quantile_from_histogram(bin_edges: list[float], counts: list[int], p: float) -> float | None:
+    """Approximate quantile from a histogram using linear interpolation within bins."""
+    if not bin_edges or not counts:
+        return None
+    if len(bin_edges) != len(counts) + 1:
+        return None
+    total = float(sum(counts))
+    if total <= 0:
+        return float(bin_edges[0])
+
+    target = p * total
+    cumulative = 0.0
+    for i, c in enumerate(counts):
+        c = float(c)
+        next_cum = cumulative + c
+        if target <= next_cum:
+            left = float(bin_edges[i])
+            right = float(bin_edges[i + 1])
+            if c <= 0:
+                return left
+            frac = (target - cumulative) / c
+            return left + frac * (right - left)
+        cumulative = next_cum
+
+    return float(bin_edges[-1])
+
+
+def _tail_segment_mass_and_sum(
+    *,
+    left: float,
+    right: float,
+    count: float,
+    threshold: float,
+) -> tuple[float, float]:
+    """Return (mass, mass_weighted_sum) for the segment >= threshold within a bin.
+
+    Assumes uniform density within the bin.
+    """
+    width = right - left
+    if count <= 0 or width <= 0:
+        return 0.0, 0.0
+    if right <= threshold:
+        return 0.0, 0.0
+
+    if left >= threshold:
+        seg_left = left
+        frac = 1.0
+    else:
+        seg_left = threshold
+        frac = (right - threshold) / width
+
+    mass = count * frac
+    if mass <= 0:
+        return 0.0, 0.0
+
+    seg_mean = 0.5 * (seg_left + right)
+    return mass, mass * seg_mean
+
+
+def _approx_right_tail_expectation_from_histogram(
+    bin_edges: list[float],
+    counts: list[int],
+    *,
+    level: float,
+) -> float | None:
+    """Approximate right-tail expectation (CVaR/ES) from histogram bins.
+
+    Assumes uniform density within each bin.
+    """
+    if not bin_edges or not counts:
+        return None
+    if len(bin_edges) != len(counts) + 1:
+        return None
+    total = float(sum(counts))
+    if total <= 0:
+        return 0.0
+
+    threshold = _approx_quantile_from_histogram(bin_edges, counts, level)
+    if threshold is None:
+        return None
+
+    mass_accum = 0.0
+    sum_accum = 0.0
+
+    for i, c_int in enumerate(counts):
+        mass, seg_sum = _tail_segment_mass_and_sum(
+            left=float(bin_edges[i]),
+            right=float(bin_edges[i + 1]),
+            count=float(c_int),
+            threshold=float(threshold),
+        )
+        mass_accum += mass
+        sum_accum += seg_sum
+
+    if mass_accum <= 0:
+        return float(threshold)
+    return sum_accum / mass_accum
+
+
+def _populate_envelope_summaries(
+    *,
+    envelope: CRSimulationResult,
+    result: SimulationResult,
+    currency_unit: CurrencyUnit | None,
+    runs: int | None,
+) -> None:
+    """Populate `envelope.result.summaries` from engine outputs (best-effort)."""
+    if result.metrics is None:
+        return
+
+    stats = SummaryStatistics(
+        mean=result.metrics.eal,
+        median=result.metrics.median,
+        std_dev=result.metrics.std_dev,
+        quantiles=[],
+        tail_expectations=[],
+    )
+
+    stats.quantiles.extend(
+        [
+            Quantile(p=0.50, value=result.metrics.median),
+            Quantile(p=0.95, value=result.metrics.var_95),
+            Quantile(p=0.99, value=result.metrics.var_99),
+        ]
+    )
+
+    estimation = SummaryEstimation(
+        computed_from="unknown",
+        sample_count_used=runs,
+        truncated=None,
+        method=None,
+    )
+
+    dist = result.distribution
+    if dist is not None and dist.bins and dist.frequencies:
+        stats.quantiles.extend(
+            [
+                Quantile(p=0.05, value=_approx_quantile_from_histogram(dist.bins, dist.frequencies, 0.05)),
+                Quantile(p=0.90, value=_approx_quantile_from_histogram(dist.bins, dist.frequencies, 0.90)),
+            ]
+        )
+
+        stats.tail_expectations.extend(
+            [
+                TailExpectation(
+                    kind="cvar",
+                    level=0.95,
+                    tail="right",
+                    value=_approx_right_tail_expectation_from_histogram(dist.bins, dist.frequencies, level=0.95),
+                ),
+                TailExpectation(
+                    kind="cvar",
+                    level=0.99,
+                    tail="right",
+                    value=_approx_right_tail_expectation_from_histogram(dist.bins, dist.frequencies, level=0.99),
+                ),
+            ]
+        )
+
+        estimation.computed_from = "histogram"
+        estimation.histogram_bins_used = max(len(dist.bins) - 1, 0)
+        estimation.method = "histogram_linear_interpolation"
+
+    envelope.result.summaries.append(
+        SummaryBlock(
+            id=LOSS_ANNUAL_ID,
+            label=LOSS_ANNUAL_LABEL,
+            unit=currency_unit,
+            stats=stats,
+            estimation=estimation,
+        )
+    )
+
+
+def _build_traceability(
+    *,
+    yaml_content: Union[str, dict],
+    parsed_scenario: CRScenario | None,
+    fx_config: FXConfig | None,
+) -> Traceability:
+    """Build a best-effort Traceability object for the result envelope."""
+    input_ref = _input_reference_from_yaml_content(yaml_content)
+
+    trace = Traceability(
+        scenario_ids=[],
+        inputs=[input_ref],
+        model_components=[],
+        dependencies=[],
+        extra={},
+    )
+
+    if parsed_scenario is not None:
+        scenario_name = parsed_scenario.meta.name
+        trace.scenario_ids.append(scenario_name)
+        input_ref.id = scenario_name
+        input_ref.version = parsed_scenario.meta.version
+        input_ref.metadata.update(
+            {
+                "description": parsed_scenario.meta.description,
+                "tags": list(parsed_scenario.meta.tags) if getattr(parsed_scenario.meta, "tags", None) else [],
+                "crml_scenario": getattr(parsed_scenario, "crml_scenario", None),
+            }
+        )
+
+        trace.model_components.extend(
+            [
+                ModelComponent(
+                    id="frequency",
+                    role="frequency",
+                    model=parsed_scenario.scenario.frequency.model,
+                    parameters={"parameters": parsed_scenario.scenario.frequency.parameters},
+                    source_input_id=scenario_name,
+                ),
+                ModelComponent(
+                    id="severity",
+                    role="severity",
+                    model=parsed_scenario.scenario.severity.model,
+                    parameters={
+                        "parameters": parsed_scenario.scenario.severity.parameters,
+                        "components": parsed_scenario.scenario.severity.components,
+                    },
+                    source_input_id=scenario_name,
+                ),
+            ]
+        )
+
+    if fx_config is not None:
+        trace.model_components.append(
+            ModelComponent(
+                id="fx",
+                role="fx",
+                model="fixed_rates",
+                parameters={
+                    "base_currency": fx_config.base_currency,
+                    "output_currency": fx_config.output_currency,
+                    "rates": fx_config.rates,
+                },
+            )
+        )
+
+    # Placeholder for future single-scenario dependencies.
+    trace.dependencies.extend([])
+    return trace
+
+
+def _load_yaml_root_for_routing(source: Union[str, dict]) -> dict | None:
+    """Best-effort YAML load for routing.
+
+    Returns the parsed root mapping when possible, otherwise None.
+    """
+    if isinstance(source, dict):
+        return source
+    if not isinstance(source, str):
+        return None
+
+    try:
+        import yaml as _yaml  # type: ignore
+    except Exception:
+        return None
+
+    try:
+        if os.path.isfile(source):
+            with open(source, "r", encoding="utf-8") as f:
+                loaded = _yaml.safe_load(f)
+        else:
+            loaded = _yaml.safe_load(source)
+    except Exception:
+        return None
+
+    return loaded if isinstance(loaded, dict) else None
+
+
+def _infer_source_kind(source: Union[str, dict]) -> str:
+    """Infer runtime source_kind for portfolio/bundle runners."""
+    if isinstance(source, dict):
+        return "data"
+    if isinstance(source, str) and os.path.isfile(source):
+        return "path"
+    return "yaml"
+
+
+def _route_simulation_document(
+    *,
+    root: dict,
+    source: Union[str, dict],
+    n_runs: int,
+    seed: int | None,
+    fx_config: Optional[FXConfig],
+) -> SimulationResult | None:
+    """Route a parsed YAML root to the appropriate simulation function."""
+    kind = _infer_source_kind(source)
+
+    if "crml_portfolio_bundle" in root:
+        return run_portfolio_bundle_simulation(
+            source,
+            source_kind=kind,
+            n_runs=n_runs,
+            seed=seed,
+            fx_config=fx_config,
+        )
+
+    if "crml_portfolio" in root:
+        return run_portfolio_simulation(
+            source,
+            source_kind=kind,
+            n_runs=n_runs,
+            seed=seed,
+            fx_config=fx_config,
+        )
+
+    return None
 
 
 def _portfolio_error_result(msg: str) -> SimulationResult:
@@ -607,14 +991,15 @@ def run_simulation(
     seed: int | None = None, 
     fx_config: Optional[FXConfig] = None
 ) -> SimulationResult:
-    """Run a Monte Carlo simulation for a single CRML scenario.
+    """Run a Monte Carlo simulation for CRML inputs.
 
-    This is a small convenience wrapper around
-    `crml_engine.simulation.engine.run_monte_carlo`.
+    This convenience wrapper accepts multiple CRML document types:
+    - CRML scenario (runs `run_monte_carlo`)
+    - CRML portfolio (runs `run_portfolio_simulation`)
+    - CRML portfolio bundle (runs `run_portfolio_bundle_simulation`)
 
     Args:
-        yaml_content: Scenario input as a YAML string, parsed dict, or a file
-            path to a YAML document.
+        yaml_content: Input as a YAML string, parsed dict, or a file path.
         n_runs: Number of Monte Carlo iterations.
         seed: Optional RNG seed.
         fx_config: Optional FX configuration (base/output currencies and rates).
@@ -623,6 +1008,19 @@ def run_simulation(
         A `SimulationResult` containing summary metrics, distribution artifacts,
         and metadata.
     """
+
+    root = _load_yaml_root_for_routing(yaml_content)
+    if root is not None:
+        routed = _route_simulation_document(
+            root=root,
+            source=yaml_content,
+            n_runs=n_runs,
+            seed=seed,
+            fx_config=fx_config,
+        )
+        if routed is not None:
+            return routed
+
     return run_monte_carlo(yaml_content, n_runs, seed, fx_config)
 
 
@@ -649,6 +1047,9 @@ def run_simulation_envelope(
     """
 
     result = run_simulation(yaml_content, n_runs=n_runs, seed=seed, fx_config=fx_config)
+
+    # Best-effort parsing for traceability extraction.
+    parsed_scenario = _try_parse_scenario(yaml_content)
 
     try:
         from importlib import metadata as importlib_metadata
@@ -682,7 +1083,7 @@ def run_simulation_envelope(
         result=SimulationResult(
             success=result.success,
             errors=list(result.errors or []),
-            warnings=list(result.warnings or []),
+            warnings=list(getattr(result, "warnings", None) or []),
             engine=EngineInfo(name="crml_engine", version=engine_version),
             run=RunInfo(
                 runs=runs,
@@ -695,8 +1096,13 @@ def run_simulation_envelope(
                 currency=CurrencyUnit(code=currency_code or "USD", symbol=currency_symbol),
                 horizon="annual",
             ),
+            summaries=[],
+            trace=None,
         )
     )
+
+    _populate_envelope_summaries(envelope=envelope, result=result, currency_unit=currency_unit, runs=runs)
+    envelope.result.trace = _build_traceability(yaml_content=yaml_content, parsed_scenario=parsed_scenario, fx_config=fx_config)
 
     metrics = result.metrics
     if metrics is not None:
@@ -741,7 +1147,7 @@ def run_simulation_envelope(
         if distribution.bins and distribution.frequencies:
             envelope.result.results.artifacts.append(
                 HistogramArtifact(
-                    id="loss.annual",
+                    id=LOSS_ANNUAL_ID,
                     unit=currency_unit,
                     bin_edges=list(distribution.bins),
                     counts=list(distribution.frequencies),
@@ -751,7 +1157,7 @@ def run_simulation_envelope(
         if distribution.raw_data:
             envelope.result.results.artifacts.append(
                 SamplesArtifact(
-                    id="loss.annual",
+                    id=LOSS_ANNUAL_ID,
                     unit=currency_unit,
                     values=list(distribution.raw_data),
                     sample_count_total=runs,

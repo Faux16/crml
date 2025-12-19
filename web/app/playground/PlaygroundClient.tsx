@@ -158,15 +158,16 @@ export default function PlaygroundClient() {
             setSimulationResult(result as CRSimulationResult);
         } catch (error) {
             setSimulationResult({
-                schema_id: "crml.simulation.result",
-                schema_version: "1.0.0",
-                success: false,
-                errors: ["Failed to run simulation: " + (error as Error).message],
-                warnings: [],
-                engine: { name: "web", version: undefined },
-                run: { runs: Number.parseInt(runs, 10) || 10000, seed: seed ? Number.parseInt(seed, 10) : undefined },
-                inputs: {},
-                results: { measures: [], artifacts: [] },
+                crml_simulation_result: "1.0",
+                result: {
+                    success: false,
+                    errors: ["Failed to run simulation: " + (error as Error).message],
+                    warnings: [],
+                    engine: { name: "web", version: undefined },
+                    run: { runs: Number.parseInt(runs, 10) || 10000, seed: seed ? Number.parseInt(seed, 10) : undefined },
+                    inputs: {},
+                    results: { measures: [], artifacts: [] },
+                },
             });
         } finally {
             setIsSimulating(false);

@@ -25,7 +25,7 @@ Cyber security, compliance, and risk management professionals often face the sam
 
 - Risk models are locked in spreadsheets, slide decks, or proprietary tools, making them hard to review, audit, reproduce, and automate.
 - Control effectiveness and “defense in depth” assumptions are documented inconsistently, so results vary by analyst and by quarter.
-- Threat and control frameworks (e.g., ATT&CK, CIS, NIST, ISO, SCF, internal catalogs) change over time; mappings are brittle and rarely versioned.
+- Threat and control frameworks (e.g., ATT&CK, CIS, NIST, ISO, SCF, internal catalogs) change over time; do not provide a consistent machine readable format; mappings are brittle and rarely versioned.
 - Quantification engines differ (FAIR-style Monte Carlo, Bayesian/QBER, actuarial models, internal platforms), causing costly rewrites and re-interpretation.
 - Audit-ready evidence is fragmented: “what was modeled, with which parameters, using which data, and producing which outputs” is hard to prove.
 

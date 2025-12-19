@@ -19,9 +19,11 @@ import numpy as np
 from crml_lang.models.scenario_model import load_crml_from_yaml_str, CRScenario
 from ..models.result_model import SimulationResult, Metrics, Distribution, Metadata
 from ..models.fx_model import FXConfig, convert_currency, get_currency_symbol, normalize_fx_config
+from typing import Union, Optional, Tuple
 
 from .frequency import FrequencyEngine
 from .severity import SeverityEngine
+from .utils import format_pydantic_error
 
 
 DEFAULT_N_RUNS = 10_000
@@ -37,7 +39,7 @@ HISTOGRAM_BINS_MAX = 200
 HISTOGRAM_EMPTY_MAX_EDGE = 1.0
 
 
-def _normalize_cardinality(cardinality: int | None) -> int:
+def _normalize_cardinality(cardinality: Optional[int]) -> int:
     """Normalize exposure cardinality to a positive integer.
 
     Args:
@@ -54,12 +56,12 @@ def _normalize_cardinality(cardinality: int | None) -> int:
 
 
 def _coerce_multiplier(
-    multiplier: object | None,
+    multiplier: Optional[object],
     *,
     n_runs: int,
     label: str,
     result: SimulationResult,
-) -> object | None:
+) -> Optional[object]:
     """Validate and normalize a multiplier argument.
 
     The engine accepts either:
@@ -92,7 +94,7 @@ def _coerce_multiplier(
     return arr
 
 
-def _load_scenario_document(yaml_content: str | dict, *, result: SimulationResult) -> CRScenario | None:
+def _load_scenario_document(yaml_content: Union[str, dict], *, result: SimulationResult) -> Optional[CRScenario]:
     """Parse and validate a CRML scenario from supported input types.
 
     Args:
@@ -119,12 +121,12 @@ def _load_scenario_document(yaml_content: str | dict, *, result: SimulationResul
 
         result.errors.append("Invalid input type")
         return None
-    except (OSError, UnicodeDecodeError, TypeError, ValueError) as e:
-        result.errors.append(f"Parsing error: {e}")
-        return None
-    except Exception as e:  # NOSONAR
-        # Defensive catch-all: scenario parsing may raise library-specific exceptions.
-        result.errors.append(f"Parsing error: {e}")
+    except Exception as e:
+        from pydantic import ValidationError
+        if isinstance(e, ValidationError):
+            result.errors.extend(format_pydantic_error(e))
+        else:
+            result.errors.append(f"Parsing error: {e}")
         return None
 
 
@@ -184,16 +186,16 @@ def _aggregate_severities_by_count(counts: np.ndarray, severities: np.ndarray) -
 def _simulate_annual_losses(
     *,
     n_runs: int,
-    seed: int | None,
+    seed: Optional[int],
     fx_config: FXConfig,
     cardinality: int,
     frequency_model: str,
     frequency_params: object,
     severity_model: str,
     severity_params: object,
-    severity_components: object | None,
-    frequency_rate_multiplier: object | None,
-    severity_loss_multiplier: object | None,
+    severity_components: Optional[object],
+    frequency_rate_multiplier: Optional[object],
+    severity_loss_multiplier: Optional[object],
 ) -> np.ndarray:
     """Simulate annual loss samples in the base currency.
 
@@ -258,7 +260,7 @@ def _apply_output_currency(losses_base: np.ndarray, *, fx_config: FXConfig) -> n
     return losses_base * factor
 
 
-def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: int | None) -> tuple[Metrics, Distribution]:
+def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: Optional[int]) -> Tuple[Metrics, Distribution]:
     """Compute summary statistics and histogram artifacts for loss samples.
 
     Args:
@@ -313,14 +315,14 @@ def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: int
 
 
 def run_monte_carlo(
-    yaml_content: str | dict,
+    yaml_content: Union[str, dict],
     n_runs: int = DEFAULT_N_RUNS,
-    seed: int | None = None,
-    fx_config: FXConfig | None = None,
+    seed: Optional[int] = None,
+    fx_config: Optional[FXConfig] = None,
     cardinality: int = 1,
-    frequency_rate_multiplier: object | None = None,
-    severity_loss_multiplier: object | None = None,
-    raw_data_limit: int | None = DEFAULT_RAW_DATA_LIMIT,
+    frequency_rate_multiplier: Optional[object] = None,
+    severity_loss_multiplier: Optional[object] = None,
+    raw_data_limit: Optional[int] = DEFAULT_RAW_DATA_LIMIT,
 ) -> SimulationResult:
     """Run the reference Monte Carlo simulation for a CRML scenario.
 

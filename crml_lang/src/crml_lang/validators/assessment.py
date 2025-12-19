@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Union, Optional, Tuple
 
 from jsonschema import Draft202012Validator
 
@@ -79,7 +79,7 @@ def _strict_validate_model(data: dict[str, Any]) -> Optional[ValidationMessage]:
         )
 
 
-def _collect_assessment_ids(data: dict[str, Any]) -> tuple[list[str], list[ValidationMessage]]:
+def _collect_assessment_ids(data: dict[str, Any]) -> Tuple[list[str], list[ValidationMessage]]:
     """Collect assessment ids and report per-entry type errors."""
     assessment = data.get("assessment")
     assessments = assessment.get("assessments") if isinstance(assessment, dict) else None
@@ -119,10 +119,10 @@ def _check_duplicate_ids(ids: list[str]) -> Optional[ValidationMessage]:
 
 
 def _collect_control_catalog_ids(
-    control_catalogs: list[str | dict[str, Any]],
+    control_catalogs: list[Union[str, dict[str, Any]]],
     *,
-    source_kind: Literal["path", "yaml", "data"] | None,
-) -> tuple[set[str], list[ValidationMessage]]:
+    source_kind: Optional[Literal["path", "yaml", "data"]],
+) -> Tuple[set[str], list[ValidationMessage]]:
     """Extract the set of control ids from provided control catalog documents."""
     catalog_ids: set[str] = set()
     errors: list[ValidationMessage] = []
@@ -173,11 +173,11 @@ def _check_ids_in_catalogs(ids: list[str], catalog_ids: set[str]) -> list[Valida
 
 
 def validate_assessment(
-    source: str | dict[str, Any],
+    source: Union[str, dict[str, Any]],
     *,
-    source_kind: Literal["path", "yaml", "data"] | None = None,
-    control_catalogs: Optional[list[str | dict[str, Any]]] = None,
-    control_catalogs_source_kind: Literal["path", "yaml", "data"] | None = None,
+    source_kind: Optional[Literal["path", "yaml", "data"]] = None,
+    control_catalogs: Optional[list[Union[str, dict[str, Any]]]] = None,
+    control_catalogs_source_kind: Optional[Literal["path", "yaml", "data"]] = None,
     strict_model: bool = False,
 ) -> ValidationReport:
     """Validate a CRML Assessment Catalog document."""

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, Tuple, Optional, Union
 
 from jsonschema import Draft202012Validator
 
@@ -15,7 +15,7 @@ from .common import (
 )
 
 
-def _load_schema_or_error() -> tuple[dict[str, Any] | None, list[ValidationMessage]]:
+def _load_schema_or_error() -> Tuple[Optional[dict[str, Any]], list[ValidationMessage]]:
     """Load the attack catalog schema, returning a structured error on failure."""
     try:
         return _load_attack_catalog_schema(), []
@@ -108,9 +108,9 @@ def _pydantic_strict_errors(data: dict[str, Any]) -> list[ValidationMessage]:
 
 
 def validate_attack_catalog(
-    source: str | dict[str, Any],
+    source: Union[str, dict[str, Any]],
     *,
-    source_kind: Literal["path", "yaml", "data"] | None = None,
+    source_kind: Optional[Literal["path", "yaml", "data"]] = None,
     strict_model: bool = False,
 ) -> ValidationReport:
     """Validate a CRML Attack Catalog document."""

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, Union, Optional
 
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
@@ -93,9 +93,9 @@ def _strict_pydantic_validate(data: dict[str, Any]) -> list[ValidationMessage]:
 
 
 def validate_control_catalog(
-    source: str | dict[str, Any],
+    source: Union[str, dict[str, Any]],
     *,
-    source_kind: Literal["path", "yaml", "data"] | None = None,
+    source_kind: Optional[Literal["path", "yaml", "data"]] = None,
     strict_model: bool = False,
 ) -> ValidationReport:
     """Validate a CRML Control Catalog document."""

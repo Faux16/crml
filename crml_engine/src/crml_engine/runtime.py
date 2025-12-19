@@ -12,7 +12,7 @@ Portfolio planning/binding resolution lives in `crml_engine.pipeline`.
 """
 
 import json
-from typing import Union, Optional
+from typing import Union, Optional, Tuple, Any
 
 import hashlib
 import os
@@ -84,8 +84,8 @@ def _input_reference_from_yaml_content(yaml_content: Union[str, dict]) -> InputR
     This is intentionally engine-agnostic: it records where the input came from
     and a digest to support audit/repro.
     """
-    uri: str | None = None
-    digest: str | None = None
+    uri: Optional[str] = None
+    digest: Optional[str] = None
 
     if isinstance(yaml_content, str):
         if os.path.isfile(yaml_content):
@@ -107,7 +107,7 @@ def _input_reference_from_yaml_content(yaml_content: Union[str, dict]) -> InputR
     return InputReference(type="scenario", uri=uri, digest=digest)
 
 
-def _try_parse_scenario(yaml_content: Union[str, dict]) -> CRScenario | None:
+def _try_parse_scenario(yaml_content: Union[str, dict]) -> Optional[CRScenario]:
     """Parse a scenario for traceability extraction.
 
     This is separate from the simulation engine's parsing so trace extraction
@@ -126,7 +126,7 @@ def _try_parse_scenario(yaml_content: Union[str, dict]) -> CRScenario | None:
     return None
 
 
-def _approx_quantile_from_histogram(bin_edges: list[float], counts: list[int], p: float) -> float | None:
+def _approx_quantile_from_histogram(bin_edges: list[float], counts: list[int], p: float) -> Optional[float]:
     """Approximate quantile from a histogram using linear interpolation within bins."""
     if not bin_edges or not counts:
         return None
@@ -190,7 +190,7 @@ def _approx_right_tail_expectation_from_histogram(
     counts: list[int],
     *,
     level: float,
-) -> float | None:
+) -> Optional[float]:
     """Approximate right-tail expectation (CVaR/ES) from histogram bins.
 
     Assumes uniform density within each bin.
@@ -229,8 +229,8 @@ def _populate_envelope_summaries(
     *,
     envelope: CRSimulationResult,
     result: EngineSimulationResult,
-    currency_unit: CurrencyUnit | None,
-    runs: int | None,
+    currency_unit: Optional[CurrencyUnit],
+    runs: Optional[int],
 ) -> None:
     """Populate `envelope.result.summaries` from engine outputs (best-effort)."""
     if result.metrics is None:
@@ -303,8 +303,8 @@ def _populate_envelope_summaries(
 def _build_traceability(
     *,
     yaml_content: Union[str, dict],
-    parsed_scenario: CRScenario | None,
-    fx_config: FXConfig | None,
+    parsed_scenario: Optional[CRScenario],
+    fx_config: Optional[FXConfig],
 ) -> Traceability:
     """Build a best-effort Traceability object for the result envelope."""
     input_ref = _input_reference_from_yaml_content(yaml_content)
@@ -371,7 +371,7 @@ def _build_traceability(
     return trace
 
 
-def _load_yaml_root_for_routing(source: Union[str, dict]) -> dict | None:
+def _load_yaml_root_for_routing(source: Union[str, dict]) -> Optional[dict]:
     """Best-effort YAML load for routing.
 
     Returns the parsed root mapping when possible, otherwise None.
@@ -412,9 +412,9 @@ def _route_simulation_document(
     root: dict,
     source: Union[str, dict],
     n_runs: int,
-    seed: int | None,
+    seed: Optional[int],
     fx_config: Optional[FXConfig],
-) -> EngineSimulationResult | None:
+) -> Optional[EngineSimulationResult]:
     """Route a parsed YAML root to the appropriate simulation function."""
     kind = _infer_source_kind(source)
 
@@ -435,6 +435,9 @@ def _route_simulation_document(
             seed=seed,
             fx_config=fx_config,
         )
+
+    if "crml_scenario" in root:
+        return run_monte_carlo(source, n_runs, seed, fx_config)
 
     return None
 
@@ -484,7 +487,7 @@ def _collect_control_info(scenarios: list[object]) -> dict[str, dict[str, object
     return control_info
 
 
-def _extract_copula_targets(dependency: object) -> tuple[list[str], np.ndarray | None]:
+def _extract_copula_targets(dependency: object) -> Tuple[list[str], Optional[np.ndarray]]:
     """Extract control-state copula targets and correlation matrix.
 
     The v1 portfolio dependency format allows specifying a Gaussian copula over
@@ -520,9 +523,9 @@ def _sample_control_state(
     *,
     control_info: dict[str, dict[str, object]],
     target_controls: list[str],
-    corr: np.ndarray | None,
+    corr: Optional[np.ndarray],
     n_runs: int,
-    seed: int | None,
+    seed: Optional[int],
 ) -> dict[str, np.ndarray]:
     """Sample per-run binary control states.
 
@@ -607,7 +610,7 @@ def _aggregate_portfolio_losses(
     scenario_losses: list[np.ndarray],
     scenario_weights: list[float],
     n_runs: int,
-    seed: int | None,
+    seed: Optional[int],
 ) -> np.ndarray:
     """Aggregate scenario loss samples into a portfolio loss sample.
 
@@ -656,9 +659,9 @@ def _run_single_portfolio_scenario(
     idx: int,
     control_state: dict[str, np.ndarray],
     n_runs: int,
-    seed: int | None,
+    seed: Optional[int],
     fx_config: FXConfig,
-) -> tuple[np.ndarray, float]:
+) -> Tuple[np.ndarray, float]:
     """Execute a single scenario referenced by a portfolio plan.
 
     This loads the scenario document, applies per-run control multipliers,
@@ -727,9 +730,9 @@ def _run_portfolio_scenarios(
     scenarios: list[object],
     control_state: dict[str, np.ndarray],
     n_runs: int,
-    seed: int | None,
+    seed: Optional[int],
     fx_config: FXConfig,
-) -> tuple[list[np.ndarray], list[float]]:
+) -> Tuple[list[np.ndarray], list[float]]:
     """Run all scenarios in a portfolio plan and collect losses/weights."""
     scenario_losses: list[np.ndarray] = []
     scenario_weights: list[float] = []
@@ -749,7 +752,7 @@ def _run_portfolio_scenarios(
     return scenario_losses, scenario_weights
 
 
-def _compute_metrics_and_distribution(total: np.ndarray, *, bin_count: int = 50) -> tuple[Metrics, Distribution]:
+def _compute_metrics_and_distribution(total: np.ndarray, *, bin_count: int = 50) -> Tuple[Metrics, Distribution]:
     """Compute summary metrics and a histogram distribution for loss samples.
 
     Notes:
@@ -782,7 +785,7 @@ def run_portfolio_simulation(
     *,
     source_kind: str = "path",
     n_runs: int = 10000,
-    seed: int | None = None,
+    seed: Optional[int] = None,
     fx_config: Optional[FXConfig] = None,
 ) -> EngineSimulationResult:
     """Run a CRML portfolio simulation.
@@ -893,7 +896,7 @@ def run_portfolio_bundle_simulation(
     *,
     source_kind: str = "path",
     n_runs: int = 10000,
-    seed: int | None = None,
+    seed: Optional[int] = None,
     fx_config: Optional[FXConfig] = None,
 ) -> EngineSimulationResult:
     """Run a CRML portfolio bundle simulation.
@@ -997,8 +1000,7 @@ def run_portfolio_bundle_simulation(
 def run_simulation(
     yaml_content: Union[str, dict], 
     n_runs: int = 10000, 
-    seed: int | None = None, 
-    fx_config: Optional[FXConfig] = None
+    seed: Optional[int] = None,    fx_config: Optional[FXConfig] = None
 ) -> EngineSimulationResult:
     """Run a Monte Carlo simulation for CRML inputs.
 
@@ -1030,14 +1032,31 @@ def run_simulation(
         if routed is not None:
             return routed
 
+        # Diagnostic: If not routed, use crml_lang to explain exactly what is wrong/unsupported.
+        from crml_lang import validate_document
+        report = validate_document(yaml_content)
+        
+        if report.ok:
+            # Document is valid CRML, but not one we can simulate.
+            supported = ["crml_scenario", "crml_portfolio", "crml_portfolio_bundle"]
+            found = next((k for k in root if k.startswith("crml_")), "unknown")
+            return _portfolio_error_result(
+                f"Document type '{found}' is valid CRML but does not support simulation. "
+                f"Simulation is supported for: {', '.join(supported)}"
+            )
+        else:
+            # Document is invalid CRML. Provide specific errors.
+            err_msg = "Document failed validation:\n" + report.render_text()
+            return _portfolio_error_result(err_msg)
+
     return run_monte_carlo(yaml_content, n_runs, seed, fx_config)
 
 
 def run_simulation_envelope(
     yaml_content: Union[str, dict],
     n_runs: int = 10000,
-    seed: int | None = None,
-    fx_config: Optional[FXConfig | dict] = None,
+    seed: Optional[int] = None,
+    fx_config: Optional[Union[FXConfig, dict]] = None,
 ) -> CRSimulationResult:
     """Run a simulation and return the engine-agnostic result envelope.
 

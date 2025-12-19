@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from typing import Any, Literal
+from typing import Any, Literal, Union, Optional
 
 from jsonschema import Draft202012Validator
 
@@ -102,9 +100,9 @@ def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
 
 
 def validate_portfolio_bundle(
-    source: str | dict[str, Any],
+    source: Union[str, dict[str, Any]],
     *,
-    source_kind: Literal["path", "yaml", "data"] | None = None,
+    source_kind: Optional[Literal["path", "yaml", "data"]] = None,
     strict_model: bool = False,
 ) -> ValidationReport:
     """Validate a CRML portfolio bundle document."""

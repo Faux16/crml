@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Any, Literal, Mapping, Optional
+from typing import Any, Literal, Mapping, Optional, Union
 
 from crml_lang.models.assessment_model import CRAssessment
 from crml_lang.models.attack_catalog_model import CRAttackCatalog
@@ -35,7 +35,7 @@ def _load_yaml_file(path: str) -> dict[str, Any]:
     return load_yaml_mapping_from_path(path)
 
 
-def _resolve_path(base_dir: str | None, p: str) -> str:
+def _resolve_path(base_dir: Optional[str], p: str) -> str:
     """Resolve a possibly-relative path against a base directory."""
     if base_dir and not os.path.isabs(p):
         return os.path.join(base_dir, p)
@@ -43,14 +43,14 @@ def _resolve_path(base_dir: str | None, p: str) -> str:
 
 
 def _load_portfolio_doc(
-    source: str | dict[str, Any] | CRPortfolio,
+    source: Union[str, dict[str, Any], CRPortfolio],
     *,
     source_kind: Literal["path", "yaml", "data", "model"],
-) -> tuple[CRPortfolio | None, dict[str, Any] | None, str | None, list[BundleMessage]]:
+) -> tuple[Optional[CRPortfolio], Optional[dict[str, Any]], Optional[str], list[BundleMessage]]:
     """Load/validate the portfolio document and determine base_dir for resolving references."""
 
     errors: list[BundleMessage] = []
-    base_dir: str | None = None
+    base_dir: Optional[str] = None
 
     if source_kind == "model":
         if not isinstance(source, CRPortfolio):
@@ -99,7 +99,7 @@ def _load_portfolio_doc(
 def _inline_pack_paths(
     *,
     paths: list[str],
-    base_dir: str | None,
+    base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
     warnings: list[BundleMessage],
     model_mode_warning_path_prefix: str,
@@ -132,7 +132,7 @@ def _inline_pack_paths(
 def _inline_control_catalogs(
     *,
     portfolio_doc: CRPortfolio,
-    base_dir: str | None,
+    base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
     warnings: list[BundleMessage],
     initial: list[CRControlCatalog],
@@ -172,7 +172,7 @@ def _inline_control_catalogs(
 def _inline_assessments(
     *,
     portfolio_doc: CRPortfolio,
-    base_dir: str | None,
+    base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
     warnings: list[BundleMessage],
     initial: list[CRAssessment],
@@ -212,7 +212,7 @@ def _inline_assessments(
 def _inline_control_relationships(
     *,
     portfolio_doc: CRPortfolio,
-    base_dir: str | None,
+    base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
     warnings: list[BundleMessage],
     initial: list[CRControlRelationships],
@@ -252,7 +252,7 @@ def _inline_control_relationships(
 def _inline_attack_catalogs(
     *,
     portfolio_doc: CRPortfolio,
-    base_dir: str | None,
+    base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
     warnings: list[BundleMessage],
     initial: list[CRAttackCatalog],
@@ -292,7 +292,7 @@ def _inline_attack_catalogs(
 def _inline_attack_control_relationships(
     *,
     portfolio_doc: CRPortfolio,
-    base_dir: str | None,
+    base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
     warnings: list[BundleMessage],
     initial: list[CRAttackControlRelationships],
@@ -332,9 +332,9 @@ def _inline_attack_control_relationships(
 def _inline_scenarios(
     *,
     portfolio_doc: CRPortfolio,
-    base_dir: str | None,
+    base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
-    scenarios: Mapping[str, CRScenario] | None,
+    scenarios: Optional[Mapping[str, CRScenario]],
 ) -> tuple[list[BundledScenario], list[BundleMessage]]:
     """Inline scenario documents referenced by the portfolio.
 
@@ -397,15 +397,15 @@ def _inline_scenarios(
 
 
 def bundle_portfolio(
-    source: str | dict[str, Any] | CRPortfolio,
+    source: Union[str, dict[str, Any], CRPortfolio],
     *,
     source_kind: Literal["path", "yaml", "data", "model"] = "path",
-    scenarios: Mapping[str, CRScenario] | None = None,
-    control_catalogs: list[CRControlCatalog] | None = None,
-    attack_catalogs: list[CRAttackCatalog] | None = None,
-    assessments: list[CRAssessment] | None = None,
-    control_relationships: list[CRControlRelationships] | None = None,
-    attack_control_relationships: list[CRAttackControlRelationships] | None = None,
+    scenarios: Optional[Mapping[str, CRScenario]] = None,
+    control_catalogs: Optional[list[CRControlCatalog]] = None,
+    attack_catalogs: Optional[list[CRAttackCatalog]] = None,
+    assessments: Optional[list[CRAssessment]] = None,
+    control_relationships: Optional[list[CRControlRelationships]] = None,
+    attack_control_relationships: Optional[list[CRAttackControlRelationships]] = None,
 ) -> BundleReport:
     """Build an engine-agnostic CRPortfolioBundle from a portfolio input.
 

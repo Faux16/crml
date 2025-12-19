@@ -233,7 +233,13 @@ async function runExecFile(cmd: string, args: string[], env?: NodeJS.ProcessEnv)
 }
 
 async function execCrmlValidate(tmpFile: string): Promise<ExecResult> {
-    // First try the installed CLI (best for deployed servers).
+    // First try the local .venv CLI (best for this setup).
+    const venvBin = process.platform === 'win32' ? 'Scripts' : 'bin';
+    const venvCrml = path.join(process.cwd(), "..", ".venv", venvBin, "crml");
+    const venvAttempt = await runExecFile(venvCrml, ["validate", tmpFile], process.env);
+    if (venvAttempt.ok) return venvAttempt;
+
+    // Fallback to globally installed 'crml' (original behavior)
     const direct = await runExecFile("crml", ["validate", tmpFile], process.env);
     if (direct.ok) return direct;
 
@@ -255,17 +261,24 @@ async function execCrmlValidate(tmpFile: string): Promise<ExecResult> {
     const pythonpath = [process.env.PYTHONPATH, ...pythonPathParts].filter(Boolean).join(delimiter);
     const env = { ...process.env, PYTHONPATH: pythonpath };
 
-    // Try common Python launchers.
-    const candidates: Array<{ cmd: string; argsPrefix: string[] }> =
+    // Try common Python launchers, prioritizing local .venv.
+    const venvPython =
         process.platform === "win32"
+            ? path.join(repoRoot, ".venv", "Scripts", "python.exe")
+            : path.join(repoRoot, ".venv", "bin", "python3");
+
+    const candidates: Array<{ cmd: string; argsPrefix: string[] }> = [
+        { cmd: venvPython, argsPrefix: [] },
+        ...(process.platform === "win32"
             ? [
-                  { cmd: "py", argsPrefix: ["-3"] },
-                  { cmd: "python", argsPrefix: [] },
-              ]
+                { cmd: "py", argsPrefix: ["-3"] },
+                { cmd: "python", argsPrefix: [] },
+            ]
             : [
-                  { cmd: "python3", argsPrefix: [] },
-                  { cmd: "python", argsPrefix: [] },
-              ];
+                { cmd: "python3", argsPrefix: [] },
+                { cmd: "python", argsPrefix: [] },
+            ]),
+    ];
 
     let last: ExecResult | undefined;
     for (const candidate of candidates) {

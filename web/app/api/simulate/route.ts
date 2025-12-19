@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 const VALID_CURRENCIES = new Set([
@@ -49,6 +50,11 @@ async function commandExists(cmd: string): Promise<boolean> {
 }
 
 async function pickPythonCommand(): Promise<string | undefined> {
+    const venvPython = process.platform === 'win32'
+        ? path.join(process.cwd(), '..', '.venv', 'Scripts', 'python.exe')
+        : path.join(process.cwd(), '..', '.venv', 'bin', 'python3');
+
+    if (existsSync(venvPython)) return venvPython;
     if (await commandExists('python3')) return 'python3';
     if (await commandExists('python')) return 'python';
     return undefined;

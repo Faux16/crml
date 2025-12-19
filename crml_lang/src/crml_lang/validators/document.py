@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, Union, Optional
 
 from .common import ValidationMessage, ValidationReport, _load_input
 from .scenario import validate as validate_scenario
@@ -13,7 +13,7 @@ from .attack_control_relationships import validate_attack_control_relationships
 from .portfolio_bundle import validate_portfolio_bundle
 
 
-def _detect_kind(data: dict[str, Any]) -> str | None:
+def _detect_kind(data: dict[str, Any]) -> Optional[str]:
     """Best-effort CRML document kind detection.
 
     Detection is based on the presence of a top-level version key.
@@ -40,9 +40,9 @@ def _detect_kind(data: dict[str, Any]) -> str | None:
 
 
 def validate_document(
-    source: str | dict[str, Any],
+    source: Union[str, dict[str, Any]],
     *,
-    source_kind: Literal["path", "yaml", "data"] | None = None,
+    source_kind: Optional[Literal["path", "yaml", "data"]] = None,
     strict_model: bool = False,
 ) -> ValidationReport:
     """Validate any supported CRML document type.

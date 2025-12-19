@@ -19,7 +19,7 @@
 #   result = SimulationResult(success=True, metrics=Metrics(eal=123.4, ...), ...)
 #   print(result.metrics.eal)
 #   print(result.model_dump())
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -73,7 +73,7 @@ def _banner(title: str) -> None:
     print(line)
 
 
-def _currency_display(meta: Optional[Metadata]) -> tuple[str, str]:
+def _currency_display(meta: Optional[Metadata]) -> Tuple[str, str]:
     """Resolve display currency symbol and code from metadata.
 
     Args:

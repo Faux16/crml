@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -81,7 +81,7 @@ class SamplesArtifact(BaseModel):
     )
 
 
-Artifact = HistogramArtifact | SamplesArtifact
+Artifact = Union[HistogramArtifact, SamplesArtifact]
 
 
 class Quantile(BaseModel):

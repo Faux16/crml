@@ -1,7 +1,7 @@
 """
 Shared utilities for CRML simulation.
 """
-from typing import Union
+from typing import Union, Any
 
 NumberOrString = Union[int, float, str]
 
@@ -43,3 +43,29 @@ def parse_numberish_value(v: NumberOrString) -> float:
             raise ValueError(f"Invalid numeric value: {v!r}") from e
 
     raise TypeError(f"Unsupported numeric type: {type(v).__name__}")
+
+
+def format_pydantic_error(e: Any) -> list[str]:
+    """Convert a Pydantic ValidationError into human-friendly error messages."""
+    from pydantic import ValidationError
+
+    if not isinstance(e, ValidationError):
+        return [str(e)]
+
+    messages = []
+    for error in e.errors():
+        # path is a tuple, e.g. ('scenario', 'frequency', 'parameters', 'lambda')
+        loc = " -> ".join(str(x) for x in error["loc"])
+        msg = error["msg"]
+        
+        # Humanize common messages
+        if error["type"] == "missing":
+            msg = "Field required"
+        elif error["type"] == "value_error":
+            # Strip Pydantic's internal 'Value error, ' prefix if present
+            if msg.startswith("Value error, "):
+                msg = msg[len("Value error, "):]
+
+        messages.append(f"[{loc}] {msg}")
+
+    return messages

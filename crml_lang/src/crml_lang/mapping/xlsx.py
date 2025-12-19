@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Dict, Iterable, List, Literal, Optional, Tuple, Union
 
 from ..models.control_catalog_model import CRControlCatalog
 from ..models.attack_catalog_model import CRAttackCatalog
@@ -37,7 +37,7 @@ _TAGS_JSON_LABEL = "Tags (JSON)"
 _TAGS_JSON_DESC = "Optional tags array as JSON."
 
 
-def _doc_meta_columns(*, tags_desc: str) -> list[tuple[str, str, str]]:
+def _doc_meta_columns(*, tags_desc: str) -> List[Tuple[str, str, str]]:
     return [
         ("doc_name", _DOC_NAME_LABEL, _DOC_NAME_DESC),
         ("doc_version", _DOC_VERSION_LABEL, _DOC_VERSION_DESC),
@@ -101,7 +101,7 @@ def _xlsx_style_sheet(
     header_align,
     wrap_align,
     get_column_letter,
-    column_widths: dict[str, float] | None = None,
+    column_widths: Optional[Dict[str, float]] = None,
 ) -> None:
     hr = _xlsx_header_row(ws)
     first_body_row = hr + 1
@@ -124,10 +124,10 @@ def _control_catalog_get_or_create_doc(
     *,
     out_by_doc: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]],
     doc_name: str,
-    doc_version: str | None,
-    doc_description: str | None,
+    doc_version: Optional[str],
+    doc_description: Optional[str],
     doc_tags: Any,
-    catalog_id: str | None,
+    catalog_id: Optional[str],
     framework: str,
 ) -> dict[str, Any]:
     key = _doc_key(doc_name, doc_version, doc_description, doc_tags, catalog_id)
@@ -158,7 +158,7 @@ def _control_catalog_get_or_create_doc(
     return container
 
 
-def _control_catalog_parse_ref_obj(*, control_id: str | None, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+def _control_catalog_parse_ref_obj(*, control_id: Optional[str], data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     ref_standard = _cell_str(data.get("ref_standard"))
     ref_control = _cell_str(data.get("ref_control"))
     ref_requirement = _cell_str(data.get("ref_requirement"))
@@ -284,11 +284,11 @@ def _safe_filename(name: str) -> str:
 
 def _doc_key(
     doc_name: str,
-    doc_version: str | None,
-    doc_description: str | None,
+    doc_version: Optional[str],
+    doc_description: Optional[str],
     doc_tags: Any,
-    pack_or_catalog_id: str | None,
-) -> tuple[str, str | None, str | None, str | None, str | None]:
+    pack_or_catalog_id: Optional[str],
+) -> Tuple[str, Optional[str], Optional[str], Optional[str], Optional[str]]:
     return (
         doc_name,
         doc_version,
@@ -298,7 +298,7 @@ def _doc_key(
     )
 
 
-def _read_sheet_rows(wb, sheet_name: str, *, header_rows: int) -> tuple[list[str], list[tuple[Any, ...]]]:
+def _read_sheet_rows(wb, sheet_name: str, *, header_rows: int) -> Tuple[List[str], List[Tuple[Any, ...]]]:
     if sheet_name not in wb.sheetnames:
         return ([], [])
 
@@ -312,7 +312,7 @@ def _read_sheet_rows(wb, sheet_name: str, *, header_rows: int) -> tuple[list[str
     return (header, body)
 
 
-def _read_doc_meta(data: dict[str, Any]) -> tuple[str | None, str | None, str | None, Any]:
+def _read_doc_meta(data: Dict[str, Any]) -> Tuple[Optional[str], Optional[str], Optional[str], Any]:
     doc_name = _cell_str(data.get("doc_name"))
     doc_version = _cell_str(data.get("doc_version"))
     doc_description = _cell_str(data.get("doc_description"))
@@ -322,18 +322,18 @@ def _read_doc_meta(data: dict[str, Any]) -> tuple[str | None, str | None, str | 
 
 def _get_or_create_container(
     *,
-    out_by_doc: dict[tuple[str, str | None, str | None, str | None, str | None], dict[str, Any]],
+    out_by_doc: Dict[Tuple[str, Optional[str], Optional[str], Optional[str], Optional[str]], Dict[str, Any]],
     doc_type: str,
     doc_name: str,
-    doc_version: str | None,
-    doc_description: str | None,
+    doc_version: Optional[str],
+    doc_description: Optional[str],
     doc_tags: Any,
     payload_key: str,
-    payload_id: str | None,
-    framework: str | None,
+    payload_id: Optional[str],
+    framework: Optional[str],
     list_key: str,
-    extra_payload: dict[str, Any] | None = None,
-) -> dict[str, Any]:
+    extra_payload: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     key = _doc_key(doc_name, doc_version, doc_description, doc_tags, payload_id)
     container = out_by_doc.get(key)
     if container is None:
@@ -395,13 +395,13 @@ def export_xlsx(
     out_path: str,
     *,
     control_catalogs: Iterable[CRControlCatalog] = (),
-    control_catalog_paths: Iterable[str | Path] = (),
+    control_catalog_paths: Iterable[Union[str, Path]] = (),
     attack_catalogs: Iterable[CRAttackCatalog] = (),
-    attack_catalog_paths: Iterable[str | Path] = (),
+    attack_catalog_paths: Iterable[Union[str, Path]] = (),
     control_relationships: Iterable[CRControlRelationships] = (),
-    control_relationship_paths: Iterable[str | Path] = (),
+    control_relationship_paths: Iterable[Union[str, Path]] = (),
     attack_control_relationships: Iterable[CRAttackControlRelationships] = (),
-    attack_control_relationship_paths: Iterable[str | Path] = (),
+    attack_control_relationship_paths: Iterable[Union[str, Path]] = (),
 ) -> None:
     """Export CRML documents into a strict XLSX workbook.
 
@@ -566,7 +566,7 @@ def _apply_workbook_formatting(wb) -> None:
             _xlsx_number_format(ws, column_name=str(col_name), fmt=str(fmt))
 
 
-def import_xlsx(source: str | Path | Any) -> ImportedXlsx:
+def import_xlsx(source: Union[str, Path, Any]) -> ImportedXlsx:
     """Import CRML documents from an XLSX workbook created by `export_xlsx`.
 
     Args:
@@ -592,7 +592,7 @@ def import_xlsx(source: str | Path | Any) -> ImportedXlsx:
     )
 
 
-def _load_docs_from_paths(paths: Iterable[str | Path], model_cls) -> list[Any]:
+def _load_docs_from_paths(paths: Iterable[Union[str, Path]], model_cls) -> List[Any]:
     if not paths:
         return []
 

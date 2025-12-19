@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, Union
 import os
 
 from pydantic import BaseModel, Field
@@ -295,7 +295,7 @@ def _load_yaml_file(path: str) -> dict[str, Any]:
     return data
 
 
-def _resolve_path(base_dir: str | None, p: str) -> str:
+def _resolve_path(base_dir: Optional[str], p: str) -> str:
     """Resolve `p` relative to `base_dir` if needed."""
     if base_dir and not os.path.isabs(p):
         return os.path.join(base_dir, p)
@@ -369,7 +369,7 @@ def _distinct_non_none(values: list[object]) -> set[object]:
 
 
 def plan_portfolio(  # NOSONAR
-    source: str | dict[str, Any],
+    source: Union[str, dict[str, Any]],
     *,
     source_kind: Literal["path", "yaml", "data"] = "path",
 ) -> PlanReport:
@@ -387,7 +387,7 @@ def plan_portfolio(  # NOSONAR
     errors: list[PlanMessage] = []
     warnings: list[PlanMessage] = []
 
-    base_dir: str | None = None
+    base_dir: Optional[str] = None
     data: dict[str, Any]
 
     if source_kind == "path":

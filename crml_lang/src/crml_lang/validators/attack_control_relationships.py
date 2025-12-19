@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, Union, Optional
 
 from jsonschema import Draft202012Validator
 
@@ -36,7 +36,7 @@ def _semantic_error(*, path: str, message: str) -> ValidationMessage:
     return ValidationMessage(level="error", source="semantic", path=path, message=message)
 
 
-def _extract_relationship_groups(data: dict[str, Any]) -> list[Any] | None:
+def _extract_relationship_groups(data: dict[str, Any]) -> Optional[list[Any]]:
     payload = data.get("relationships")
     rels = payload.get("relationships") if isinstance(payload, dict) else None
     return rels if isinstance(rels, list) else None
@@ -166,9 +166,9 @@ def _semantic_validation_errors(*, data: dict[str, Any]) -> list[ValidationMessa
 
 
 def validate_attack_control_relationships(
-    source: str | dict[str, Any],
+    source: Union[str, dict[str, Any]],
     *,
-    source_kind: Literal["path", "yaml", "data"] | None = None,
+    source_kind: Optional[Literal["path", "yaml", "data"]] = None,
     strict_model: bool = False,
 ) -> ValidationReport:
     """Validate a CRML Attack-to-Control Relationships document."""

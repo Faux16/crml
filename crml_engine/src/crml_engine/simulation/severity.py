@@ -59,7 +59,7 @@ class SeverityEngine:
         params: Any,
         base_currency: str,
         fx_config: FXConfig,
-    ) -> tuple[float, float]:
+    ) -> Tuple[float, float]:
         sev_currency = SeverityEngine._resolve_currency(params, base_currency=base_currency)
         mu_val = SeverityEngine._lognormal_mu_from_params(
             params=params,

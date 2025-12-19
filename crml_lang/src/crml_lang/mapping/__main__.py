@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from typing import Optional
 from pathlib import Path
 
 from ..api import CRControlCatalog, CRAttackCatalog, CRControlRelationships, CRAttackControlRelationships
@@ -48,7 +49,7 @@ def _build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Optional[list[str]] = None) -> int:
     try:
         args = _build_parser().parse_args(argv)
 

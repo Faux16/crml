@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import AliasChoices, BaseModel, Field, ConfigDict, field_validator
 
@@ -108,7 +108,7 @@ class ConditionalRelationship(BaseModel):
     )
 
 
-Relationship = CorrelationRelationship | ConditionalRelationship
+Relationship = Union[CorrelationRelationship, ConditionalRelationship]
 
 
 class PortfolioControl(BaseModel):

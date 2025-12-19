@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, Union, Tuple
 
 from ..yamlio import load_yaml_mapping_from_str
 
@@ -124,7 +124,7 @@ def _error(message: str, *, path: str = ROOT_PATH) -> list[ValidationMessage]:
     return [ValidationMessage(level="error", source="io", path=path, message=message)]
 
 
-def _read_text_file(path: str) -> tuple[Optional[str], list[ValidationMessage]]:
+def _read_text_file(path: str) -> Tuple[Optional[str], list[ValidationMessage]]:
     """Read a UTF-8 text file and return (text, errors)."""
     if not os.path.exists(path):
         return None, _error(f"File not found: {path}")
@@ -135,7 +135,7 @@ def _read_text_file(path: str) -> tuple[Optional[str], list[ValidationMessage]]:
         return None, _error(f"Failed to read file {path}: {e}")
 
 
-def _parse_yaml_mapping(text: str) -> tuple[Optional[dict[str, Any]], list[ValidationMessage]]:
+def _parse_yaml_mapping(text: str) -> Tuple[Optional[dict[str, Any]], list[ValidationMessage]]:
     """Parse YAML and require the root to be a mapping.
 
     Returns:
@@ -152,10 +152,10 @@ def _parse_yaml_mapping(text: str) -> tuple[Optional[dict[str, Any]], list[Valid
 
 
 def _load_input(
-    source: str | dict[str, Any],
+    source: Union[str, dict[str, Any]],
     *,
-    source_kind: Literal["path", "yaml", "data"] | None,
-) -> tuple[Optional[dict[str, Any]], list[ValidationMessage]]:
+    source_kind: Optional[Literal["path", "yaml", "data"]],
+) -> Tuple[Optional[dict[str, Any]], list[ValidationMessage]]:
     """Load CRML input from a path, YAML string, or already-parsed dict.
 
     This helper centralizes "input kind" inference and produces consistent

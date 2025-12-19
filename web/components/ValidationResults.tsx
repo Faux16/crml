@@ -19,7 +19,7 @@ export interface ValidationResult {
         company_sizes?: string[];
         industries?: string[];
         regions?: string[];
-        countries?: string | null;
+        countries?: string[];
         regulatory_frameworks?: string[];
         tags?: string[];
     };

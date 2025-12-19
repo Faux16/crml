@@ -26,12 +26,6 @@ export default function Navbar() {
                         <Link href="/playground" className="text-sm font-medium hover:text-primary transition-colors">
                             Playground
                         </Link>
-                        <Link href="/simulation" className="text-sm font-medium hover:text-primary transition-colors">
-                            Simulation
-                        </Link>
-                        <Link href="/validator" className="text-sm font-medium hover:text-primary transition-colors">
-                            Validator
-                        </Link>
                         <Link href="/examples" className="text-sm font-medium hover:text-primary transition-colors">
                             Examples
                         </Link>
@@ -74,20 +68,6 @@ export default function Navbar() {
                             onClick={() => setIsOpen(false)}
                         >
                             Playground
-                        </Link>
-                        <Link
-                            href="/simulation"
-                            className="block py-2 text-sm font-medium hover:text-primary transition-colors"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            Simulation
-                        </Link>
-                        <Link
-                            href="/validator"
-                            className="block py-2 text-sm font-medium hover:text-primary transition-colors"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            Validator
                         </Link>
                         <Link
                             href="/examples"

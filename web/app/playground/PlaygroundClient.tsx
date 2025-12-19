@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import CodeEditor from "@/components/CodeEditor";
 import ValidationResults, { ValidationResult } from "@/components/ValidationResults";
 import SimulationResults, { CRSimulationResult } from "@/components/SimulationResults";
+import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
 import {
     Download,
     FileText,
@@ -34,24 +35,7 @@ interface Example {
     content: string;
 }
 
-const DEFAULT_YAML = `crml: "1.1"
-meta:
-  name: "my-risk-model"
-  description: "A simple cyber risk model"
-model:
-  assets:
-    - name: "PIIdatabase"
-      cardinality: 50  # 50 databases with PII
-  frequency:
-    model: poisson
-    parameters:
-      lambda: 0.1
-  severity:
-    model: lognormal
-    parameters:
-      mu: 10.0
-      sigma: 1.0
-`;
+const DEFAULT_YAML = PORTFOLIO_BUNDLE_DOCUMENTED_YAML;
 
 const OUTPUT_CURRENCIES = {
     USD: { symbol: "$", name: "US Dollar" },

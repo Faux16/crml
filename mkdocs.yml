@@ -40,6 +40,7 @@ nav:
 
   - Guides:
     - Writing CRML Models: Guides/Writing-CRML.md
+    - Excel Controls & Mappings: Guides/Excel-Controls-and-Mappings.md
     - Understanding Parameters: Guides/Understanding-Parameters.md
     - Executive Reporting: Guides/Executive-Reporting.md
     - Tool Integration: Guides/Tool-Integration.md

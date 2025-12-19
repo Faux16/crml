@@ -2762,6 +2762,10 @@
               "type": "number"
             },
             {
+              "description": "A numeric string. Readability separators (spaces, thin spaces, underscores, commas) are allowed.",
+              "type": "string"
+            },
+            {
               "type": "null"
             }
           ],

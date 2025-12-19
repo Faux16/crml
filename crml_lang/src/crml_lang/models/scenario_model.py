@@ -17,6 +17,7 @@ Consequences:
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic.json_schema import WithJsonSchema
 
 from .numberish import parse_floatish, parse_float_list
 from .control_ref import ControlId
@@ -243,8 +244,25 @@ class Frequency(BaseModel):
 DISTRIBUTION_PARAM_DESC = "Distribution parameter (model-specific)."
 
 
+FloatishNoPercent = Annotated[
+    float,
+    WithJsonSchema(
+        {
+            "anyOf": [
+                {"type": "number"},
+                {
+                    "type": "string",
+                    "description": "A numeric string. Readability separators (spaces, thin spaces, underscores, commas) are allowed.",
+                },
+            ]
+        },
+        mode="validation",
+    ),
+]
+
+
 class SeverityParameters(BaseModel):
-    median: Optional[float] = Field(
+    median: Optional[FloatishNoPercent] = Field(
         None,
         description=(
             "Median loss value (distribution-dependent). Interpreted as threat impact (monetary loss per event). "

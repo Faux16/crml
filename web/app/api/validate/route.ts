@@ -17,6 +17,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function asString(value: unknown): string | undefined {
+    if (typeof value === "string") return value;
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    return undefined;
+}
+
 function asStringArray(value: unknown): string[] {
     return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
@@ -53,17 +59,56 @@ function parseYaml(yamlContent: string): Result<unknown> {
 function extractMeta(parsedYaml: unknown): {
     meta: Record<string, unknown> | undefined;
     locale: Record<string, unknown> | undefined;
+    documentVersion: string | undefined;
 } {
     const parsedObj = isRecord(parsedYaml) ? parsedYaml : undefined;
-    const meta = parsedObj && isRecord(parsedObj["meta"]) ? parsedObj["meta"] : undefined;
+
+    if (!parsedObj) {
+        return { meta: undefined, locale: undefined, documentVersion: undefined };
+    }
+
+    // Portfolio Bundle: metadata can live under:
+    // - portfolio_bundle.meta (bundle-level), or
+    // - portfolio_bundle.portfolio.meta (embedded portfolio)
+    const portfolioBundleVersion = asString(parsedObj["crml_portfolio_bundle"]);
+    if (portfolioBundleVersion) {
+        const bundle = isRecord(parsedObj["portfolio_bundle"]) ? parsedObj["portfolio_bundle"] : undefined;
+
+        const bundleMeta = bundle && isRecord(bundle["meta"]) ? bundle["meta"] : undefined;
+        const portfolio = bundle && isRecord(bundle["portfolio"]) ? bundle["portfolio"] : undefined;
+        const portfolioMeta = portfolio && isRecord(portfolio["meta"]) ? portfolio["meta"] : undefined;
+
+        const meta = bundleMeta ?? portfolioMeta;
+        const locale = meta && isRecord(meta["locale"]) ? meta["locale"] : undefined;
+        return { meta, locale, documentVersion: portfolioBundleVersion };
+    }
+
+    const meta = isRecord(parsedObj["meta"]) ? parsedObj["meta"] : undefined;
     const locale = meta && isRecord(meta["locale"]) ? meta["locale"] : undefined;
-    return { meta, locale };
+
+    const documentVersion =
+        asString(parsedObj["crml_scenario"]) ||
+        asString(parsedObj["crml_portfolio"]) ||
+        asString(parsedObj["crml_assessment"]) ||
+        asString(parsedObj["crml_control_catalog"]) ||
+        asString(parsedObj["crml_attack_catalog"]) ||
+        asString(parsedObj["crml_control_relationships"]) ||
+        asString(parsedObj["crml_attack_control_relationships"]) ||
+        undefined;
+
+    return { meta, locale, documentVersion };
 }
 
-function buildInfo(meta: Record<string, unknown> | undefined, locale: Record<string, unknown> | undefined) {
+function buildInfo(
+    meta: Record<string, unknown> | undefined,
+    locale: Record<string, unknown> | undefined,
+    documentVersion: string | undefined
+) {
     return {
         name: typeof meta?.["name"] === "string" ? meta["name"] : undefined,
-        version: typeof meta?.["version"] === "string" ? meta["version"] : undefined,
+        version:
+            asString(meta?.["version"]) ??
+            (typeof documentVersion === "string" ? documentVersion : undefined),
         description: typeof meta?.["description"] === "string" ? meta["description"] : undefined,
         author: typeof meta?.["author"] === "string" ? meta["author"] : undefined,
         organization: typeof meta?.["organization"] === "string" ? meta["organization"] : undefined,
@@ -133,8 +178,8 @@ export async function POST(request: NextRequest) {
         const parsedYamlResult = parseYaml(yamlContentResult.value);
         if (!parsedYamlResult.ok) return parsedYamlResult.response;
 
-        const { meta, locale } = extractMeta(parsedYamlResult.value);
-        const info = buildInfo(meta, locale);
+        const { meta, locale, documentVersion } = extractMeta(parsedYamlResult.value);
+        const info = buildInfo(meta, locale, documentVersion);
 
         return await withTempYamlFile(yamlContentResult.value, async (tmpFile) => {
             const { stdout, stderr, ok, message } = await execCrmlValidate(tmpFile);

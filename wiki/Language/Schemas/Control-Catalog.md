@@ -107,6 +107,12 @@ Notes:
 
 ## Validation
 
+## Excel (XLSX) authoring
+
+If you prefer maintaining control definitions in Excel, CRML supports a strict XLSX workbook workflow and round-tripping to YAML:
+
+- Guide: [Excel Controls & Mappings](../../Guides/Excel-Controls-and-Mappings.md)
+
 Python:
 
 ```python

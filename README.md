@@ -6,6 +6,7 @@
 
 > **⚠️ WARNING**
 > This codebase is currently being developed on the **`1.2` branch**. For the latest work-in-progress and source of truth, see: https://github.com/Faux16/crml/tree/crml-dev-1.2
+
 **Version:** 1.1
 **Maintained by:** Zeron Research Labs
 

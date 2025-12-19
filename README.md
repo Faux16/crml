@@ -68,6 +68,9 @@ Imagine a near-future where CRML is as normal to risk work as IaC is to infrastr
 
 In that world, cyber risk becomes reproducible, comparable, and automatable across teams — while still allowing methodological diversity.
 
+See **General Architecture**: [wiki/Concepts/Architecture.md](wiki/Concepts/Architecture.md)
+
+
 ### Short example (what “standardized CRML” looks like)
 
 A typical organization might keep CRML alongside detection and infrastructure code:
@@ -189,7 +192,7 @@ Open http://localhost:3000
 
 ## Documentation
 
-See the docs under `wiki/`.
+See the docs under [wiki/](wiki/) (start at [wiki/Home.md](wiki/Home.md)).
 
 Current document types:
 

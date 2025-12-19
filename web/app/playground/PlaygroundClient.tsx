@@ -10,10 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 import CodeEditor from "@/components/CodeEditor";
 import ValidationResults, { ValidationResult } from "@/components/ValidationResults";
 import SimulationResults, { CRSimulationResult } from "@/components/SimulationResults";
 import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
+import { applyInclusionTogglesToYaml, tryExtractInclusionsFromYaml } from "@/lib/crmlInclusions";
 import {
     Download,
     FileText,
@@ -67,6 +70,9 @@ export default function PlaygroundClient() {
     const [seed, setSeed] = useState("");
     const [outputCurrency, setOutputCurrency] = useState<keyof typeof OUTPUT_CURRENCIES>("USD");
 
+    const [disabledControlIds, setDisabledControlIds] = useState<Set<string>>(() => new Set());
+    const [disabledAttackIds, setDisabledAttackIds] = useState<Set<string>>(() => new Set());
+
     const [loadedExample, setLoadedExample] = useState<Pick<Example, "id" | "name" | "description"> | null>(null);
 
     useEffect(() => {
@@ -99,6 +105,14 @@ export default function PlaygroundClient() {
         void loadExample();
     }, [exampleId]);
 
+    const inclusions = useMemo(() => tryExtractInclusionsFromYaml(yamlContent), [yamlContent]);
+
+    useEffect(() => {
+        // Reset toggles when the loaded document type changes.
+        setDisabledControlIds(new Set());
+        setDisabledAttackIds(new Set());
+    }, [inclusions?.docKind]);
+
     const handleValidate = async () => {
         setIsValidating(true);
         try {
@@ -125,13 +139,14 @@ export default function PlaygroundClient() {
     const handleSimulate = async () => {
         setIsSimulating(true);
         try {
+            const yamlForSimulation = applyInclusionTogglesToYaml(yamlContent, disabledControlIds, disabledAttackIds);
             const response = await fetch("/api/simulate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    yaml: yamlContent,
+                    yaml: yamlForSimulation,
                     runs: Number.parseInt(runs, 10) || 10000,
                     seed: seed ? Number.parseInt(seed, 10) : undefined,
                     outputCurrency,
@@ -187,6 +202,102 @@ export default function PlaygroundClient() {
         setValidationResult(null);
         setSimulationResult(null);
     };
+
+    const toggleCard = useMemo(() => {
+        if (activeTab !== "simulate") return null;
+        if (!inclusions) return null;
+
+        const hasControls = inclusions.controlIds.length > 0;
+        const hasAttacks = inclusions.attackIds.length > 0;
+        if (!hasControls && !hasAttacks) return null;
+
+        const makeToggle = (id: string, enabled: boolean, onToggle: () => void) => (
+            <button
+                key={id}
+                type="button"
+                aria-pressed={enabled}
+                onClick={onToggle}
+                className={cn(
+                    "flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    enabled ? "bg-background" : "bg-muted text-muted-foreground",
+                )}
+            >
+                <span className="truncate">{id}</span>
+                <span className="shrink-0 text-xs">{enabled ? "On" : "Off"}</span>
+            </button>
+        );
+
+        return (
+            <Card className="mb-6">
+                <CardHeader>
+                    <CardTitle className="text-base">Included attacks & controls</CardTitle>
+                    <CardDescription>
+                        Toggles strip ids from the YAML payload sent to the simulator (the editor text is unchanged).
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium">Controls</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {inclusions.controlIds.length - disabledControlIds.size}/{inclusions.controlIds.length} on
+                                </p>
+                            </div>
+                            <ScrollArea className="h-48 rounded-md border p-2">
+                                <div className="space-y-2">
+                                    {inclusions.controlIds.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground">No controls found.</p>
+                                    ) : (
+                                        inclusions.controlIds.map((id) => {
+                                            const enabled = !disabledControlIds.has(id);
+                                            return makeToggle(id, enabled, () => {
+                                                setDisabledControlIds((prev) => {
+                                                    const next = new Set(prev);
+                                                    if (next.has(id)) next.delete(id);
+                                                    else next.add(id);
+                                                    return next;
+                                                });
+                                            });
+                                        })
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium">ATT&CK ids (meta.attck)</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {inclusions.attackIds.length - disabledAttackIds.size}/{inclusions.attackIds.length} on
+                                </p>
+                            </div>
+                            <ScrollArea className="h-48 rounded-md border p-2">
+                                <div className="space-y-2">
+                                    {inclusions.attackIds.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground">No attacks found.</p>
+                                    ) : (
+                                        inclusions.attackIds.map((id) => {
+                                            const enabled = !disabledAttackIds.has(id);
+                                            return makeToggle(id, enabled, () => {
+                                                setDisabledAttackIds((prev) => {
+                                                    const next = new Set(prev);
+                                                    if (next.has(id)) next.delete(id);
+                                                    else next.add(id);
+                                                    return next;
+                                                });
+                                            });
+                                        })
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }, [activeTab, disabledAttackIds, disabledControlIds, inclusions]);
 
     const exampleBanner = useMemo(() => {
         if (!loadedExample) return null;
@@ -355,7 +466,10 @@ export default function PlaygroundClient() {
                         {activeTab === "validate" ? (
                             <ValidationResults result={validationResult} isValidating={isValidating} />
                         ) : (
-                            <SimulationResults result={simulationResult} isSimulating={isSimulating} />
+                            <>
+                                {toggleCard}
+                                <SimulationResults result={simulationResult} isSimulating={isSimulating} />
+                            </>
                         )}
                     </div>
                 </div>

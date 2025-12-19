@@ -13,6 +13,7 @@ import SimulationResults, { CRSimulationResult } from "@/components/SimulationRe
 import { Play, RotateCcw, FileText, Settings2, HelpCircle, Info, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
+import { applyInclusionTogglesToYaml, tryExtractInclusionsFromYaml } from "@/lib/crmlInclusions";
 
 const EXAMPLE_MODELS = {
         "portfolio-bundle": {
@@ -45,6 +46,11 @@ export default function SimulationPage() {
     const [seed, setSeed] = useState("");
     const [outputCurrency, setOutputCurrency] = useState("USD");
 
+    // Minimal implementation: disable lists are empty for now.
+    // (The Playground page provides the analyst-facing toggles UI.)
+    const disabledControls = new Set<string>();
+    const disabledAttacks = new Set<string>();
+
     const handleExampleChange = (value: string) => {
         setSelectedExample(value);
         setYamlContent(EXAMPLE_MODELS[value as keyof typeof EXAMPLE_MODELS].content);
@@ -66,13 +72,19 @@ export default function SimulationPage() {
         const seedValue = parsedSeed === undefined || Number.isNaN(parsedSeed) ? undefined : parsedSeed;
 
         try {
+            // Only apply overlay if this is a toggleable doc; otherwise send as-is.
+            const isToggleable = tryExtractInclusionsFromYaml(yamlContent) !== null;
+            const yamlForSimulation = isToggleable
+                ? applyInclusionTogglesToYaml(yamlContent, disabledControls, disabledAttacks)
+                : yamlContent;
+
             const response = await fetch("/api/simulate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    yaml: yamlContent,
+                    yaml: yamlForSimulation,
                     runs: runsValue,
                     seed: seedValue,
                     outputCurrency: outputCurrency

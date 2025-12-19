@@ -7,6 +7,33 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Download, TrendingUp, AlertCircle, BarChart3, HelpCircle, Info, DollarSign } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
+const VAR_LEVEL_95 = 0.95;
+const VAR_LEVEL_99 = 0.99;
+const VAR_LEVEL_999 = 0.999;
+
+const PERCENT_MULTIPLIER = 100;
+
+const THOUSAND = 1_000;
+const MILLION = 1_000_000;
+
+const CONTROL_DETAILS_PREVIEW_COUNT = 5;
+
+const CHART_X_TICK_COUNT = 7;
+const CHART_X_AXIS_HEIGHT = 70;
+
+const numberOrZero = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+
+const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+};
+
 export interface SimulationMetrics {
     eal: number;
     var_95: number;
@@ -193,9 +220,9 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
     const measures = inner.results?.measures ?? [];
     const artifacts = inner.results?.artifacts ?? [];
 
-    const currency = inner.units?.currency?.symbol || inner.units?.currency?.code || '$';
+    const currency = inner.units?.currency?.symbol ?? inner.units?.currency?.code ?? "$";
 
-    const getMeasure = (id: string) => measures.find(m => m.id === id);
+    const getMeasure = (id: string) => measures.find((m) => m.id === id);
     const getVar = (level: number) => measures.find((m) => {
         if (m.id !== "loss.var") return false;
         const candidate = m.parameters?.["level"];
@@ -205,25 +232,28 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
     const samples = artifacts.find((a): a is CrmlSamplesArtifact => a.kind === "samples" && a.id === "loss.annual");
 
     const metrics: SimulationMetrics = {
-        eal: (getMeasure("loss.eal")?.value as number) || 0,
-        var_95: (getVar(0.95)?.value as number) || 0,
-        var_99: (getVar(0.99)?.value as number) || 0,
-        var_999: (getVar(0.999)?.value as number) || 0,
-        min: (getMeasure("loss.min")?.value as number) || 0,
-        max: (getMeasure("loss.max")?.value as number) || 0,
-        median: (getMeasure("loss.median")?.value as number) || 0,
-        std_dev: (getMeasure("loss.std_dev")?.value as number) || 0,
+        eal: numberOrZero(getMeasure("loss.eal")?.value),
+        var_95: numberOrZero(getVar(VAR_LEVEL_95)?.value),
+        var_99: numberOrZero(getVar(VAR_LEVEL_99)?.value),
+        var_999: numberOrZero(getVar(VAR_LEVEL_999)?.value),
+        min: numberOrZero(getMeasure("loss.min")?.value),
+        max: numberOrZero(getMeasure("loss.max")?.value),
+        median: numberOrZero(getMeasure("loss.median")?.value),
+        std_dev: numberOrZero(getMeasure("loss.std_dev")?.value),
     };
 
     const metadata: SimulationMetadata = {
-        runs: inner.run?.runs || 0,
-        runtime_ms: inner.run?.runtime_ms || 0,
-        model_name: inner.inputs?.model_name || "",
+        runs: inner.run?.runs ?? 0,
+        runtime_ms: inner.run?.runtime_ms ?? 0,
+        model_name: inner.inputs?.model_name ?? "",
         model_version: inner.inputs?.model_version,
         description: inner.inputs?.description,
         seed: inner.run?.seed,
         currency,
     };
+
+    const downloadBaseName = metadata.model_name || "simulation";
+    const controlReductionPct = metadata.control_reduction_pct ?? 0;
 
     const distribution: SimulationDistribution | undefined = histogram
         ? {
@@ -236,11 +266,11 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
     const formatCurrency = (value: number) => {
         if (!Number.isFinite(value)) return `${currency}0`;
         const abs = Math.abs(value);
-        if (abs >= 1000000) {
-            return `${currency}${(value / 1000000).toFixed(2)}M`;
+        if (abs >= MILLION) {
+            return `${currency}${(value / MILLION).toFixed(2)}M`;
         }
-        if (abs >= 1000) {
-            return `${currency}${(value / 1000).toFixed(0)}K`;
+        if (abs >= THOUSAND) {
+            return `${currency}${(value / THOUSAND).toFixed(0)}K`;
         }
         return `${currency}${value.toFixed(0)}`;
     };
@@ -303,14 +333,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
 
     const handleDownloadJSON = () => {
         const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${metadata?.model_name || 'simulation'}_results.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+        downloadBlob(blob, `${downloadBaseName}_results.json`);
     };
 
     const handleDownloadCSV = () => {
@@ -318,14 +341,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
 
         const csv = ['Loss Amount\n', ...distribution.raw_data.map(v => `${v}\n`)].join('');
         const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${metadata?.model_name || 'simulation'}_data.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+        downloadBlob(blob, `${downloadBaseName}_data.csv`);
     };
 
     return (
@@ -339,13 +355,13 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                             <CardTitle className="text-base">Simulation Complete</CardTitle>
                         </div>
                         <CardDescription className="text-xs">
-                            {metadata?.runs.toLocaleString()} iterations • {metadata?.runtime_ms.toFixed(0)}ms
+                            {metadata.runs.toLocaleString()} iterations • {metadata.runtime_ms.toFixed(0)}ms
                         </CardDescription>
                     </CardHeader>
                 </Card>
 
                 {/* Correlation Info */}
-                {metadata?.correlation_info && metadata.correlation_info.length > 0 && (
+                {metadata.correlation_info && metadata.correlation_info.length > 0 && (
                     <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
                         <CardHeader className="pb-3">
                             <div className="flex items-center gap-2">
@@ -377,7 +393,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                 )}
 
                 {/* Control Effectiveness */}
-                {metadata?.controls_applied && (
+                {metadata?.controls_applied && metadata.lambda_baseline != null && metadata.lambda_effective != null && (
                     <Card className="bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800">
                         <CardHeader className="pb-3">
                             <div className="flex items-center gap-2">
@@ -385,7 +401,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                 <CardTitle className="text-base">Control Effectiveness</CardTitle>
                             </div>
                             <CardDescription className="text-xs">
-                                Security controls reduced risk by {metadata.control_reduction_pct?.toFixed(1)}%
+                                Security controls reduced risk by {controlReductionPct.toFixed(1)}%
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -394,14 +410,14 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                 <div className="space-y-1">
                                     <p className="text-xs text-muted-foreground">Baseline (no controls)</p>
                                     <p className="text-lg font-semibold text-red-600 dark:text-red-400">
-                                        {(metadata.lambda_baseline! * 100).toFixed(1)}%
+                                        {(metadata.lambda_baseline * PERCENT_MULTIPLIER).toFixed(1)}%
                                     </p>
                                     <p className="text-xs text-muted-foreground">Annual probability</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-xs text-muted-foreground">Effective (with controls)</p>
                                     <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                                        {(metadata.lambda_effective! * 100).toFixed(2)}%
+                                        {(metadata.lambda_effective * PERCENT_MULTIPLIER).toFixed(2)}%
                                     </p>
                                     <p className="text-xs text-muted-foreground">Annual probability</p>
                                 </div>
@@ -412,13 +428,13 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                 <div className="flex justify-between text-xs">
                                     <span className="text-muted-foreground">Risk Reduction</span>
                                     <span className="font-semibold text-green-600 dark:text-green-400">
-                                        {metadata.control_reduction_pct?.toFixed(1)}%
+                                        {controlReductionPct.toFixed(1)}%
                                     </span>
                                 </div>
                                 <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all"
-                                        style={{ width: `${Math.min(metadata.control_reduction_pct || 0, 100)}%` }}
+                                        style={{ width: `${Math.min(Math.max(controlReductionPct, 0), PERCENT_MULTIPLIER)}%` }}
                                     />
                                 </div>
                             </div>
@@ -430,7 +446,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                         Individual Controls ({metadata.control_details.length})
                                     </p>
                                     <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                                        {metadata.control_details.slice(0, 5).map((ctrl) => (
+                                        {metadata.control_details.slice(0, CONTROL_DETAILS_PREVIEW_COUNT).map((ctrl) => (
                                             <div key={`${ctrl.id}::${ctrl.type}`} className="flex items-center justify-between text-xs p-1.5 bg-white dark:bg-gray-900 rounded">
                                                 <div className="flex-1">
                                                     <span className="font-medium">{ctrl.id}</span>
@@ -440,21 +456,21 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                                     <Tooltip>
                                                         <TooltipTrigger>
                                                             <span className="text-green-600 dark:text-green-400 font-semibold">
-                                                                {(ctrl.reduction * 100).toFixed(0)}%
+                                                                {(ctrl.reduction * PERCENT_MULTIPLIER).toFixed(0)}%
                                                             </span>
                                                         </TooltipTrigger>
                                                         <TooltipContent className="text-xs">
-                                                            <p>Effectiveness: {(ctrl.effectiveness * 100).toFixed(0)}%</p>
-                                                            <p>Coverage: {(ctrl.coverage * 100).toFixed(0)}%</p>
-                                                            <p>Reliability: {(ctrl.reliability * 100).toFixed(0)}%</p>
+                                                            <p>Effectiveness: {(ctrl.effectiveness * PERCENT_MULTIPLIER).toFixed(0)}%</p>
+                                                            <p>Coverage: {(ctrl.coverage * PERCENT_MULTIPLIER).toFixed(0)}%</p>
+                                                            <p>Reliability: {(ctrl.reliability * PERCENT_MULTIPLIER).toFixed(0)}%</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </div>
                                             </div>
                                         ))}
-                                        {metadata.control_details.length > 5 && (
+                                        {metadata.control_details.length > CONTROL_DETAILS_PREVIEW_COUNT && (
                                             <p className="text-xs text-muted-foreground text-center py-1">
-                                                ... and {metadata.control_details.length - 5} more controls
+                                                ... and {metadata.control_details.length - CONTROL_DETAILS_PREVIEW_COUNT} more controls
                                             </p>
                                         )}
                                     </div>
@@ -489,7 +505,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <CardTitle className="text-2xl">{formatCurrency(metrics?.eal || 0)}</CardTitle>
+                            <CardTitle className="text-2xl">{formatCurrency(metrics.eal)}</CardTitle>
                             <p className="text-xs text-muted-foreground">Avg yearly loss</p>
                         </CardHeader>
                     </Card>
@@ -507,7 +523,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <CardTitle className="text-2xl">{formatCurrency(metrics?.var_95 || 0)}</CardTitle>
+                            <CardTitle className="text-2xl">{formatCurrency(metrics.var_95)}</CardTitle>
                             <p className="text-xs text-muted-foreground">95% confidence</p>
                         </CardHeader>
                     </Card>
@@ -525,7 +541,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <CardTitle className="text-2xl">{formatCurrency(metrics?.var_99 || 0)}</CardTitle>
+                            <CardTitle className="text-2xl">{formatCurrency(metrics.var_99)}</CardTitle>
                             <p className="text-xs text-muted-foreground">99% confidence</p>
                         </CardHeader>
                     </Card>
@@ -543,7 +559,7 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
-                            <CardTitle className="text-2xl">{formatCurrency(metrics?.var_999 || 0)}</CardTitle>
+                            <CardTitle className="text-2xl">{formatCurrency(metrics.var_999)}</CardTitle>
                             <p className="text-xs text-muted-foreground">99.9% confidence</p>
                         </CardHeader>
                     </Card>
@@ -570,8 +586,8 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                         tickFormatter={(v: number) => formatCurrency(v)}
                                         angle={-45}
                                         textAnchor="end"
-                                        height={70}
-                                        tickCount={7}
+                                        height={CHART_X_AXIS_HEIGHT}
+                                        tickCount={CHART_X_TICK_COUNT}
                                         interval={0}
                                         className="text-xs"
                                     />
@@ -603,15 +619,15 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm">
                         <div>
-                            <p className="font-semibold">Budget: {formatCurrency(metrics?.eal || 0)}/year</p>
+                            <p className="font-semibold">Budget: {formatCurrency(metrics.eal)}/year</p>
                             <p className="text-xs text-muted-foreground">Plan for this average annual loss</p>
                         </div>
                         <div>
-                            <p className="font-semibold">Normal worst-case: {formatCurrency(metrics?.var_95 || 0)}</p>
+                            <p className="font-semibold">Normal worst-case: {formatCurrency(metrics.var_95)}</p>
                             <p className="text-xs text-muted-foreground">Prepare for losses up to this (95% confidence)</p>
                         </div>
                         <div>
-                            <p className="font-semibold">Extreme scenario: {formatCurrency(metrics?.var_99 || 0)}</p>
+                            <p className="font-semibold">Extreme scenario: {formatCurrency(metrics.var_99)}</p>
                             <p className="text-xs text-muted-foreground">Rare but possible. Ensure insurance coverage</p>
                         </div>
                     </CardContent>
@@ -627,19 +643,19 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                             <div className="space-y-1.5 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Min:</span>
-                                    <span className="font-medium">{formatCurrency(metrics?.min || 0)}</span>
+                                    <span className="font-medium">{formatCurrency(metrics.min)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Max:</span>
-                                    <span className="font-medium">{formatCurrency(metrics?.max || 0)}</span>
+                                    <span className="font-medium">{formatCurrency(metrics.max)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Median:</span>
-                                    <span className="font-medium">{formatCurrency(metrics?.median || 0)}</span>
+                                    <span className="font-medium">{formatCurrency(metrics.median)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Std Dev:</span>
-                                    <span className="font-medium">{formatCurrency(metrics?.std_dev || 0)}</span>
+                                    <span className="font-medium">{formatCurrency(metrics.std_dev)}</span>
                                 </div>
                             </div>
                             <div className="space-y-2">

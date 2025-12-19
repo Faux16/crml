@@ -11,18 +11,30 @@ Inputs:
 Outputs:
     - `SimulationResult` including summary metrics and distribution artifacts.
 """
+import os
 import time
+
 import numpy as np
-from typing import Union, Optional, Dict, List
 
 from crml_lang.models.scenario_model import load_crml_from_yaml_str, CRScenario
 from ..models.result_model import SimulationResult, Metrics, Distribution, Metadata
 from ..models.fx_model import FXConfig, convert_currency, get_currency_symbol, normalize_fx_config
-from ..models.constants import DEFAULT_FX_RATES
-from ..controls import apply_control_effectiveness
 
 from .frequency import FrequencyEngine
 from .severity import SeverityEngine
+
+
+DEFAULT_N_RUNS = 10_000
+DEFAULT_RAW_DATA_LIMIT = 1_000
+MILLISECONDS_PER_SECOND = 1_000.0
+
+PERCENTILE_VAR_95 = 95
+PERCENTILE_VAR_99 = 99
+PERCENTILE_VAR_999 = 99.9
+
+HISTOGRAM_BINS_MIN = 50
+HISTOGRAM_BINS_MAX = 200
+HISTOGRAM_EMPTY_MAX_EDGE = 1.0
 
 
 def _normalize_cardinality(cardinality: int | None) -> int:
@@ -36,18 +48,18 @@ def _normalize_cardinality(cardinality: int | None) -> int:
     """
     try:
         value = int(cardinality) if cardinality is not None else 1
-    except Exception:
+    except (TypeError, ValueError):
         value = 1
     return max(1, value)
 
 
 def _coerce_multiplier(
-    multiplier: Optional[object],
+    multiplier: object | None,
     *,
     n_runs: int,
     label: str,
     result: SimulationResult,
-) -> Optional[object]:
+) -> object | None:
     """Validate and normalize a multiplier argument.
 
     The engine accepts either:
@@ -80,7 +92,7 @@ def _coerce_multiplier(
     return arr
 
 
-def _load_scenario_document(yaml_content: Union[str, dict], *, result: SimulationResult) -> Optional[CRScenario]:
+def _load_scenario_document(yaml_content: str | dict, *, result: SimulationResult) -> CRScenario | None:
     """Parse and validate a CRML scenario from supported input types.
 
     Args:
@@ -96,8 +108,6 @@ def _load_scenario_document(yaml_content: Union[str, dict], *, result: Simulatio
     """
     try:
         if isinstance(yaml_content, str):
-            import os
-
             if os.path.isfile(yaml_content):
                 with open(yaml_content, 'r', encoding='utf-8') as f:
                     yaml_str = f.read()
@@ -109,8 +119,12 @@ def _load_scenario_document(yaml_content: Union[str, dict], *, result: Simulatio
 
         result.errors.append("Invalid input type")
         return None
-    except Exception as e:
-        result.errors.append(f"Parsing error: {str(e)}")
+    except (OSError, UnicodeDecodeError, TypeError, ValueError) as e:
+        result.errors.append(f"Parsing error: {e}")
+        return None
+    except Exception as e:  # NOSONAR
+        # Defensive catch-all: scenario parsing may raise library-specific exceptions.
+        result.errors.append(f"Parsing error: {e}")
         return None
 
 
@@ -177,9 +191,9 @@ def _simulate_annual_losses(
     frequency_params: object,
     severity_model: str,
     severity_params: object,
-    severity_components: Optional[object],
-    frequency_rate_multiplier: Optional[object],
-    severity_loss_multiplier: Optional[object],
+    severity_components: object | None,
+    frequency_rate_multiplier: object | None,
+    severity_loss_multiplier: object | None,
 ) -> np.ndarray:
     """Simulate annual loss samples in the base currency.
 
@@ -244,7 +258,7 @@ def _apply_output_currency(losses_base: np.ndarray, *, fx_config: FXConfig) -> n
     return losses_base * factor
 
 
-def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: Optional[int]) -> tuple[Metrics, Distribution]:
+def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: int | None) -> tuple[Metrics, Distribution]:
     """Compute summary statistics and histogram artifacts for loss samples.
 
     Args:
@@ -259,9 +273,9 @@ def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: Opt
 
     metrics = Metrics(
         eal=float(np.mean(losses)),
-        var_95=float(np.percentile(losses, 95)),
-        var_99=float(np.percentile(losses, 99)),
-        var_999=float(np.percentile(losses, 99.9)),
+        var_95=float(np.percentile(losses, PERCENTILE_VAR_95)),
+        var_99=float(np.percentile(losses, PERCENTILE_VAR_99)),
+        var_999=float(np.percentile(losses, PERCENTILE_VAR_999)),
         min=float(np.min(losses)),
         max=float(np.max(losses)),
         median=float(np.median(losses)),
@@ -273,12 +287,12 @@ def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: Opt
     # - But too many bins makes the chart noisy for a finite number of runs.
     # Use a simple, stable heuristic: bins ~ sqrt(n_runs), clamped.
     n_runs = int(losses.size)
-    bin_count = int(np.clip(int(np.sqrt(max(n_runs, 1))), 50, 200))
+    bin_count = int(np.clip(int(np.sqrt(max(n_runs, 1))), HISTOGRAM_BINS_MIN, HISTOGRAM_BINS_MAX))
 
     max_loss = float(np.max(losses)) if n_runs > 0 else 0.0
     if max_loss <= 0:
         # All-zero (or empty) distribution: keep a minimal, well-defined range.
-        bin_edges = np.asarray([0.0, 1.0], dtype=np.float64)
+        bin_edges = np.asarray([0.0, HISTOGRAM_EMPTY_MAX_EDGE], dtype=np.float64)
         hist = np.asarray([n_runs], dtype=np.int64)
     else:
         # Force the range to start at 0 so the histogram consistently represents
@@ -297,15 +311,16 @@ def _compute_metrics_and_distribution(losses: np.ndarray, *, raw_data_limit: Opt
 
     return metrics, distribution
 
+
 def run_monte_carlo(
-    yaml_content: Union[str, dict],
-    n_runs: int = 10000,
-    seed: int = None,
-    fx_config: Optional[FXConfig] = None,
+    yaml_content: str | dict,
+    n_runs: int = DEFAULT_N_RUNS,
+    seed: int | None = None,
+    fx_config: FXConfig | None = None,
     cardinality: int = 1,
-    frequency_rate_multiplier: Optional[object] = None,
-    severity_loss_multiplier: Optional[object] = None,
-    raw_data_limit: Optional[int] = 1000,
+    frequency_rate_multiplier: object | None = None,
+    severity_loss_multiplier: object | None = None,
+    raw_data_limit: int | None = DEFAULT_RAW_DATA_LIMIT,
 ) -> SimulationResult:
     """Run the reference Monte Carlo simulation for a CRML scenario.
 
@@ -416,9 +431,13 @@ def run_monte_carlo(
         metrics, distribution = _compute_metrics_and_distribution(losses_out, raw_data_limit=raw_data_limit)
         result.metrics = metrics
         result.distribution = distribution
-        result.metadata.runtime_ms = (time.time() - start_time) * 1000
+        result.metadata.runtime_ms = (time.time() - start_time) * MILLISECONDS_PER_SECOND
         result.success = True
         return result
-    except Exception as e:
-        result.errors.append(f"Simulation execution error: {str(e)}")
+    except (TypeError, ValueError, RuntimeError) as e:
+        result.errors.append(f"Simulation execution error: {e}")
+        return result
+    except Exception as e:  # NOSONAR
+        # Defensive catch-all: ensure the API returns a structured error rather than crashing.
+        result.errors.append(f"Simulation execution error: {e}")
         return result

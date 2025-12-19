@@ -65,6 +65,7 @@ Imagine a near-future where CRML is as normal to risk work as IaC is to infrastr
 - Different quant engines (vendor platforms, internal FAIR Monte Carlo, Bayesian QBER, insurance actuarial models) all consume the same CRML documents.
 - Framework changes are handled by updating catalogs/mappings (also versioned), rather than rewriting the model logic.
 - Organizations can exchange models with partners, insurers, and regulators without sending spreadsheets or screenshots.
+- A cyber security authority can publish its yearly threat landscape report in CRML — encoding richer nuance than narrative PDFs (assumptions, distributions, dependencies, control baselines, and mappings) — and in turn benefit from more standardized, machine-readable data submissions from industry.
 
 In that world, cyber risk becomes reproducible, comparable, and automatable across teams — while still allowing methodological diversity.
 

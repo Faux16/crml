@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # CRML Wiki Publishing Script
-# This script helps you publish wiki content to GitHub
+# This script helps you publish wiki content to GitHub.
+#
+# Note: This repo also supports automatic publishing via GitHub Actions.
+# See: .github/workflows/publish_wiki.yml
 
 echo "🚀 CRML Wiki Publishing Helper"
 echo "================================"

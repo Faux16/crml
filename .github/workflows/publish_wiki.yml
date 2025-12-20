@@ -1,0 +1,58 @@
+name: Publish Wiki
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "wiki/**"
+      - ".github/workflows/publish_wiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync wiki/ to GitHub Wiki
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync wiki
+        env:
+          WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${WIKI_TOKEN}" ]; then
+            echo "WIKI_TOKEN is not set, skipping wiki publish."
+            echo "To enable: create a GitHub Wiki page once (initializes the wiki repo),"
+            echo "then add a repository secret named WIKI_TOKEN with a PAT that has repo access."
+            exit 0
+          fi
+
+          if ! git clone "https://x-access-token:${WIKI_TOKEN}@github.com/${REPO}.wiki.git" wiki-repo; then
+            echo "Failed to clone the wiki repo."
+            echo "Make sure the GitHub Wiki is enabled and initialized (create the first page once)."
+            exit 1
+          fi
+
+          rsync -av --delete --exclude 'publish.sh' wiki/ wiki-repo/
+
+          cd wiki-repo
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "Sync wiki from repo (${SHA})"
+            git push origin HEAD
+          else
+            echo "No wiki changes to publish."
+          fi

@@ -71,6 +71,7 @@ portfolio_bundle:
           - {id: "cisv8:9.5", affects: frequency, scf_cmm_level: 2}
           - {id: "cisv8:9.7", affects: frequency, scf_cmm_level: 2}
           - {id: "cisv8:10.1", affects: frequency, scf_cmm_level: 3}
+          - {id: "cisv8:10.5", affects: frequency, scf_cmm_level: 2}
 
   attack_catalogs:
     - crml_attack_catalog: "1.0"

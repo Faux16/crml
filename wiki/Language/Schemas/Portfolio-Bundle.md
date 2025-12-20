@@ -16,7 +16,7 @@ Key properties:
 - Intended as the contract between `crml_lang` and engines.
 - Designed so engines do not need filesystem access (everything is inlined).
 
-Most users should not hand-author bundles; they are produced by tooling (e.g., `crml_lang.bundle`).
+Most users should not hand-author bundles; they are produced by tooling (e.g., `crml_lang.bundle_portfolio(...)` or `crml-lang bundle-portfolio ...`).
 
 ---
 

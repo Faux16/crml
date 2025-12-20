@@ -311,9 +311,9 @@ Semantics (recommended):
 Python:
 
 ```python
-from crml_lang import validate_scenario
+from crml_lang import validate_document
 
-report = validate_scenario("examples/scenarios/scenario-phishing.yaml", source_kind="path")
+report = validate_document("examples/scenarios/scenario-phishing.yaml", source_kind="path")
 assert report.ok
 ```
 

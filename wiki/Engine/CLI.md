@@ -21,13 +21,13 @@ crml --help
 Validates a CRML document (schema + semantic checks). This delegates to the `crml_lang` validator.
 
 ```bash
-crml validate examples/scenarios/phishing.yaml
+crml validate examples/scenarios/scenario-phishing.yaml
 ```
 
 If you have the language tooling installed separately, you can also call the validator directly:
 
 ```bash
-crml-lang validate examples/scenarios/phishing.yaml
+crml-lang validate examples/scenarios/scenario-phishing.yaml
 ```
 
 ### `crml simulate <file>`
@@ -68,7 +68,7 @@ Important:
 Renders a human-readable explanation of a CRML document.
 
 ```bash
-crml explain examples/scenarios/phishing.yaml
+crml explain examples/scenarios/scenario-phishing.yaml
 ```
 
 ## Exit codes

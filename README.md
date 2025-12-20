@@ -85,33 +85,28 @@ Example snippet (illustrative):
 
 ```yaml
 crml_scenario: "1.0"
+meta:
+  name: "ransomware-baseline"
+  description: "A simple ransomware risk model"
+
 scenario:
-  title: "Ransomware — enterprise baseline"
-  scope:
-    org_unit: "Corporate IT"
-    currency: "EUR"
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.15
 
-  catalogs:
-    controls: "examples/control_catalogs/control-catalog.yaml"
-    attacks: "examples/attack_catalogs/attck-catalog.yaml"
-
-  assumptions:
-    loss_distribution:
-      kind: lognormal
-      median: 250000
+  severity:
+    model: lognormal
+    parameters:
+      median: "250 000"
+      currency: USD
       sigma: 1.2
 
+  # Optional, threat-centric controls (org posture typically belongs in portfolios/assessments)
   controls:
-    - control_id: "CISv8-10.4"
-      effectiveness: 0.35
-    - control_id: "CISv8-10.5"
-      effectiveness: 0.20
-
-  outputs:
-    require:
-      - metric: eal
-      - metric: var
-        percentile: 0.95
+    - id: "org:iam.mfa"
+      effectiveness_against_threat: 0.35
 ```
 
 This repository ships two Python packages and a web UI:

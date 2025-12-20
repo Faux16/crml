@@ -396,7 +396,12 @@ def plan_portfolio(  # NOSONAR
         try:
             data = _load_yaml_file(source)
         except Exception as e:
-            return PlanReport(ok=False, errors=[PlanMessage(level="error", path="(io)", message=str(e))])
+            return PlanReport(
+                ok=False,
+                errors=[PlanMessage(level="error", path="(io)", message=str(e))],
+                warnings=[],
+                plan=None,
+            )
     elif source_kind == "yaml":
         assert isinstance(source, str)
         try:
@@ -405,7 +410,12 @@ def plan_portfolio(  # NOSONAR
             raise ImportError("PyYAML is required: pip install pyyaml") from e
         loaded = yaml.safe_load(source)
         if not isinstance(loaded, dict):
-            return PlanReport(ok=False, errors=[PlanMessage(level="error", path="(root)", message="YAML must be a mapping")])
+            return PlanReport(
+                ok=False,
+                errors=[PlanMessage(level="error", path="(root)", message="YAML must be a mapping")],
+                warnings=[],
+                plan=None,
+            )
         data = loaded
     else:
         assert isinstance(source, dict)
@@ -414,7 +424,12 @@ def plan_portfolio(  # NOSONAR
     try:
         doc = CRPortfolio.model_validate(data)
     except Exception as e:
-        return PlanReport(ok=False, errors=[PlanMessage(level="error", path="(schema)", message=str(e))])
+        return PlanReport(
+            ok=False,
+            errors=[PlanMessage(level="error", path="(schema)", message=str(e))],
+            warnings=[],
+            plan=None,
+        )
 
     portfolio: Portfolio = doc.portfolio
 
@@ -687,16 +702,26 @@ def plan_portfolio(  # NOSONAR
             else:
                 assess = assessment_by_id.get(cid)
                 if assess is not None:
-                    if getattr(assess, "scf_cmm_level", None) is not None:
-                        inventory_eff = _scf_cmm_level_to_effectiveness(int(assess.scf_cmm_level))
-                    elif getattr(assess, "implementation_effectiveness", None) is not None:
-                        inventory_eff = float(assess.implementation_effectiveness)
+                    scf_level = getattr(assess, "scf_cmm_level", None)
+                    if scf_level is not None:
+                        inventory_eff = _scf_cmm_level_to_effectiveness(int(scf_level))
+                    else:
+                        inv_eff = getattr(assess, "implementation_effectiveness", None)
+                        if inv_eff is not None:
+                            inventory_eff = float(inv_eff)
 
-                    if getattr(assess, "coverage", None) is not None:
-                        inventory_cov_val = float(assess.coverage.value)
-                        inventory_cov_basis = str(assess.coverage.basis)
-                    if getattr(assess, "reliability", None) is not None:
-                        inventory_rel = float(assess.reliability)
+                    cov = getattr(assess, "coverage", None)
+                    if cov is not None:
+                        cov_val = getattr(cov, "value", None)
+                        cov_basis = getattr(cov, "basis", None)
+                        if cov_val is not None:
+                            inventory_cov_val = float(cov_val)
+                        if cov_basis is not None:
+                            inventory_cov_basis = str(cov_basis)
+
+                    inv_rel = getattr(assess, "reliability", None)
+                    if inv_rel is not None:
+                        inventory_rel = float(inv_rel)
                     if getattr(assess, "affects", None) is not None:
                         affects = str(assess.affects)
 
@@ -746,6 +771,7 @@ def plan_portfolio(  # NOSONAR
                 path=sref.path,
                 resolved_path=scenario_path,
                 weight=sref.weight,
+                scenario=scenario_doc,
                 applies_to_assets=applies_to_assets_list,
                 cardinality=cardinality,
                 scenario_name=scenario_doc.meta.name,
@@ -985,16 +1011,26 @@ def plan_bundle(bundle: CRPortfolioBundle) -> PlanReport:  # NOSONAR
             else:
                 assess = assessment_by_id.get(cid)
                 if assess is not None:
-                    if getattr(assess, "scf_cmm_level", None) is not None:
-                        inventory_eff = _scf_cmm_level_to_effectiveness(int(assess.scf_cmm_level))
-                    elif getattr(assess, "implementation_effectiveness", None) is not None:
-                        inventory_eff = float(assess.implementation_effectiveness)
+                    scf_level = getattr(assess, "scf_cmm_level", None)
+                    if scf_level is not None:
+                        inventory_eff = _scf_cmm_level_to_effectiveness(int(scf_level))
+                    else:
+                        inv_eff = getattr(assess, "implementation_effectiveness", None)
+                        if inv_eff is not None:
+                            inventory_eff = float(inv_eff)
 
-                    if getattr(assess, "coverage", None) is not None:
-                        inventory_cov_val = float(assess.coverage.value)
-                        inventory_cov_basis = str(assess.coverage.basis)
-                    if getattr(assess, "reliability", None) is not None:
-                        inventory_rel = float(assess.reliability)
+                    cov = getattr(assess, "coverage", None)
+                    if cov is not None:
+                        cov_val = getattr(cov, "value", None)
+                        cov_basis = getattr(cov, "basis", None)
+                        if cov_val is not None:
+                            inventory_cov_val = float(cov_val)
+                        if cov_basis is not None:
+                            inventory_cov_basis = str(cov_basis)
+
+                    inv_rel = getattr(assess, "reliability", None)
+                    if inv_rel is not None:
+                        inventory_rel = float(inv_rel)
                     if getattr(assess, "affects", None) is not None:
                         affects = str(assess.affects)
 

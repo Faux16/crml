@@ -167,11 +167,11 @@ class SummaryBlock(BaseModel):
         description="Optional unit metadata for all values in this summary block.",
     )
     stats: SummaryStatistics = Field(
-        default_factory=SummaryStatistics,
+        default_factory=lambda: SummaryStatistics.model_validate({}),
         description="Computed summary statistics for this target distribution.",
     )
     estimation: SummaryEstimation = Field(
-        default_factory=SummaryEstimation,
+        default_factory=lambda: SummaryEstimation.model_validate({}),
         description="Optional metadata describing how the statistics were computed.",
     )
 
@@ -294,8 +294,8 @@ class SimulationResult(BaseModel):
     warnings: List[str] = Field(default_factory=list, description="List of warning messages (if any).")
 
     engine: EngineInfo = Field(..., description="Engine identification and version metadata.")
-    run: RunInfo = Field(default_factory=RunInfo, description="Execution/run metadata.")
-    inputs: InputInfo = Field(default_factory=InputInfo, description="Input model metadata captured for reporting.")
+    run: RunInfo = Field(default_factory=lambda: RunInfo.model_validate({}), description="Execution/run metadata.")
+    inputs: InputInfo = Field(default_factory=lambda: InputInfo.model_validate({}), description="Input model metadata captured for reporting.")
     units: Optional[Units] = Field(None, description="Optional unit metadata for values in this result.")
 
     summaries: List[SummaryBlock] = Field(
@@ -313,7 +313,7 @@ class SimulationResult(BaseModel):
         ),
     )
 
-    results: ResultPayload = Field(default_factory=ResultPayload, description="The result payload (measures/artifacts).")
+    results: ResultPayload = Field(default_factory=lambda: ResultPayload.model_validate({}), description="The result payload (measures/artifacts).")
 
 
 class CRSimulationResult(BaseModel):

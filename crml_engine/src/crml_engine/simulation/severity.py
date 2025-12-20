@@ -146,27 +146,27 @@ class SeverityEngine:
         if 'lognormal' in first:
             ln_data = first['lognormal']
 
-            class MockParams:
-                pass
+            from types import SimpleNamespace
 
-            p = MockParams()
-            p.single_losses = ln_data.get('single_losses')
-            p.median = _safe_parse(ln_data.get('median'))
-            p.mu = _safe_parse(ln_data.get('mu'))
-            p.sigma = _safe_parse(ln_data.get('sigma'))
-            p.currency = ln_data.get('currency')
+            p = SimpleNamespace(
+                single_losses=ln_data.get('single_losses'),
+                median=_safe_parse(ln_data.get('median')),
+                mu=_safe_parse(ln_data.get('mu')),
+                sigma=_safe_parse(ln_data.get('sigma')),
+                currency=ln_data.get('currency'),
+            )
             return cls.generate_severity('lognormal', p, None, total_events, fx_config)
 
         if 'gamma' in first:
             g_data = first['gamma']
 
-            class MockParams:
-                pass
+            from types import SimpleNamespace
 
-            p = MockParams()
-            p.shape = _safe_parse(g_data.get('shape'))
-            p.scale = _safe_parse(g_data.get('scale'))
-            p.currency = g_data.get('currency')
+            p = SimpleNamespace(
+                shape=_safe_parse(g_data.get('shape')),
+                scale=_safe_parse(g_data.get('scale')),
+                currency=g_data.get('currency'),
+            )
             return cls.generate_severity('gamma', p, None, total_events, fx_config)
 
         return np.zeros(total_events)
@@ -183,8 +183,8 @@ class SeverityEngine:
         This helper interprets `single_losses` as realized *single-event*
         severities, converts them to `base_currency`, then estimates:
 
-            - $\mu = \ln(\mathrm{median}(losses))$
-            - $\sigma = \mathrm{std}(\ln(losses))$
+            - $\\mu = \\ln(\\mathrm{median}(losses))$
+            - $\\sigma = \\mathrm{std}(\\ln(losses))$
 
         Args:
             single_losses: Sequence of single-event losses. Values may be

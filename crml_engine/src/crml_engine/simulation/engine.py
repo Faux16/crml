@@ -19,7 +19,7 @@ import numpy as np
 from crml_lang.models.scenario_model import load_crml_from_yaml_str, CRScenario
 from ..models.result_model import SimulationResult, Metrics, Distribution, Metadata
 from ..models.fx_model import FXConfig, convert_currency, get_currency_symbol, normalize_fx_config
-from typing import Union, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 from .frequency import FrequencyEngine
 from .severity import SeverityEngine
@@ -193,7 +193,7 @@ def _simulate_annual_losses(
     frequency_params: object,
     severity_model: str,
     severity_params: object,
-    severity_components: Optional[object],
+    severity_components: Optional[List[Dict[str, Any]]],
     frequency_rate_multiplier: Optional[object],
     severity_loss_multiplier: Optional[object],
 ) -> np.ndarray:
@@ -318,7 +318,7 @@ def run_monte_carlo(
     yaml_content: Union[str, dict],
     n_runs: int = DEFAULT_N_RUNS,
     seed: Optional[int] = None,
-    fx_config: Optional[FXConfig] = None,
+    fx_config: FXConfig | Mapping[str, Any] | None = None,
     cardinality: int = 1,
     frequency_rate_multiplier: Optional[object] = None,
     severity_loss_multiplier: Optional[object] = None,
@@ -363,13 +363,24 @@ def run_monte_carlo(
 
     result = SimulationResult(
         success=False,
-        metrics=Metrics(),
-        distribution=Distribution(),
+        metrics=Metrics.model_validate({}),
+        distribution=Distribution.model_validate({}),
         metadata=Metadata(
             runs=n_runs,
             seed=seed,
             currency=output_symbol,
             currency_code=fx_config.output_currency,
+            model_name=None,
+            model_version=None,
+            description=None,
+            runtime_ms=None,
+            lambda_baseline=None,
+            lambda_effective=None,
+            controls_applied=None,
+            control_reduction_pct=None,
+            control_details=None,
+            control_warnings=None,
+            correlation_info=None,
         ),
         errors=[],
     )
@@ -379,6 +390,7 @@ def run_monte_carlo(
         return result
 
     meta = crml_obj.meta
+    assert result.metadata is not None
     result.metadata.model_name = meta.name
     result.metadata.model_version = meta.version or 'N/A'
     result.metadata.description = meta.description or ''
@@ -386,6 +398,11 @@ def run_monte_carlo(
     scenario = crml_obj.scenario
     freq = scenario.frequency
     sev = scenario.severity
+
+    severity_components_any = getattr(sev, "components", None)
+    severity_components: List[Dict[str, Any]] | None = None
+    if isinstance(severity_components_any, list) and all(isinstance(x, dict) for x in severity_components_any):
+        severity_components = severity_components_any
 
     cardinality = _normalize_cardinality(cardinality)
 
@@ -424,7 +441,7 @@ def run_monte_carlo(
             frequency_params=freq.parameters,
             severity_model=sev.model,
             severity_params=sev.parameters,
-            severity_components=sev.components,
+            severity_components=severity_components,
             frequency_rate_multiplier=freq_mult,
             severity_loss_multiplier=sev_mult,
         )

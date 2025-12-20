@@ -2,7 +2,7 @@
 Frequency generation logic for CRML simulation.
 """
 import numpy as np
-from typing import Optional, Dict, List, Any
+from typing import Any, Optional
 from .utils import parse_numberish_value
 
 class FrequencyEngine:
@@ -14,7 +14,7 @@ class FrequencyEngine:
         *,
         rate_multiplier: Optional[object],
         n_runs: int,
-    ) -> object:
+    ) -> float | np.ndarray:
         if rate_multiplier is None:
             return total_lambda
 
@@ -41,7 +41,7 @@ class FrequencyEngine:
         if lambda_val <= 0:
             return np.zeros(n_runs, dtype=int)
 
-        total_lambda: float = lambda_val * int(cardinality)
+        total_lambda = float(lambda_val) * float(int(cardinality))
         total_lambda = FrequencyEngine._apply_rate_multiplier(
             total_lambda,
             rate_multiplier=rate_multiplier,
@@ -121,7 +121,7 @@ class FrequencyEngine:
         """Generate per-run event counts for the configured frequency model.
 
         Supported models:
-            - "poisson": Poisson($\lambda$) with $\lambda$ scaled by `cardinality`.
+            - "poisson": Poisson($\\lambda$) with $\\lambda$ scaled by `cardinality`.
             - "gamma": Gamma(shape, scale) sampled as a *rate-like* quantity,
               then scaled by `cardinality` and rounded.
             - "hierarchical_gamma_poisson": Gamma-Poisson compound process

@@ -75,6 +75,8 @@ portfolio:
     )
 
     assert result.success, f"Simulation failed: {result.errors}"
+    assert result.metrics is not None
+    assert result.metrics.eal is not None
 
     expected_eal = 33990.0
     margin = expected_eal * 0.05  # 5% Monte Carlo tolerance
@@ -100,5 +102,7 @@ def test_fallback_to_global_severity():
     """
     result = run_monte_carlo(yaml_fallback, n_runs=1000, seed=42)
     assert result.success
+    assert result.metrics is not None
+    assert result.metrics.eal is not None
     # Should run with global severity
     assert result.metrics.eal > 0

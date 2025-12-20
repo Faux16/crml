@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 import yaml
 from jsonschema import Draft202012Validator
@@ -44,7 +44,8 @@ def get_default_fx_config() -> FXConfig:
     return FXConfig(
         base_currency="USD",
         output_currency="USD",
-        rates=DEFAULT_FX_RATES
+        rates=DEFAULT_FX_RATES,
+        as_of=None,
     )
 
 def load_fx_config(fx_config_path: Optional[str] = None) -> 'FXConfig':
@@ -130,7 +131,7 @@ def convert_currency(amount: float, from_currency: str, to_currency: str, fx_con
         assumed.
     """
     if fx_config is None:
-        fx_config = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+        fx_config = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES, as_of=None)
     rates = fx_config.rates
     # Convert symbol to code if needed
     if from_currency in CURRENCY_SYMBOL_TO_CODE:
@@ -162,7 +163,7 @@ def normalize_currency(amount: float, from_currency: str, fx_context: Optional['
         If no rate is available, returns the original amount.
     """
     if fx_context is None:
-        fx_context = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+        fx_context = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES, as_of=None)
     base_currency = fx_context.base_currency
     rates = fx_context.rates
     # Convert symbol to code if needed
@@ -178,7 +179,7 @@ def normalize_currency(amount: float, from_currency: str, fx_context: Optional['
     # If rate not found, assume no conversion
     return amount
 
-def normalize_fx_config(fx_config: Optional[dict or FXConfig]) -> FXConfig:
+def normalize_fx_config(fx_config: Mapping[str, Any] | FXConfig | None) -> FXConfig:
     """Normalize any FX config input into a valid `FXConfig`.
 
     Args:
@@ -192,15 +193,16 @@ def normalize_fx_config(fx_config: Optional[dict or FXConfig]) -> FXConfig:
         ValueError: If `fx_config` is not None/dict/FXConfig.
     """
     if fx_config is None:
-        return FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+        return FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES, as_of=None)
     if isinstance(fx_config, FXConfig):
         # Ensure rates is not None
         if fx_config.rates is None:
             fx_config.rates = DEFAULT_FX_RATES
         return fx_config
-    if isinstance(fx_config, dict):
-        fx_config = dict(fx_config)  # copy
-        if 'rates' not in fx_config or not isinstance(fx_config['rates'], dict):
-            fx_config['rates'] = DEFAULT_FX_RATES
-        return FXConfig(**fx_config)
+    if isinstance(fx_config, Mapping):
+        fx_config_dict: dict[str, Any] = dict(fx_config)  # copy
+        if "rates" not in fx_config_dict or not isinstance(fx_config_dict.get("rates"), dict):
+            fx_config_dict["rates"] = DEFAULT_FX_RATES
+        fx_config_dict.setdefault("as_of", None)
+        return FXConfig(**fx_config_dict)
     raise ValueError("fx_config must be None, dict, or FXConfig")

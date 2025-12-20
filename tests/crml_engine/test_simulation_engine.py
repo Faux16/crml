@@ -63,7 +63,7 @@ def test_frequency_hierarchical():
 # --- Severity Tests ---
 
 def test_severity_lognormal_calibration():
-    fx_config = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+    fx_config = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES, as_of=None)
     single_losses = ["100", "100", "100", "100"] # Zero variance
     
     mu, sigma = SeverityEngine.calibrate_lognormal_from_single_losses(
@@ -82,7 +82,7 @@ def test_severity_generation_lognormal():
         median = None
         single_losses = None
         
-    fx_config = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+    fx_config = FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES, as_of=None)
     
     losses = SeverityEngine.generate_severity('lognormal', MockParams(), None, 1000, fx_config)
     assert len(losses) == 1000
@@ -115,5 +115,8 @@ scenario:
     result = run_monte_carlo(str(f), n_runs=100, seed=42)
     
     assert result.success is True
+    assert result.metrics is not None
+    assert result.metadata is not None
+    assert result.metrics.eal is not None
     assert result.metrics.eal > 0
     assert result.metadata.model_name == "test-model"

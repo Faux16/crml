@@ -111,7 +111,7 @@ class Assessment(BaseModel):
 
         return self
 
-    model_config: ConfigDict = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid")
 
 
 class AssessmentCatalog(BaseModel):
@@ -130,7 +130,7 @@ class AssessmentCatalog(BaseModel):
     )
     assessments: List[Assessment] = Field(..., description="List of per-control assessment entries.")
 
-    model_config: ConfigDict = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid")
 
 
 class CRAssessment(BaseModel):
@@ -141,4 +141,4 @@ class CRAssessment(BaseModel):
     meta: Meta = Field(..., description="Document metadata (name, description, tags, etc.).")
     assessment: AssessmentCatalog = Field(..., description="The assessment catalog payload.")
 
-    model_config: ConfigDict = ConfigDict(populate_by_name=True, extra="forbid")
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")

@@ -494,6 +494,6 @@ def bundle_portfolio(
         },
     )
 
-    bundle = CRPortfolioBundle(portfolio_bundle=payload)
+    bundle = CRPortfolioBundle(crml_portfolio_bundle="1.0", portfolio_bundle=payload)
 
     return BundleReport(ok=True, errors=[], warnings=warnings, bundle=bundle)

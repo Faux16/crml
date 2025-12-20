@@ -47,5 +47,7 @@ portfolio_bundle:
     assert res.metrics is not None
     assert res.distribution is not None
     # With a positive Poisson rate and a fixed seed, we should not get all-zero losses.
+    assert res.metrics.eal is not None
+    assert res.metrics.max is not None
     assert res.metrics.eal > 0.0
     assert res.metrics.max > 0.0

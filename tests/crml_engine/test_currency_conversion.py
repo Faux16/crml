@@ -27,7 +27,10 @@ scenario:
     
     result = run_monte_carlo(model, n_runs=10000, seed=42)
     assert result.success is True
+    assert result.metadata is not None
+    assert result.metrics is not None
     assert result.metadata.currency_code == "USD"
+    assert result.metrics.eal is not None
     assert result.metrics.eal > 0
 
 
@@ -68,6 +71,7 @@ scenario:
     
     result = run_monte_carlo(model, n_runs=10000, seed=42, fx_config=fx_config)
     assert result.success is True
+    assert result.metadata is not None
     assert result.metadata.currency_code == "USD"
 
 
@@ -110,10 +114,14 @@ scenario:
     
     assert result_usd.success is True
     assert result_eur.success is True
+    assert result_usd.metrics is not None
+    assert result_eur.metrics is not None
     
     # EAL in EUR should be EAL in USD divided by EUR rate
     eal_usd = result_usd.metrics.eal
     eal_eur = result_eur.metrics.eal
+    assert eal_usd is not None
+    assert eal_eur is not None
     eur_rate = DEFAULT_FX_RATES["EUR"]
     
     expected_eal_eur = eal_usd / eur_rate
@@ -131,7 +139,7 @@ def test_convert_currency_function():
       usd_amount,
       "USD",
       "EUR",
-      FXConfig(base_currency="USD", output_currency="EUR", rates=DEFAULT_FX_RATES)
+      FXConfig(base_currency="USD", output_currency="EUR", rates=DEFAULT_FX_RATES, as_of=None)
     )
     eur_rate = DEFAULT_FX_RATES["EUR"]
     expected = usd_amount / eur_rate
@@ -143,7 +151,7 @@ def test_convert_currency_function():
           eur_amount,
           "EUR",
           "USD",
-          FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+          FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES, as_of=None)
       )
     expected = eur_amount * eur_rate
     assert abs(usd_amount - expected) < 0.01
@@ -154,7 +162,7 @@ def test_convert_currency_function():
       usd_amount,
       "USD",
       "USD",
-      FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES)
+      FXConfig(base_currency="USD", output_currency="USD", rates=DEFAULT_FX_RATES, as_of=None)
     )
     assert result == usd_amount
 
@@ -214,10 +222,14 @@ scenario:
     
     assert result_eur.success is True
     assert result_usd.success is True
+    assert result_eur.metrics is not None
+    assert result_usd.metrics is not None
     
     # Results should be very close since we normalized the inputs
     eal_eur = result_eur.metrics.eal
     eal_usd = result_usd.metrics.eal
+    assert eal_eur is not None
+    assert eal_usd is not None
     relative_diff = abs(eal_eur - eal_usd) / max(eal_eur, eal_usd)
     assert relative_diff < 0.03, f"Normalized results don't match: {eal_eur} vs {eal_usd}"
 

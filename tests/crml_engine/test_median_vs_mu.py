@@ -53,10 +53,14 @@ scenario:
     
     assert res_median.success is True
     assert res_mu.success is True
+    assert res_median.metrics is not None
+    assert res_mu.metrics is not None
     
     # With same seed and large sample, EALs should be very close
     eal_median = res_median.metrics.eal
     eal_mu = res_mu.metrics.eal
+    assert eal_median is not None
+    assert eal_mu is not None
     
     # Allow 2% tolerance for Monte Carlo noise
     relative_diff = abs(eal_median - eal_mu) / max(1.0, eal_median)
@@ -65,6 +69,8 @@ scenario:
     # Check VaR metrics also match
     var95_median = res_median.metrics.var_95
     var95_mu = res_mu.metrics.var_95
+    assert var95_median is not None
+    assert var95_mu is not None
     var95_diff = abs(var95_median - var95_mu) / max(1.0, var95_median)
     assert var95_diff < 0.03, f"VaR95 difference too large: {var95_median} vs {var95_mu}"
 
@@ -118,6 +124,8 @@ scenario:
     
     result = run_monte_carlo(model, n_runs=1000, seed=42)
     assert result.success is True
+    assert result.metrics is not None
+    assert result.metrics.eal is not None
     # Median should be parsed as 100000
     assert result.metrics.eal > 0
 

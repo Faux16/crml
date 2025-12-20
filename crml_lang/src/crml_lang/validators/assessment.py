@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Union, Optional, Tuple
+from typing import Any, Literal, Optional, Sequence, Tuple, Union
 
 from jsonschema import Draft202012Validator
 
@@ -119,7 +119,7 @@ def _check_duplicate_ids(ids: list[str]) -> Optional[ValidationMessage]:
 
 
 def _collect_control_catalog_ids(
-    control_catalogs: list[Union[str, dict[str, Any]]],
+    control_catalogs: Sequence[Union[str, dict[str, Any]]],
     *,
     source_kind: Optional[Literal["path", "yaml", "data"]],
 ) -> Tuple[set[str], list[ValidationMessage]]:
@@ -176,7 +176,7 @@ def validate_assessment(
     source: Union[str, dict[str, Any]],
     *,
     source_kind: Optional[Literal["path", "yaml", "data"]] = None,
-    control_catalogs: Optional[list[Union[str, dict[str, Any]]]] = None,
+    control_catalogs: Optional[Sequence[Union[str, dict[str, Any]]]] = None,
     control_catalogs_source_kind: Optional[Literal["path", "yaml", "data"]] = None,
     strict_model: bool = False,
 ) -> ValidationReport:

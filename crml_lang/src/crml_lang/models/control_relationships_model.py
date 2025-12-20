@@ -176,4 +176,4 @@ class CRControlRelationships(BaseModel):
         ..., description="The control relationships payload."
     )
 
-    model_config: ConfigDict = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True)

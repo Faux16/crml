@@ -1240,7 +1240,11 @@ def _portfolio_semantic_checks(data: dict[str, Any], *, base_dir: Optional[str] 
     if not isinstance(portfolio, dict):
         return messages
 
-    portfolio_meta = data.get("meta") if isinstance(data.get("meta"), dict) else {}
+    meta_any = data.get("meta")
+    if isinstance(meta_any, dict):
+        portfolio_meta: dict[str, Any] = meta_any
+    else:
+        portfolio_meta = {}
     portfolio_industries = _norm_list(portfolio_meta.get("industries"))
     portfolio_company_sizes = _norm_list(portfolio_meta.get("company_sizes"))
     portfolio_frameworks_declared = _norm_list(portfolio_meta.get("regulatory_frameworks"))

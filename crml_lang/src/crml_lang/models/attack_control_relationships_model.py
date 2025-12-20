@@ -112,4 +112,4 @@ class CRAttackControlRelationships(BaseModel):
         ..., description="The attack-to-control relationships payload."
     )
 
-    model_config: ConfigDict = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True)

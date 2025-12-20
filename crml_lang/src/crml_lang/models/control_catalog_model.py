@@ -44,4 +44,4 @@ class CRControlCatalog(BaseModel):
     meta: Meta = Field(..., description="Document metadata (name, description, tags, etc.).")
     catalog: ControlCatalog = Field(..., description="The control catalog payload.")
 
-    model_config: ConfigDict = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True)

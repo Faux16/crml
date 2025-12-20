@@ -60,7 +60,12 @@ class PortfolioConstraints(BaseModel):
 class PortfolioSemantics(BaseModel):
     method: PortfolioMethod = Field(..., description="Aggregation semantics used to combine scenario losses.")
     constraints: PortfolioConstraints = Field(
-        default_factory=PortfolioConstraints, description="Validation/runtime constraints for this portfolio."
+        default_factory=lambda: PortfolioConstraints(
+            require_paths_exist=False,
+            validate_scenarios=True,
+            validate_relevance=False,
+        ),
+        description="Validation/runtime constraints for this portfolio.",
     )
 
 
@@ -83,7 +88,8 @@ class ScenarioRef(BaseModel):
         None, description="Optional weight used by some portfolio aggregation methods (model-specific)."
     )
     binding: ScenarioBinding = Field(
-        default_factory=ScenarioBinding, description="Optional binding/exposure configuration for this scenario."
+        default_factory=lambda: ScenarioBinding(applies_to_assets=None),
+        description="Optional binding/exposure configuration for this scenario.",
     )
     tags: Optional[List[str]] = Field(None, description="Optional list of tags for grouping/filtering scenarios.")
 
@@ -258,4 +264,4 @@ class CRPortfolio(BaseModel):
     meta: Meta = Field(..., description="Document metadata (name, description, tags, etc.).")
     portfolio: Portfolio = Field(..., description="The portfolio payload.")
 
-    model_config: ConfigDict = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True)

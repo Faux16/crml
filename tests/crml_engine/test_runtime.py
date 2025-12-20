@@ -138,8 +138,13 @@ scenario:
     assert res_single.success is True
     assert res_mu.success is True
 
+    assert res_single.metrics is not None
+    assert res_mu.metrics is not None
+
     # With same seed and sufficiently large runs, EALs should be very close.
     # Allow small Monte Carlo noise.
     eal_single = res_single.metrics.eal
     eal_mu = res_mu.metrics.eal
+    assert eal_single is not None
+    assert eal_mu is not None
     assert abs(eal_single - eal_mu) / max(1.0, eal_single) < 0.02

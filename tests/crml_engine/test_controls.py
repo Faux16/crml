@@ -50,6 +50,7 @@ class TestControlValidation:
         }
         is_valid, error = validate_control(control)
         assert not is_valid
+        assert error is not None
         assert 'effectiveness' in error
     
     def test_invalid_effectiveness_range(self):
@@ -61,6 +62,7 @@ class TestControlValidation:
         }
         is_valid, error = validate_control(control)
         assert not is_valid
+        assert error is not None
         assert 'effectiveness' in error
     
     def test_invalid_control_type(self):
@@ -72,6 +74,7 @@ class TestControlValidation:
         }
         is_valid, error = validate_control(control)
         assert not is_valid
+        assert error is not None
         assert 'type' in error
 
 
@@ -396,6 +399,8 @@ class TestIntegration:
         result = run_monte_carlo(model_yaml, n_runs=1000, seed=42)
         
         assert result.success
+        assert result.metadata is not None
+        assert result.metadata.controls_applied is not None
         assert not result.metadata.controls_applied
 
 

@@ -367,7 +367,7 @@ class CRScenario(BaseModel):
     scenario: Scenario = Field(..., description="The scenario payload.")
 
     # Pydantic v2 config
-    model_config: ConfigDict = ConfigDict(populate_by_name=True, extra="forbid")
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     @model_validator(mode="before")
     @classmethod

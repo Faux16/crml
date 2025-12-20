@@ -44,6 +44,8 @@ def test_multi_scenario_eal_aggregation():
     
     assert result.success, f"Simulation failed: {result.errors}"
     
+    assert result.metrics is not None
+    assert result.metrics.eal is not None
     eal = result.metrics.eal
     print(f"Calculated EAL: {eal}")
     
@@ -73,4 +75,6 @@ def test_fallback_to_global_severity():
     result = run_monte_carlo(YAML_FALLBACK, n_runs=1000, seed=42)
     assert result.success
     # Should run with global severity
+    assert result.metrics is not None
+    assert result.metrics.eal is not None
     assert result.metrics.eal > 0

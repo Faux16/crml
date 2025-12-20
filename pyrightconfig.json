@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+  "venvPath": ".",
+  "venv": ".venv",
+  "include": [
+    "src",
+    "crml_lang/src",
+    "crml_engine/src",
+    "tests",
+    "scripts"
+  ],
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": [
+        "src",
+        "crml_lang/src",
+        "crml_engine/src"
+      ]
+    }
+  ]
+}

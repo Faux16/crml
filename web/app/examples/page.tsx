@@ -62,7 +62,7 @@ const SECTION_ORDER: Array<{ kind: CrmlExampleDocKind; title: string; subtitle?:
         kind: "control_catalog",
         title: "Control Catalogs",
         subtitle:
-            "Control catalogs define the dictionary of control ids (titles/tags) referenced by Scenarios and Assessments. They provide the canonical list of controls without embedding copyrighted standard text. You hopefully get the complete control catalogues from standard bodies or vendors.",
+            "Control catalogs define the dictionary of control ids (titles/tags) referenced by Scenarios and Assessments. They provide the canonical list of controls without embedding copyrighted standard text.",
     },
     {
         kind: "assessment",
@@ -72,13 +72,13 @@ const SECTION_ORDER: Array<{ kind: CrmlExampleDocKind; title: string; subtitle?:
     },
     {
         kind: "control_relationships",
-        title: "Control Relationships",
+        title: "Control <> Control mappings",
         subtitle:
             "Control relationship packs describe mappings and interactions between controls (e.g., equivalence, overlap, dependencies). They help tooling/engines roll up frameworks and avoid double-counting control effects.",
     },
     {
         kind: "attack_control_relationships",
-        title: "Attack-Control Relationships",
+        title: "Attack <> Control mappings",
         subtitle:
             "Attack-control relationship packs link attack ids to the controls that mitigate them. They enable mapping from attack-centric scenario metadata to an organization’s control posture.",
     },

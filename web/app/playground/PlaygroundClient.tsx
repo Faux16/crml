@@ -17,6 +17,7 @@ import ValidationResults, { ValidationResult } from "@/components/ValidationResu
 import SimulationResults, { CRSimulationResult } from "@/components/SimulationResults";
 import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
 import { applyInclusionTogglesToYaml, tryDetectCrmlDocKindFromYaml, tryExtractInclusionsFromYaml } from "@/lib/crmlInclusions";
+import yaml from "js-yaml";
 import {
     ChevronDown,
     Download,
@@ -29,14 +30,412 @@ import {
     Upload,
 } from "lucide-react";
 
-type TabKey = "validate" | "simulate";
+type TabKey = "validate" | "compose" | "simulate";
 
 interface Example {
     id: string;
     filename: string;
     name: string;
     description: string;
+    docKind?:
+        | "portfolio_bundle"
+        | "scenario"
+        | "portfolio"
+        | "attack_catalog"
+        | "control_catalog"
+        | "control_relationships"
+        | "attack_control_relationships"
+        | "assessment"
+        | "fx_config"
+        | "unknown";
     content: string;
+}
+
+function slugifyId(input: string): string {
+    const trimmed = input.trim().toLowerCase();
+    const withoutExt = trimmed.replaceAll(/\.[a-z0-9]+$/gi, "");
+    const hyphenated = withoutExt.replaceAll(/[^a-z0-9]+/g, "-");
+    const cleaned = hyphenated.replaceAll(/(^-+)|(-+$)/g, "");
+    return (cleaned.slice(0, 48) || "item").trim();
+}
+
+function parseYamlRootRecord(content: string, label: string, errors: string[]): Record<string, unknown> | null {
+    try {
+        const parsed = yaml.load(content);
+        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+            errors.push(`Invalid YAML root for ${label} (must be a mapping/object).`);
+            return null;
+        }
+        return parsed as Record<string, unknown>;
+    } catch (e) {
+        errors.push(`Failed to parse YAML for ${label}: ${(e as Error).message}`);
+        return null;
+    }
+}
+
+function packKindLabel(kind: Example["docKind"]): string {
+    switch (kind) {
+        case "control_catalog":
+            return "Control catalog";
+        case "assessment":
+            return "Assessment";
+        case "control_relationships":
+            return "Control <> Control mappings";
+        case "attack_catalog":
+            return "Attack catalog";
+        case "attack_control_relationships":
+            return "Attack <> Control mappings";
+        default:
+            return "Pack";
+    }
+}
+
+function buildPortfolioBundleYaml(params: {
+    selectedPortfolio: Example | undefined;
+    selectedScenarios: Example[];
+    selectedPacks: Example[];
+}): { yaml: string; errors: string[] } {
+    const errors: string[] = [];
+    const { selectedPortfolio, selectedScenarios, selectedPacks } = params;
+
+    const packFilenames = (packDocs: Array<{ example: Example; doc: Record<string, unknown> }>, kind: Example["docKind"]) =>
+        packDocs.filter((p) => p.example.docKind === kind).map((p) => p.example.filename);
+
+    const packDocsForKind = (packDocs: Array<{ example: Example; doc: Record<string, unknown> }>, kind: Example["docKind"]) =>
+        packDocs.filter((p) => p.example.docKind === kind).map((p) => p.doc);
+
+    const rewritePortfolioForBundle = (
+        portfolioDoc: Record<string, unknown>,
+        scenarioDocs: Array<{ example: Example; doc: Record<string, unknown> }>,
+        packDocs: Array<{ example: Example; doc: Record<string, unknown> }>,
+    ) => {
+        const portfolioBody = portfolioDoc["portfolio"];
+        if (typeof portfolioBody !== "object" || portfolioBody === null || Array.isArray(portfolioBody)) return;
+
+        const portfolioBodyRec = portfolioBody as Record<string, unknown>;
+
+        const semantics = portfolioBodyRec["semantics"];
+        if (typeof semantics === "object" && semantics !== null && !Array.isArray(semantics)) {
+            const constraints = (semantics as Record<string, unknown>)["constraints"];
+            if (typeof constraints === "object" && constraints !== null && !Array.isArray(constraints)) {
+                (constraints as Record<string, unknown>)["require_paths_exist"] = false;
+                (constraints as Record<string, unknown>)["validate_scenarios"] = false;
+            }
+        }
+
+        // Rewrite portfolio.scenarios to match selection (path is traceability in bundle).
+        portfolioBodyRec["scenarios"] = scenarioDocs.map((s) => ({
+            id: slugifyId(s.example.filename),
+            path: s.example.filename,
+        }));
+
+        // If packs are selected, set portfolio references to traceability paths.
+        const controlCatalogPaths = packFilenames(packDocs, "control_catalog");
+        const assessmentPaths = packFilenames(packDocs, "assessment");
+        const controlRelPaths = packFilenames(packDocs, "control_relationships");
+        const attackCatalogPaths = packFilenames(packDocs, "attack_catalog");
+        const attackControlRelPaths = packFilenames(packDocs, "attack_control_relationships");
+
+        if (controlCatalogPaths.length > 0) portfolioBodyRec["control_catalogs"] = controlCatalogPaths;
+        if (assessmentPaths.length > 0) portfolioBodyRec["assessments"] = assessmentPaths;
+        if (controlRelPaths.length > 0) portfolioBodyRec["control_relationships"] = controlRelPaths;
+        if (attackCatalogPaths.length > 0) portfolioBodyRec["attack_catalogs"] = attackCatalogPaths;
+        if (attackControlRelPaths.length > 0) portfolioBodyRec["attack_control_relationships"] = attackControlRelPaths;
+    };
+
+    const buildBundleObject = (
+        portfolioDoc: Record<string, unknown>,
+        scenarioDocs: Array<{ example: Example; doc: Record<string, unknown> }>,
+        packDocs: Array<{ example: Example; doc: Record<string, unknown> }>,
+    ): Record<string, unknown> => {
+        const bundle: Record<string, unknown> = {
+            crml_portfolio_bundle: "1.0",
+            portfolio_bundle: {
+                portfolio: portfolioDoc,
+                scenarios: scenarioDocs.map((s) => ({
+                    id: slugifyId(s.example.filename),
+                    weight: 1,
+                    source_path: `examples/${s.example.filename}`,
+                    scenario: s.doc,
+                })),
+            },
+        };
+
+        const bundleBody = bundle["portfolio_bundle"] as Record<string, unknown>;
+
+        const includePacks = (kind: Example["docKind"], field: string) => {
+            const docs = packDocsForKind(packDocs, kind);
+            if (docs.length > 0) bundleBody[field] = docs;
+        };
+
+        includePacks("control_catalog", "control_catalogs");
+        includePacks("assessment", "assessments");
+        includePacks("control_relationships", "control_relationships");
+        includePacks("attack_catalog", "attack_catalogs");
+        includePacks("attack_control_relationships", "attack_control_relationships");
+
+        return bundle;
+    };
+
+    if (!selectedPortfolio) {
+        errors.push("Select a portfolio.");
+    }
+    if (selectedScenarios.length === 0) {
+        errors.push("Select at least one scenario.");
+    }
+
+    const portfolioDoc = selectedPortfolio ? parseYamlRootRecord(selectedPortfolio.content, "portfolio", errors) : null;
+
+    const scenarioDocs = selectedScenarios
+        .map((s) => ({ example: s, doc: parseYamlRootRecord(s.content, `scenario ${s.filename}`, errors) }))
+        .filter((x): x is { example: Example; doc: Record<string, unknown> } => !!x.doc);
+
+    const packDocs = selectedPacks
+        .map((p) => ({ example: p, doc: parseYamlRootRecord(p.content, `pack ${p.filename}`, errors) }))
+        .filter((x): x is { example: Example; doc: Record<string, unknown> } => !!x.doc);
+
+    if (!portfolioDoc || scenarioDocs.length === 0) {
+        return { yaml: "", errors };
+    }
+
+    rewritePortfolioForBundle(portfolioDoc, scenarioDocs, packDocs);
+
+    const bundle = buildBundleObject(portfolioDoc, scenarioDocs, packDocs);
+    const yamlOut = yaml.dump(bundle, { noRefs: true, lineWidth: 120 });
+    return { yaml: yamlOut, errors };
+}
+
+function ComposeTab(props: {
+    readonly examplesLoading: boolean;
+    readonly examplesError: string | null;
+    readonly portfolioExamples: Example[];
+    readonly scenarioExamples: Example[];
+    readonly packExamples: Example[];
+    readonly composePortfolioId: string;
+    readonly setComposePortfolioId: (id: string) => void;
+    readonly composeScenarioIds: Set<string>;
+    readonly setComposeScenarioIds: (updater: (prev: Set<string>) => Set<string>) => void;
+    readonly composePackIds: Set<string>;
+    readonly setComposePackIds: (updater: (prev: Set<string>) => Set<string>) => void;
+    readonly composeBundle: { yaml: string; errors: string[] };
+    readonly composeValidationResult: ValidationResult | null;
+    readonly isComposeValidating: boolean;
+    readonly toggleIdInSet: (prev: Set<string>, id: string) => Set<string>;
+    readonly onSendToSimulation: () => void;
+    readonly onCopy: () => void;
+    readonly onDownload: () => void;
+}) {
+    const {
+        examplesLoading,
+        examplesError,
+        portfolioExamples,
+        scenarioExamples,
+        packExamples,
+        composePortfolioId,
+        setComposePortfolioId,
+        composeScenarioIds,
+        setComposeScenarioIds,
+        composePackIds,
+        setComposePackIds,
+        composeBundle,
+        composeValidationResult,
+        isComposeValidating,
+        toggleIdInSet,
+        onSendToSimulation,
+        onCopy,
+        onDownload,
+    } = props;
+
+    const canSendToSimulation = composeBundle.yaml.length > 0 && composeBundle.errors.length === 0 && composeValidationResult?.valid === true;
+
+    const catalogPacks = packExamples.filter(
+        (p) => p.docKind === "control_catalog" || p.docKind === "attack_catalog" || p.docKind === "assessment",
+    );
+    const mappingPacks = packExamples.filter(
+        (p) => p.docKind === "control_relationships" || p.docKind === "attack_control_relationships",
+    );
+    const hasAnyPacks = catalogPacks.length > 0 || mappingPacks.length > 0;
+
+    const renderPackButton = (p: Example) => {
+        const selected = composePackIds.has(p.id);
+        const kindLabel = packKindLabel(p.docKind);
+        return (
+            <button
+                key={p.id}
+                type="button"
+                onClick={() => setComposePackIds((prev) => toggleIdInSet(prev, p.id))}
+                className={cn(
+                    "w-full rounded-md border px-3 py-2 text-left text-sm transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    selected ? "bg-background" : "bg-muted text-muted-foreground",
+                )}
+            >
+                <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-medium">{p.name}</span>
+                    <span className="shrink-0 text-xs">{kindLabel}</span>
+                </div>
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.description}</p>
+            </button>
+        );
+    };
+
+    return (
+        <div className="grid gap-6 lg:grid-cols-2 lg:min-h-[calc(100vh-220px)]">
+            <Card className="flex flex-col min-h-0">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Settings2 className="h-5 w-5" />
+                        Compose Portfolio Bundle
+                    </CardTitle>
+                    <CardDescription>
+                        Choose what your organization looks like and what could happen to it — we’ll assemble everything into one model you can run.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-1 min-h-0 flex-col gap-6">
+                    {examplesError ? (
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertDescription>Failed to load examples: {examplesError}</AlertDescription>
+                        </Alert>
+                    ) : null}
+
+                    <div className="flex min-h-0 flex-1 flex-col gap-6">
+                        <div className="space-y-2">
+                        <Label>Portfolio</Label>
+                        <Select
+                            value={composePortfolioId}
+                            onValueChange={(v) => setComposePortfolioId(v)}
+                            disabled={examplesLoading || portfolioExamples.length === 0}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder={examplesLoading ? "Loading..." : "Select a portfolio"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {portfolioExamples.map((p) => (
+                                    <SelectItem key={p.id} value={p.id}>
+                                        {p.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {portfolioExamples.length === 0 && !examplesLoading ? (
+                            <p className="text-sm text-muted-foreground">No portfolio examples found.</p>
+                        ) : null}
+                        </div>
+
+                        <div className="flex min-h-0 flex-1 flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <Label>Scenarios</Label>
+                                <p className="text-xs text-muted-foreground">{composeScenarioIds.size} selected</p>
+                            </div>
+                            <ScrollArea className="min-h-0 flex-1 rounded-md border p-2">
+                            <div className="space-y-2">
+                                {scenarioExamples.length === 0 && !examplesLoading ? (
+                                    <p className="text-sm text-muted-foreground">No scenario examples found.</p>
+                                ) : (
+                                    scenarioExamples.map((s) => {
+                                        const selected = composeScenarioIds.has(s.id);
+                                        return (
+                                            <button
+                                                key={s.id}
+                                                type="button"
+                                                onClick={() => setComposeScenarioIds((prev) => toggleIdInSet(prev, s.id))}
+                                                className={cn(
+                                                    "w-full rounded-md border px-3 py-2 text-left text-sm transition-colors",
+                                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                                    selected ? "bg-background" : "bg-muted text-muted-foreground",
+                                                )}
+                                            >
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="truncate font-medium">{s.name}</span>
+                                                    <span className="shrink-0 text-xs">{selected ? "Selected" : ""}</span>
+                                                </div>
+                                                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{s.description}</p>
+                                            </button>
+                                        );
+                                    })
+                                )}
+                            </div>
+                            </ScrollArea>
+                        </div>
+
+                        <div className="flex min-h-0 flex-1 flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <Label>Optional catalogs and mappings</Label>
+                                <p className="text-xs text-muted-foreground">{composePackIds.size} selected</p>
+                            </div>
+                            <ScrollArea className="min-h-0 flex-1 rounded-md border p-2">
+                            <div className="space-y-2">
+                                {!hasAnyPacks && !examplesLoading ? (
+                                    <p className="text-sm text-muted-foreground">No catalogs or mappings found.</p>
+                                ) : (
+                                    <>
+                                        {catalogPacks.length > 0 ? (
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-medium text-muted-foreground">Catalogs</p>
+                                                {catalogPacks.map(renderPackButton)}
+                                            </div>
+                                        ) : null}
+                                        {mappingPacks.length > 0 ? (
+                                            <div className="space-y-2 pt-2">
+                                                <p className="text-xs font-medium text-muted-foreground">Mappings</p>
+                                                {mappingPacks.map(renderPackButton)}
+                                            </div>
+                                        ) : null}
+                                    </>
+                                )}
+                            </div>
+                            </ScrollArea>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="flex flex-col min-h-0">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Generated Bundle
+                    </CardTitle>
+                    <CardDescription>Review the generated YAML, then load it into the editor to validate/simulate.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {composeBundle.errors.length > 0 ? (
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertDescription>{composeBundle.errors.join(" ")}</AlertDescription>
+                        </Alert>
+                    ) : null}
+
+                    <div className="h-[420px]">
+                        <CodeEditor
+                            value={composeBundle.yaml || "# Select a portfolio + scenario(s) to generate a bundle."}
+                            onChange={() => {}}
+                            readOnly
+                        />
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        <Button onClick={onSendToSimulation} disabled={!canSendToSimulation} className="gap-2">
+                            <Play className="h-4 w-4" />
+                            Send to Simulation
+                        </Button>
+                        <Button variant="outline" onClick={onCopy} disabled={!composeBundle.yaml} className="gap-2">
+                            Copy
+                        </Button>
+                        <Button variant="outline" onClick={onDownload} disabled={!composeBundle.yaml} className="gap-2">
+                            <Download className="h-4 w-4" />
+                            Download
+                        </Button>
+                    </div>
+
+                    <div className="pt-2">
+                        <ValidationResults result={composeValidationResult} isValidating={isComposeValidating} />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
 }
 
 const DEFAULT_YAML = PORTFOLIO_BUNDLE_DOCUMENTED_YAML;
@@ -55,7 +454,8 @@ const OUTPUT_CURRENCIES = {
 export default function PlaygroundClient() {
     const searchParams = useSearchParams();
 
-    const initialTab = (searchParams.get("tab") as TabKey | null) ?? "validate";
+    const rawTab = searchParams.get("tab");
+    const initialTab: TabKey = rawTab === "simulate" || rawTab === "compose" || rawTab === "validate" ? rawTab : "validate";
     const exampleId = searchParams.get("example");
 
     const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
@@ -64,6 +464,9 @@ export default function PlaygroundClient() {
 
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
     const [isValidating, setIsValidating] = useState(false);
+
+    const [composeValidationResult, setComposeValidationResult] = useState<ValidationResult | null>(null);
+    const [isComposeValidating, setIsComposeValidating] = useState(false);
 
     const [simulationResult, setSimulationResult] = useState<CRSimulationResult | null>(null);
     const [isSimulating, setIsSimulating] = useState(false);
@@ -76,9 +479,39 @@ export default function PlaygroundClient() {
 
     const [loadedExample, setLoadedExample] = useState<Pick<Example, "id" | "name" | "description"> | null>(null);
 
+    const [examples, setExamples] = useState<Example[]>([]);
+    const [examplesLoading, setExamplesLoading] = useState(false);
+    const [examplesError, setExamplesError] = useState<string | null>(null);
+
+    const [composePortfolioId, setComposePortfolioId] = useState<string>("");
+    const [composeScenarioIds, setComposeScenarioIds] = useState<Set<string>>(() => new Set());
+    const [composePackIds, setComposePackIds] = useState<Set<string>>(() => new Set());
+
+    const [pendingNavigateToSimulate, setPendingNavigateToSimulate] = useState(false);
+
     useEffect(() => {
         setActiveTab(initialTab);
     }, [initialTab]);
+
+    useEffect(() => {
+        const loadExamples = async () => {
+            setExamplesLoading(true);
+            setExamplesError(null);
+            try {
+                const response = await fetch("/api/examples");
+                const data = await response.json();
+                const fetched: Example[] = data.examples || [];
+                setExamples(fetched);
+            } catch (error) {
+                setExamplesError((error as Error).message);
+                setExamples([]);
+            } finally {
+                setExamplesLoading(false);
+            }
+        };
+
+        void loadExamples();
+    }, []);
 
     useEffect(() => {
         const loadExample = async () => {
@@ -213,6 +646,109 @@ export default function PlaygroundClient() {
         setValidationResult(null);
         setSimulationResult(null);
     };
+
+    const handleCopyText = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch {
+            // Ignore clipboard failures.
+        }
+    };
+
+    const handleDownloadText = (text: string, filename: string) => {
+        const blob = new Blob([text], { type: "text/yaml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    };
+
+    const toggleIdInSetGeneric = useCallback((prev: Set<string>, id: string) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+    }, []);
+
+    const portfolioExamples = useMemo(() => examples.filter((e) => e.docKind === "portfolio"), [examples]);
+    const scenarioExamples = useMemo(() => examples.filter((e) => e.docKind === "scenario"), [examples]);
+    const packExamples = useMemo(() => {
+        const allowed = new Set([
+            "control_catalog",
+            "assessment",
+            "control_relationships",
+            "attack_catalog",
+            "attack_control_relationships",
+        ]);
+        return examples.filter((e) => e.docKind && allowed.has(e.docKind));
+    }, [examples]);
+
+    useEffect(() => {
+        if (portfolioExamples.length > 0 && !composePortfolioId) {
+            setComposePortfolioId(portfolioExamples[0].id);
+        }
+        if (scenarioExamples.length > 0 && composeScenarioIds.size === 0) {
+            setComposeScenarioIds(new Set([scenarioExamples[0].id]));
+        }
+        // Intentionally do not auto-select packs.
+    }, [composePortfolioId, composeScenarioIds.size, portfolioExamples, scenarioExamples]);
+
+    const composeBundle = useMemo(() => {
+        const selectedPortfolio = examples.find((e) => e.id === composePortfolioId);
+        const selectedScenarios = examples.filter((e) => composeScenarioIds.has(e.id));
+        const selectedPacks = examples.filter((e) => composePackIds.has(e.id));
+        return buildPortfolioBundleYaml({ selectedPortfolio, selectedScenarios, selectedPacks });
+    }, [composePackIds, composePortfolioId, composeScenarioIds, examples]);
+
+    useEffect(() => {
+        // Validate the generated bundle directly in the Compose tab.
+        const validateComposed = async () => {
+            if (!composeBundle.yaml) {
+                setComposeValidationResult(null);
+                return;
+            }
+
+            setIsComposeValidating(true);
+            try {
+                const response = await fetch("/api/validate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ yaml: composeBundle.yaml }),
+                });
+
+                const result = await response.json();
+                setComposeValidationResult(result);
+            } catch (error) {
+                setComposeValidationResult({
+                    valid: false,
+                    errors: ["Failed to validate: " + (error as Error).message],
+                });
+            } finally {
+                setIsComposeValidating(false);
+            }
+        };
+
+        // Reset while selection errors exist.
+        if (composeBundle.errors.length > 0) {
+            setComposeValidationResult(null);
+            return;
+        }
+
+        void validateComposed();
+    }, [composeBundle.errors.length, composeBundle.yaml]);
+
+    useEffect(() => {
+        if (!pendingNavigateToSimulate) return;
+        if (!canSimulate) return;
+        setActiveTab("simulate");
+        setPendingNavigateToSimulate(false);
+    }, [canSimulate, pendingNavigateToSimulate]);
 
     type InclusionKind = "control" | "attack";
 
@@ -361,7 +897,7 @@ export default function PlaygroundClient() {
             <div className="container mx-auto px-4 py-8">
                 <div className="mb-8">
                     <h1 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">CRML Playground</h1>
-                    <p className="text-lg text-muted-foreground">Validate and simulate CRML models in one place</p>
+                    <p className="text-lg text-muted-foreground">Validate, compose and simulate CRML models in one place</p>
                 </div>
 
                 {exampleBanner}
@@ -369,6 +905,7 @@ export default function PlaygroundClient() {
                 <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)}>
                     <TabsList className="mb-6">
                         <TabsTrigger value="validate">Validate</TabsTrigger>
+                        <TabsTrigger value="compose">Compose</TabsTrigger>
                         {canSimulate ? <TabsTrigger value="simulate">Simulate</TabsTrigger> : null}
                     </TabsList>
 
@@ -396,6 +933,46 @@ export default function PlaygroundClient() {
                                 Download
                             </Button>
                         </div>
+                    </TabsContent>
+
+                    <TabsContent value="compose" className="m-0">
+                        <ComposeTab
+                            examplesLoading={examplesLoading}
+                            examplesError={examplesError}
+                            portfolioExamples={portfolioExamples}
+                            scenarioExamples={scenarioExamples}
+                            packExamples={packExamples}
+                            composePortfolioId={composePortfolioId}
+                            setComposePortfolioId={setComposePortfolioId}
+                            composeScenarioIds={composeScenarioIds}
+                            setComposeScenarioIds={setComposeScenarioIds}
+                            composePackIds={composePackIds}
+                            setComposePackIds={setComposePackIds}
+                            composeBundle={composeBundle}
+                            composeValidationResult={composeValidationResult}
+                            isComposeValidating={isComposeValidating}
+                            toggleIdInSet={toggleIdInSetGeneric}
+                            onSendToSimulation={() => {
+                                if (!composeBundle.yaml) return;
+                                if (composeBundle.errors.length > 0) return;
+                                if (composeValidationResult?.valid !== true) return;
+
+                                setYamlContent(composeBundle.yaml);
+                                setInitialYamlContent(composeBundle.yaml);
+                                setLoadedExample(null);
+                                setValidationResult(null);
+                                setSimulationResult(null);
+                                setPendingNavigateToSimulate(true);
+                            }}
+                            onCopy={() => {
+                                if (!composeBundle.yaml) return;
+                                void handleCopyText(composeBundle.yaml);
+                            }}
+                            onDownload={() => {
+                                if (!composeBundle.yaml) return;
+                                handleDownloadText(composeBundle.yaml, "portfolio-bundle.yaml");
+                            }}
+                        />
                     </TabsContent>
 
                     {canSimulate ? (
@@ -495,30 +1072,32 @@ export default function PlaygroundClient() {
 
                 {activeTab === "simulate" ? toggleCard : null}
 
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <Card className="flex flex-col">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <FileText className="h-5 w-5" />
-                                YAML Editor
-                            </CardTitle>
-                            <CardDescription>Edit your CRML model or upload a YAML file</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                            <div className="h-[600px]">
-                                <CodeEditor value={yamlContent} onChange={setYamlContent} />
-                            </div>
-                        </CardContent>
-                    </Card>
+                {activeTab === "compose" ? null : (
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        <Card className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <FileText className="h-5 w-5" />
+                                    YAML Editor
+                                </CardTitle>
+                                <CardDescription>Edit your CRML model or upload a YAML file</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-1">
+                                <div className="h-[600px]">
+                                    <CodeEditor value={yamlContent} onChange={setYamlContent} />
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                    <div className="h-full">
-                        {activeTab === "validate" || !canSimulate ? (
-                            <ValidationResults result={validationResult} isValidating={isValidating} />
-                        ) : (
-                            <SimulationResults result={simulationResult} isSimulating={isSimulating} />
-                        )}
+                        <div className="h-full">
+                            {activeTab === "simulate" && canSimulate ? (
+                                <SimulationResults result={simulationResult} isSimulating={isSimulating} />
+                            ) : (
+                                <ValidationResults result={validationResult} isValidating={isValidating} />
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </TooltipProvider>
     );

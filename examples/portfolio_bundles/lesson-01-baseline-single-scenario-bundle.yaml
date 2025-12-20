@@ -1,0 +1,57 @@
+# Lesson 01 — Bundle (executable)
+#
+# This bundle is an executable wrapper around:
+# - examples/portfolios/lesson-01-baseline-single-scenario.yaml
+# - examples/scenarios/fair-baseline.yaml
+#
+# Run:
+#   crml simulate examples/portfolio_bundles/lesson-01-baseline-single-scenario-bundle.yaml --runs 20000
+
+crml_portfolio_bundle: "1.0"
+
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "Lesson 01 — baseline bundle"
+      description: "Executable bundle for Lesson 01 (single baseline scenario)."
+      tags: ["example", "lessons", "bundle"]
+
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+
+      assets:
+        - name: employees
+          cardinality: 120
+        - name: endpoints
+          cardinality: 180
+
+      scenarios:
+        - id: fair_baseline
+          path: ../scenarios/fair-baseline.yaml
+
+  scenarios:
+    - id: fair_baseline
+      weight: 1.0
+      source_path: "examples/scenarios/fair-baseline.yaml"
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "fair-baseline (in Lesson 01 bundle)"
+          tags: ["example", "lessons", "bundle", "fair"]
+        scenario:
+          frequency:
+            basis: per_organization_per_year
+            model: poisson
+            parameters:
+              lambda: 1.2
+          severity:
+            model: lognormal
+            parameters:
+              currency: USD
+              median: "8 100"
+              sigma: 1.0

@@ -1,0 +1,102 @@
+# Lesson 04 — Bundle (executable)
+#
+# Executes the CIS-authored scenario by supplying CIS assessments.
+# Also includes ATT&CK catalogs and ATT&CK→CIS mapping packs for teaching/tooling.
+
+crml_portfolio_bundle: "1.0"
+
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "Lesson 04 — CIS controls (bundle)"
+      description: "Executable bundle for Lesson 04 (CIS-authored scenario + CIS posture)."
+      tags: ["example", "lessons", "bundle", "cisv8", "attck"]
+
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+
+      assets:
+        - name: employees
+          cardinality: 120
+        - name: endpoints
+          cardinality: 180
+
+      scenarios:
+        - id: phishing_cis
+          path: ../scenarios/lesson-04-phishing-attck-cis-controls.yaml
+
+  scenarios:
+    - id: phishing_cis
+      weight: 1.0
+      source_path: "examples/scenarios/lesson-04-phishing-attck-cis-controls.yaml"
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "Lesson 04 — phishing (CIS, in bundle)"
+          tags: ["example", "lessons", "bundle", "phishing", "cisv8"]
+          attck: ["attck:TA0001", "attck:T1566", "attck:T1566.001"]
+        scenario:
+          frequency:
+            basis: per_organization_per_year
+            model: poisson
+            parameters:
+              lambda: 0.4
+          severity:
+            model: lognormal
+            parameters:
+              currency: USD
+              median: "25 000"
+              sigma: 1.15
+          controls:
+            - {id: "cisv8:14.2", effectiveness_against_threat: 0.35}
+            - {id: "cisv8:6.3", effectiveness_against_threat: 0.85}
+            - {id: "cisv8:9.5", effectiveness_against_threat: 0.55}
+            - {id: "cisv8:9.7", effectiveness_against_threat: 0.40}
+            - {id: "cisv8:10.1", effectiveness_against_threat: 0.35}
+
+  assessments:
+    - crml_assessment: "1.0"
+      meta: {name: "Lesson 04 — CIS posture", tags: ["example", "lessons", "bundle", "cisv8", "assessment"]}
+      assessment:
+        framework: "CISv8"
+        assessed_at: "2025-12-20T00:00:00Z"
+        assessments:
+          - {id: "cisv8:14.2", affects: frequency, scf_cmm_level: 2}
+          - {id: "cisv8:6.3", affects: frequency, scf_cmm_level: 3}
+          - {id: "cisv8:9.5", affects: frequency, scf_cmm_level: 2}
+          - {id: "cisv8:9.7", affects: frequency, scf_cmm_level: 2}
+          - {id: "cisv8:10.1", affects: frequency, scf_cmm_level: 3}
+
+  attack_catalogs:
+    - crml_attack_catalog: "1.0"
+      meta: {name: "Lesson 04 — ATT&CK subset", tags: ["example", "bundle", "attck"]}
+      catalog:
+        id: "attck"
+        framework: "MITRE ATT&CK (Enterprise)"
+        attacks:
+          - {id: "attck:TA0001", title: "Initial Access", kind: "tactic", url: "https://attack.mitre.org/tactics/TA0001/"}
+          - {id: "attck:T1566", title: "Phishing", kind: "technique", url: "https://attack.mitre.org/techniques/T1566/", phases: ["attck:TA0001"]}
+          - {id: "attck:T1566.001", title: "Spearphishing Attachment", kind: "sub-technique", url: "https://attack.mitre.org/techniques/T1566/001/", parent: "attck:T1566", phases: ["attck:TA0001"]}
+
+  attack_control_relationships:
+    - crml_attack_control_relationships: "1.0"
+      meta: {name: "Lesson 04 — ATT&CK→CIS", tags: ["example", "bundle", "attck", "cisv8"]}
+      relationships:
+        id: "lesson-04-attck-to-cisv8-phishing"
+        metadata: {source: "lesson", notes: "Demonstration-only; not authoritative."}
+        relationships:
+          - attack: "attck:T1566"
+            targets:
+              - {control: "cisv8:14.2", relationship_type: mitigated_by, strength: 0.6, confidence: 0.6}
+              - {control: "cisv8:6.3", relationship_type: mitigated_by, strength: 0.7, confidence: 0.7}
+              - {control: "cisv8:9.5", relationship_type: mitigated_by, strength: 0.4, confidence: 0.6}
+          - attack: "attck:T1566.001"
+            targets:
+              - {control: "cisv8:9.7", relationship_type: mitigated_by, strength: 0.5, confidence: 0.6}
+              - {control: "cisv8:10.1", relationship_type: mitigated_by, strength: 0.5, confidence: 0.6}
+              - {control: "cisv8:10.5", relationship_type: mitigated_by, strength: 0.4, confidence: 0.5}

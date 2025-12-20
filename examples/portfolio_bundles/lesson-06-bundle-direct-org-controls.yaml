@@ -1,0 +1,144 @@
+# Lesson 06 — Bundle format (portable exchange artifact)
+#
+# What this lesson teaches
+# ------------------------
+# - How to package a portfolio + scenario + catalogs + assessments into ONE file.
+# - Bundles are designed as engine/tool exchange contracts.
+# - Engines SHOULD NOT require filesystem access for bundle execution.
+#
+# Note
+# ----
+# The CLI may not run bundles directly in all versions, but the engine Python API
+# supports bundle simulation.
+#
+# Validation warning you may see
+# ------------------------------
+# Some validator versions emit a warning if a bundle contains scenario controls
+# but does not include any control-to-control relationship packs. That warning is
+# mainly relevant when you expect cross-framework translation (e.g. `cisv8:*` ->
+# `org:*`). For this lesson, scenario control ids already match the inlined org
+# catalog/assessment ids, so the warning can be ignored.
+
+crml_portfolio_bundle: "1.0"
+
+portfolio_bundle:
+  # 1) Inlined portfolio
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "Lesson 06 — bundled direct org controls"
+      description: |
+        Bundle version of the direct org-controls workflow (Lesson 02).
+
+        This is the smallest bundle that still shows the full set of
+        inlined documents:
+        - portfolio
+        - scenario
+        - control catalog
+        - assessment
+      tags: ["example", "lessons", "bundle", "org", "controls"]
+
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+
+      assets:
+        - name: employees
+          cardinality: 120
+        - name: endpoints
+          cardinality: 180
+
+      # Paths are informational for bundles; content is inlined below.
+      control_catalogs:
+        - ../control_catalogs/lesson-org-control-catalog.yaml
+      assessments:
+        - ../control_assessments/lesson-org-control-assessment.yaml
+
+      scenarios:
+        - id: phishing
+          path: ../scenarios/lesson-02-phishing-org-controls.yaml
+
+  # 2) Inlined scenarios
+  scenarios:
+    - id: phishing
+      weight: 1.0
+      source_path: "examples/scenarios/lesson-02-phishing-org-controls.yaml"
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "Lesson 06 — phishing (in bundle)"
+          description: |
+            Inlined version of the Lesson 02 phishing scenario.
+
+            Note: `meta.attck` remains metadata; tools can still use it.
+          tags: ["example", "lessons", "bundle", "phishing"]
+          attck: ["attck:TA0001", "attck:T1566", "attck:T1566.001"]
+
+        scenario:
+          frequency:
+            basis: per_organization_per_year
+            model: poisson
+            parameters:
+              lambda: 0.4
+
+          severity:
+            model: lognormal
+            parameters:
+              currency: USD
+              median: "25 000"
+              sigma: 1.15
+
+          controls:
+            - id: "org:iam.mfa"
+              effectiveness_against_threat: 0.85
+            - id: "org:mail.dmarc"
+              effectiveness_against_threat: 0.55
+            - id: "org:awareness.security"
+              effectiveness_against_threat: 0.35
+            - id: "org:endpoint.edr"
+              effectiveness_against_threat: 0.40
+
+  # 3) Inlined catalogs
+  control_catalogs:
+    - crml_control_catalog: "1.0"
+      meta:
+        name: "Lesson 06 — org control catalog (in bundle)"
+        tags: ["example", "lessons", "bundle", "org"]
+      catalog:
+        id: "org"
+        framework: "Org"
+        controls:
+          - id: "org:iam.mfa"
+            title: "Multi-factor authentication"
+          - id: "org:mail.dmarc"
+            title: "Email authentication (DMARC)"
+          - id: "org:awareness.security"
+            title: "Security awareness training"
+          - id: "org:endpoint.edr"
+            title: "Endpoint detection and response"
+
+  # 4) Inlined assessments
+  assessments:
+    - crml_assessment: "1.0"
+      meta:
+        name: "Lesson 06 — org control assessment (in bundle)"
+        tags: ["example", "lessons", "bundle", "assessment"]
+      assessment:
+        framework: "Org"
+        assessed_at: "2025-12-20T00:00:00Z"
+        assessments:
+          - id: "org:iam.mfa"
+            affects: frequency
+            scf_cmm_level: 3
+          - id: "org:mail.dmarc"
+            affects: frequency
+            scf_cmm_level: 2
+          - id: "org:awareness.security"
+            affects: frequency
+            scf_cmm_level: 2
+          - id: "org:endpoint.edr"
+            affects: severity
+            scf_cmm_level: 3

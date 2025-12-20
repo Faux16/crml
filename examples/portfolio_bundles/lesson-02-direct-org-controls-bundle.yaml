@@ -1,0 +1,109 @@
+# Lesson 02 — Bundle (executable)
+#
+# This bundle is an executable wrapper around the Lesson 02 direct org-controls workflow.
+#
+# Run:
+#   crml simulate examples/portfolio_bundles/lesson-02-direct-org-controls-bundle.yaml --runs 20000
+
+crml_portfolio_bundle: "1.0"
+
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "Lesson 02 — direct org controls (bundle)"
+      description: |
+        Executable bundle for Lesson 02.
+
+        Scenario uses internal org control ids.
+        Assessment provides posture (SCF CMM levels).
+      tags: ["example", "lessons", "bundle", "org", "controls"]
+
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+
+      assets:
+        - name: employees
+          cardinality: 120
+        - name: endpoints
+          cardinality: 180
+
+      scenarios:
+        - id: phishing
+          path: ../scenarios/lesson-02-phishing-org-controls.yaml
+
+  scenarios:
+    - id: phishing
+      weight: 1.0
+      source_path: "examples/scenarios/lesson-02-phishing-org-controls.yaml"
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "Lesson 02 — phishing (in bundle)"
+          tags: ["example", "lessons", "bundle", "phishing"]
+          attck: ["attck:TA0001", "attck:T1566", "attck:T1566.001"]
+        scenario:
+          frequency:
+            basis: per_organization_per_year
+            model: poisson
+            parameters:
+              lambda: 0.4
+          severity:
+            model: lognormal
+            parameters:
+              currency: USD
+              median: "25 000"
+              sigma: 1.15
+          controls:
+            - id: "org:iam.mfa"
+              effectiveness_against_threat: 0.85
+            - id: "org:mail.dmarc"
+              effectiveness_against_threat: 0.55
+            - id: "org:awareness.security"
+              effectiveness_against_threat: 0.35
+            - id: "org:endpoint.edr"
+              effectiveness_against_threat: 0.40
+
+  control_catalogs:
+    - crml_control_catalog: "1.0"
+      meta:
+        name: "Lesson 02 — org control catalog (in bundle)"
+        tags: ["example", "lessons", "bundle", "org"]
+      catalog:
+        id: "org"
+        framework: "Org"
+        controls:
+          - id: "org:iam.mfa"
+            title: "Multi-factor authentication"
+          - id: "org:mail.dmarc"
+            title: "Email authentication (DMARC)"
+          - id: "org:awareness.security"
+            title: "Security awareness training"
+          - id: "org:endpoint.edr"
+            title: "Endpoint detection and response"
+
+  assessments:
+    - crml_assessment: "1.0"
+      meta:
+        name: "Lesson 02 — org assessment (in bundle)"
+        tags: ["example", "lessons", "bundle", "assessment"]
+      assessment:
+        framework: "Org"
+        assessed_at: "2025-12-20T00:00:00Z"
+        assessments:
+          - id: "org:iam.mfa"
+            affects: frequency
+            scf_cmm_level: 3
+          - id: "org:mail.dmarc"
+            affects: frequency
+            scf_cmm_level: 2
+          - id: "org:awareness.security"
+            affects: frequency
+            scf_cmm_level: 2
+          - id: "org:endpoint.edr"
+            affects: severity
+            scf_cmm_level: 3

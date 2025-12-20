@@ -1,0 +1,71 @@
+# Lesson 04 — Phishing scenario authored against CIS controls
+#
+# What this lesson teaches
+# ------------------------
+# - You can author scenarios against a portable control framework (CIS v8).
+# - This makes scenarios reusable across organizations.
+# - `meta.attck` is metadata that helps with crosswalks and control suggestions.
+# - `scenario.controls` can list CIS control ids directly.
+#
+# IMPORTANT
+# ---------
+# The reference engine applies controls when scenario control ids match
+# portfolio inventory/assessment ids.
+# For this lesson we therefore create a *CIS posture portfolio* that assesses
+# CIS controls directly (Lesson 04 portfolio).
+
+crml_scenario: "1.0"
+
+meta:
+  name: "Lesson 04 — Phishing → account takeover (CIS controls)"
+  description: |
+    Phishing baseline scenario authored against CIS v8 controls.
+
+    This scenario is portable across organizations.
+
+    It can be used in two ways:
+    1) Executable today by pairing with a portfolio that has CIS assessments.
+    2) As a reusable baseline that a tool can translate to internal controls
+       using a CIS→Org mapping pack (Lesson 05).
+  tags: ["example", "lessons", "phishing", "cisv8", "attck"]
+  attck:
+    - "attck:TA0001"
+    - "attck:T1566"
+    - "attck:T1566.001"
+
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.4
+
+  severity:
+    model: lognormal
+    parameters:
+      currency: USD
+      median: "25 000"
+      sigma: 1.15
+
+  # Scenario control references are CIS ids.
+  # The threat-specific factors below are scenario author assumptions.
+  controls:
+    - id: "cisv8:14.2"
+      effectiveness_against_threat: 0.35
+      notes: "Awareness training reduces click-through rates."
+
+    - id: "cisv8:6.3"
+      effectiveness_against_threat: 0.85
+      notes: "MFA blocks many ATO attempts even if passwords are captured."
+
+    - id: "cisv8:9.5"
+      effectiveness_against_threat: 0.55
+      notes: "DMARC helps against spoofed sender phishing campaigns."
+
+    - id: "cisv8:9.7"
+      effectiveness_against_threat: 0.40
+      notes: "Email server anti-malware helps against attachment-based delivery."
+
+    - id: "cisv8:10.1"
+      effectiveness_against_threat: 0.35
+      notes: "Endpoint anti-malware helps prevent payload execution."

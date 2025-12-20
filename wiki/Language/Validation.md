@@ -44,7 +44,7 @@ The portable semantics are documented in:
 The engine CLI delegates validation to `crml_lang`:
 
 ```bash
-crml validate examples/scenarios/scenario-phishing.yaml
+crml-lang validate examples/scenarios/scenario-phishing.yaml
 ```
 
 See: [Engine CLI](../Engine/CLI.md)

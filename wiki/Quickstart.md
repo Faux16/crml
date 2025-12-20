@@ -58,7 +58,7 @@ If you want **multi-asset / per-asset** modeling (e.g. 100 employees, 500 endpoi
 ## Step 3: Validate Your Model (30 seconds)
 
 ```bash
-crml validate my-first-scenario.yaml
+crml-lang validate my-first-scenario.yaml
 ```
 
 You should see:
@@ -71,7 +71,39 @@ You should see:
 ## Step 4: Run Simulation (1 minute)
 
 ```bash
-crml simulate my-first-scenario.yaml --runs 10000
+# The reference engine executes portfolio bundles.
+# Create a minimal portfolio that references your scenario:
+```
+
+Create `my-first-portfolio.yaml`:
+
+```yaml
+crml_portfolio: "1.0"
+meta:
+  name: "my-first-portfolio"
+
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+      validate_scenarios: true
+
+  assets:
+    - name: "org"
+      cardinality: 1
+
+  scenarios:
+    - id: "s1"
+      path: ./my-first-scenario.yaml
+```
+
+Bundle it into an executable artifact:
+
+```bash
+crml-lang bundle-portfolio my-first-portfolio.yaml my-first-portfolio-bundle.yaml
+
+crml simulate my-first-portfolio-bundle.yaml --runs 10000
 ```
 
 You'll see results like:
@@ -102,7 +134,7 @@ npm install
 npm run dev
 ```
 
-Visit http://localhost:3000/simulation
+Visit http://localhost:3000/playground?tab=simulate
 
 ---
 
@@ -144,7 +176,7 @@ Visit http://localhost:3000/simulation
 
 **"Invalid YAML"**
 - Check indentation (use spaces, not tabs)
-- Run `crml validate` to see specific errors
+- Run `crml-lang validate` to see specific errors
 
 **"Simulation takes too long"**
 - Reduce `--runs` to 1000 for faster results
@@ -154,9 +186,9 @@ Visit http://localhost:3000/simulation
 
 ## Get Help
 
-- 📖 [Full Documentation](Home)
-- 🧪 [Interactive Simulation](http://localhost:3000/simulation)
-- 💬 [GitHub Issues](https://github.com/Faux16/crml/issues)
-- 📧 [Email Support](mailto:research@zeron.one)
+- [Full Documentation](Home)
+- [Interactive Simulation](http://localhost:3000/playground?tab=simulate)
+- [GitHub Issues](https://github.com/Faux16/crml/issues)
+- [Email Support](mailto:research@zeron.one)
 
 **Ready to build real risk models?** Start with [Best Practices](Examples/Best-Practices) and then consult the [CRML Specification](Reference/CRML-Specification).

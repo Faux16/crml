@@ -15,8 +15,8 @@ pip install crml-engine
 Validate a scenario/portfolio document:
 
 ```bash
-crml validate examples/scenarios/data-breach-simple.yaml
-crml validate examples/portfolios/portfolio.yaml
+crml-lang validate examples/scenarios/data-breach-simple.yaml
+crml-lang validate examples/portfolios/portfolio.yaml
 ```
 
 Run a simulation:

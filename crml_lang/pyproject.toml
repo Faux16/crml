@@ -28,6 +28,7 @@ xlsx = ["openpyxl>=3.1"]
 
 [project.scripts]
 crml-xlsx = "crml_lang.mapping.__main__:main"
+crml-lang = "crml_lang.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

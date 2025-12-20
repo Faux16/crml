@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:no-simulation-route": "node scripts/check_no_simulation_route.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

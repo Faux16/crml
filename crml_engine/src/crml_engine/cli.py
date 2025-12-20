@@ -12,7 +12,6 @@ The primary, supported programmatic API lives in `crml_lang.api` and
 import argparse
 import sys
 
-from crml_lang import validate_document
 from crml_engine.runtime import run_simulation_cli
 
 
@@ -27,9 +26,18 @@ def _exit_or_return(exit_code: int, *, exit_on_return: bool) -> int:
 
 def _dispatch_command(args) -> bool:
     if args.command == 'validate':
-        report = validate_document(args.file, source_kind="path")
-        print(report.render_text(source_label=args.file))
-        return bool(report.ok)
+        from crml_lang.cli import validate_to_text
+
+        return validate_to_text(args.file) == 0
+
+    if args.command == 'bundle-portfolio':
+        from crml_lang.cli import bundle_portfolio_to_yaml
+
+        return bundle_portfolio_to_yaml(
+            args.in_portfolio,
+            args.out_bundle,
+            sort_keys=bool(args.sort_keys),
+        ) == 0
 
     if args.command == 'explain':
         from crml_engine.explainer import explain_crml
@@ -61,14 +69,23 @@ def main(argv=None, *, exit_on_return: bool = True):
     )
     
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
-    
-    # Validate command
+
+    # Validate command (compatibility)
     validate_parser = subparsers.add_parser('validate', help='Validate a CRML file')
     validate_parser.add_argument('file', help=FILE_HELP)
     
     # Explain command (existing)
     explain_parser = subparsers.add_parser('explain', help='Explain a CRML model')
     explain_parser.add_argument('file', help=FILE_HELP)
+
+    # Bundle portfolio command
+    bundle_parser = subparsers.add_parser(
+        'bundle-portfolio',
+        help='Bundle a CRML portfolio into a single portfolio bundle YAML artifact',
+    )
+    bundle_parser.add_argument('in_portfolio', help='Path to CRML portfolio YAML file')
+    bundle_parser.add_argument('out_bundle', help='Output portfolio bundle YAML file path')
+    bundle_parser.add_argument('--sort-keys', action='store_true', help='Sort YAML keys')
     
     # Simulate command (new)
     simulate_parser = subparsers.add_parser('simulate', help='Run simulation on a CRML model')

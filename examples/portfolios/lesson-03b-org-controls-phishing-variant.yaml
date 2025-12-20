@@ -1,0 +1,36 @@
+# Lesson 03B — Portfolio runner for Lesson 03 variant scenario
+#
+# Use this and Lesson 03A to compare results while holding org posture constant.
+
+crml_portfolio: "1.0"
+
+meta:
+  name: "Lesson 03B — same posture, scenario B"
+  description: |
+    Runs Lesson 03 (phishing variant) using the same org posture as Lesson 03A.
+
+    Compare the output of this portfolio to Lesson 03A to see how scenario-scoped
+    threat assumptions change results.
+  tags: ["example", "lessons", "portfolio", "controls", "compare"]
+
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+      validate_scenarios: true
+
+  assets:
+    - name: employees
+      cardinality: 120
+    - name: endpoints
+      cardinality: 180
+
+  control_catalogs:
+    - ../control_catalogs/lesson-org-control-catalog.yaml
+  assessments:
+    - ../control_assessments/lesson-org-control-assessment.yaml
+
+  scenarios:
+    - id: phishing_variant
+      path: ../scenarios/lesson-03-phishing-variant-org-controls.yaml

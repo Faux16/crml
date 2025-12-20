@@ -103,7 +103,14 @@ Examples you can start from:
 Use `--fx-config` with `simulate`:
 
 ```bash
-crml simulate examples/scenarios/multi-currency-example.yaml --fx-config examples/fx_configs/fx-config-eur.yaml
+# The reference engine executes portfolio bundles.
+# Create a minimal portfolio that references the example scenario:
+
+python -c "p='multi-currency-portfolio.yaml'; open(p,'w',encoding='utf-8').write('''crml_portfolio: \"1.0\"\nmeta:\n  name: \"multi-currency-example\"\nportfolio:\n  semantics:\n    method: sum\n    constraints:\n      require_paths_exist: true\n      validate_scenarios: true\n  assets:\n    - name: \"org\"\n      cardinality: 1\n  scenarios:\n    - id: \"mc\"\n      path: ./examples/scenarios/multi-currency-example.yaml\n'''); print('Wrote multi-currency-portfolio.yaml')"
+
+crml-lang bundle-portfolio multi-currency-portfolio.yaml multi-currency-bundle.yaml
+
+crml simulate multi-currency-bundle.yaml --fx-config examples/fx_configs/fx-config-eur.yaml
 ```
 
 ### Python API
@@ -112,6 +119,7 @@ You can pass FX config either as a dict or as an `FXConfig` instance:
 
 ```python
 from crml_engine.runtime import run_simulation
+from crml_lang import bundle_portfolio
 
 fx_config = {
 		"base_currency": "USD",
@@ -119,5 +127,10 @@ fx_config = {
 		"rates": {"USD": 1.0, "EUR": 1.08},
 }
 
-result = run_simulation(yaml_content, n_runs=10000, seed=42, fx_config=fx_config)
+# Bundle a portfolio first (the engine executes bundles)
+report = bundle_portfolio("examples/portfolios/portfolio.yaml", source_kind="path")
+assert report.ok and report.bundle is not None
+bundle_dict = report.bundle.model_dump(by_alias=True, exclude_none=True)
+
+result = run_simulation(bundle_dict, n_runs=10000, seed=42, fx_config=fx_config)
 ```

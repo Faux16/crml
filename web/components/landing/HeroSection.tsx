@@ -27,7 +27,7 @@ export function HeroSection() {
                     </p>
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                         <Button asChild size="lg" className="gap-2">
-                            <Link href="/simulation">
+                            <Link href="/playground?tab=simulate">
                                 Try Simulation <ArrowRight className="h-4 w-4" />
                             </Link>
                         </Button>

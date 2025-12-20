@@ -49,7 +49,7 @@ Typical usage:
 
 Example:
 
-- `crml simulate examples/portfolios/portfolio.yaml --fx-config examples/fx_configs/fx-config.yaml`
+- `crml simulate examples/portfolio_bundles/portfolio-bundle-documented.yaml --fx-config examples/fx_configs/fx-config.yaml`
 
 (Exact CLI subcommand/flags depend on the installed CLI version; this repository’s examples follow the reference engine.)
 

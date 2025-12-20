@@ -17,7 +17,7 @@ This repository is split into two Python packages:
 
 ## Install
 
-If you want the **CLI** (`crml validate`, `crml simulate`):
+If you want the **CLI** (`crml-lang validate`, `crml simulate`):
 
 ```bash
 pip install crml-engine

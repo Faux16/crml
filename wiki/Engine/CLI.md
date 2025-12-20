@@ -18,10 +18,16 @@ crml --help
 
 ### `crml validate <file>`
 
-Validates a CRML document (schema + semantic checks) via `crml_lang`.
+Validates a CRML document (schema + semantic checks). This delegates to the `crml_lang` validator.
 
 ```bash
 crml validate examples/scenarios/phishing.yaml
+```
+
+If you have the language tooling installed separately, you can also call the validator directly:
+
+```bash
+crml-lang validate examples/scenarios/phishing.yaml
 ```
 
 ### `crml simulate <file>`
@@ -30,21 +36,21 @@ Runs a Monte Carlo simulation using the reference engine.
 
 Supported inputs:
 
-- `crml_scenario: "1.0"`
-- `crml_portfolio: "1.0"`
 - `crml_portfolio_bundle: "1.0"`
+
+Important:
+
+- Raw scenarios (`crml_scenario`) and portfolios (`crml_portfolio`) are **not** executable by the reference runtime.
+	Create a `crml_portfolio_bundle` first (e.g. via `crml bundle-portfolio`).
 
 Examples:
 
 ```bash
-# Scenario
-crml simulate examples/scenarios/phishing.yaml --runs 10000
-
-# Portfolio
-crml simulate examples/portfolios/portfolio.yaml --runs 10000
+# Portfolio bundle (executable)
+crml simulate examples/portfolio_bundles/portfolio-bundle-documented.yaml --runs 10000
 
 # JSON output
-crml simulate examples/scenarios/phishing.yaml --runs 20000 --format json > result.json
+crml simulate examples/portfolio_bundles/portfolio-bundle-documented.yaml --runs 20000 --format json > result.json
 ```
 
 Options:

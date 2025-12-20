@@ -79,7 +79,7 @@ A typical organization might keep CRML alongside detection and infrastructure co
 - `risk/models/` — scenarios and portfolios in CRML
 - `risk/catalogs/` — versioned control + attack catalogs (internal or external)
 - `risk/mappings/` — telemetry/control/threat mappings with ownership and change history
-- CI runs `crml validate` on every PR; a nightly job runs `crml simulate` and publishes dashboards
+- CI runs `crml-lang validate` on every PR; a nightly job runs `crml simulate` and publishes dashboards
 
 Example snippet (illustrative):
 
@@ -137,7 +137,7 @@ pip install crml-lang
 ## Quick start (CLI)
 
 ```bash
-crml validate examples/scenarios/qber-enterprise.yaml
+crml-lang validate examples/scenarios/qber-enterprise.yaml
 crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
 ```
 

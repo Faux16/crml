@@ -58,7 +58,7 @@ flowchart TD
 Notes:
 
 - Parsing and Pydantic validation happen at the start of `run_monte_carlo` (before any simulation work).
-- Full CRML schema + semantic validation is provided by `crml validate` / `crml_lang.validate`.
+- Full CRML schema + semantic validation is provided by `crml-lang validate` / `crml_lang.validate`.
 - Scenario documents are scenario-only; exposure scaling is supplied via the runtime as `cardinality`.
 - Currency conversion is applied through the FX config.
 
@@ -108,7 +108,7 @@ The engine supports two result layers:
 
 The web UI in `web/` integrates by calling:
 
-- validation: executes `crml validate` and parses its output
+- validation: executes `crml-lang validate` and parses its output
 - simulation: runs Python and calls `crml_engine.runtime.run_simulation_envelope`
 
 This ensures the UI uses the same validator/runtime behavior as the CLI.

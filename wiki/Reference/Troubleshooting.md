@@ -7,7 +7,7 @@
 
 ## Validation fails but YAML looks fine
 
-- Run `crml validate <file>` to get the exact path and error.
+- Run `crml-lang validate <file>` to get the exact path and error.
 - Confirm the top-level discriminator exists (e.g., `crml_scenario: "1.0"`).
 
 See: [Validation](../Language/Validation.md)

@@ -1,0 +1,110 @@
+# Lesson 05 — Bundle (executable)
+#
+# This bundle is executable and demonstrates the *runtime today* path:
+# - the scenario uses ORG controls (translated form)
+# - the posture is in ORG controls
+#
+# It ALSO inlines the CIS→Org mapping pack (for tooling) so the artifact shows
+# the mapping layer explicitly.
+
+crml_portfolio_bundle: "1.0"
+
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "Lesson 05 — CIS→Org mapping layer (bundle)"
+      description: |
+        Executable bundle for Lesson 05.
+
+        This demonstrates two things:
+        - Runtime today: scenario uses org ids so the reference engine can apply posture.
+        - Tooling artifact: CIS→Org mapping pack is embedded for crosswalk workflows.
+      tags: ["example", "lessons", "bundle", "org", "mapping"]
+
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+
+      assets:
+        - name: employees
+          cardinality: 120
+        - name: endpoints
+          cardinality: 180
+
+      scenarios:
+        - id: phishing_org_translated
+          path: ../scenarios/lesson-02-phishing-org-controls.yaml
+
+  scenarios:
+    - id: phishing_org_translated
+      weight: 1.0
+      source_path: "examples/scenarios/lesson-02-phishing-org-controls.yaml"
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "Lesson 05 — phishing (org translated, in bundle)"
+          tags: ["example", "lessons", "bundle", "org"]
+        scenario:
+          frequency:
+            basis: per_organization_per_year
+            model: poisson
+            parameters:
+              lambda: 0.4
+          severity:
+            model: lognormal
+            parameters:
+              currency: USD
+              median: "25 000"
+              sigma: 1.15
+          controls:
+            - {id: "org:iam.mfa", effectiveness_against_threat: 0.85}
+            - {id: "org:mail.dmarc", effectiveness_against_threat: 0.55}
+            - {id: "org:awareness.security", effectiveness_against_threat: 0.35}
+            - {id: "org:endpoint.edr", effectiveness_against_threat: 0.40}
+
+  control_catalogs:
+    - crml_control_catalog: "1.0"
+      meta: {name: "Lesson 05 — org control catalog", tags: ["example", "bundle", "org"]}
+      catalog:
+        id: "org"
+        framework: "Org"
+        controls:
+          - {id: "org:iam.mfa", title: "Multi-factor authentication"}
+          - {id: "org:mail.dmarc", title: "Email authentication (DMARC)"}
+          - {id: "org:awareness.security", title: "Security awareness training"}
+          - {id: "org:endpoint.edr", title: "Endpoint detection and response"}
+
+  assessments:
+    - crml_assessment: "1.0"
+      meta: {name: "Lesson 05 — org assessment", tags: ["example", "bundle", "assessment"]}
+      assessment:
+        framework: "Org"
+        assessed_at: "2025-12-20T00:00:00Z"
+        assessments:
+          - {id: "org:iam.mfa", affects: frequency, scf_cmm_level: 3}
+          - {id: "org:mail.dmarc", affects: frequency, scf_cmm_level: 2}
+          - {id: "org:awareness.security", affects: frequency, scf_cmm_level: 2}
+          - {id: "org:endpoint.edr", affects: severity, scf_cmm_level: 3}
+
+  control_relationships:
+    - crml_control_relationships: "1.0"
+      meta: {name: "Lesson 05 — CIS→Org pack", tags: ["example", "bundle", "cisv8", "org", "mapping"]}
+      relationships:
+        id: "lesson-05-cisv8-to-org"
+        relationships:
+          - source: "cisv8:6.3"
+            targets:
+              - {target: "org:iam.mfa", relationship_type: overlaps_with, overlap: {weight: 1.0}, confidence: 0.8}
+          - source: "cisv8:9.5"
+            targets:
+              - {target: "org:mail.dmarc", relationship_type: overlaps_with, overlap: {weight: 1.0}, confidence: 0.7}
+          - source: "cisv8:14.2"
+            targets:
+              - {target: "org:awareness.security", relationship_type: overlaps_with, overlap: {weight: 0.9}, confidence: 0.6}
+          - source: "cisv8:10.1"
+            targets:
+              - {target: "org:endpoint.edr", relationship_type: overlaps_with, overlap: {weight: 0.6}, confidence: 0.5}

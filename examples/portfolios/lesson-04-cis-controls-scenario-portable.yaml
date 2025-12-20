@@ -1,0 +1,54 @@
+# Lesson 04 — Portfolio executing a CIS-authored scenario
+#
+# What this lesson teaches
+# ------------------------
+# - How to make a CIS-authored scenario executable *today* in the reference engine:
+#   scenario control ids must match portfolio inventory/assessment ids.
+# - So this portfolio provides a CIS assessment catalog and references the CIS
+#   control catalog.
+#
+# It also references an explicit ATT&CK→CIS mapping pack as a teaching artifact.
+# The reference engine does not require it for execution, but tools can.
+
+crml_portfolio: "1.0"
+
+meta:
+  name: "Lesson 04 — CIS controls portfolio (portable scenario)"
+  description: |
+    Executes a scenario authored against CIS v8 control ids.
+
+    This portfolio is a teaching aid:
+    - It demonstrates CIS-as-canonical posture (so the scenario runs today).
+    - It also includes ATT&CK catalogs and ATT&CK→CIS mapping packs for tooling.
+  tags: ["example", "lessons", "portfolio", "cisv8", "attck"]
+
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+      validate_scenarios: true
+
+  assets:
+    - name: employees
+      cardinality: 120
+    - name: endpoints
+      cardinality: 180
+
+  # Catalogs: dictionaries for ids.
+  control_catalogs:
+    - ../../datasets/cisv8-control-catalog.yaml
+
+  # Posture for CIS controls.
+  assessments:
+    - ../control_assessments/lesson-04-cis-control-assessment.yaml
+
+  # Tooling packs (optional for runtime): ATT&CK catalog + ATT&CK→CIS mappings.
+  attack_catalogs:
+    - ../attack_catalogs/attck-catalog.yaml
+  attack_control_relationships:
+    - ../attack_control_relationships/lesson-04-attck-to-cisv8-phishing.yaml
+
+  scenarios:
+    - id: phishing_cis
+      path: ../scenarios/lesson-04-phishing-attck-cis-controls.yaml

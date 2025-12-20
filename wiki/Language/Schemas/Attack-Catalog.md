@@ -105,7 +105,7 @@ catalog:
 CLI:
 
 ```bash
-crml validate path/to/attack-catalog.yaml
+crml-lang validate path/to/attack-catalog.yaml
 ```
 
 Python:

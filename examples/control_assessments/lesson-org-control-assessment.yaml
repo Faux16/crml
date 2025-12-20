@@ -1,0 +1,47 @@
+# Lesson control assessment (`crml_assessment: "1.0"`)
+#
+# Goal
+# ----
+# Provide a simple “org posture” input for lesson portfolios.
+#
+# Notes
+# -----
+# - We use SCF CMM levels for posture (0..5).
+# - We also specify `affects` to demonstrate that some controls are intended to
+#   reduce frequency vs severity.
+# - The reference engine maps SCF CMM levels to an effectiveness value during
+#   portfolio planning.
+
+crml_assessment: "1.0"
+
+meta:
+  name: "Lesson org control assessment"
+  description: |
+    Example assessment catalog used in the lessons.
+
+    This is intentionally small and illustrative; it is not a benchmark.
+  tags: ["example", "lessons", "assessment", "org"]
+
+assessment:
+  framework: "Org"
+  assessed_at: "2025-12-20T00:00:00Z"
+  assessments:
+    - id: "org:iam.mfa"
+      affects: frequency
+      scf_cmm_level: 3
+      notes: "MFA is broadly rolled out, but not perfect (legacy + exceptions)."
+
+    - id: "org:mail.dmarc"
+      affects: frequency
+      scf_cmm_level: 2
+      notes: "DMARC exists but enforcement is uneven across domains/vendors."
+
+    - id: "org:awareness.security"
+      affects: frequency
+      scf_cmm_level: 2
+      notes: "Training exists, but completion and reinforcement are inconsistent."
+
+    - id: "org:endpoint.edr"
+      affects: severity
+      scf_cmm_level: 3
+      notes: "EDR telemetry and response playbooks reduce dwell time and impact."

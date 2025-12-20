@@ -127,7 +127,7 @@ This writes one YAML file per imported document into `imported/`.
 
 Validation (optional but recommended):
 
-- If you have `crml` CLI installed: `crml validate imported/<file>.yaml`
+- If you have the language CLI installed: `crml-lang validate imported/<file>.yaml`
 - Or validate from Python using `crml_lang.validate_*` helpers.
 
 ---

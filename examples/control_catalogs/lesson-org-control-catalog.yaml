@@ -1,0 +1,51 @@
+# Lesson control catalog (`crml_control_catalog: "1.0"`)
+#
+# Goal
+# ----
+# Provide a small, realistic *internal* control catalog for the lesson series.
+#
+# Why a lesson-specific catalog?
+# - The repo already contains examples/control_catalogs/control-catalog.yaml, but it is intentionally tiny.
+# - For lessons we want a few controls that map cleanly to CIS v8 and show different mitigation surfaces.
+#
+# Note on copyrighted text
+# -----------------------
+# Titles here are short internal names (not copied standard text).
+
+crml_control_catalog: "1.0"
+
+meta:
+  name: "Lesson org control catalog"
+  description: |
+    Small internal control catalog used by the lesson examples.
+
+    It includes:
+    - identity controls (MFA)
+    - email controls (DMARC)
+    - people/process controls (security awareness)
+    - endpoint controls (EDR)
+  tags: ["example", "lessons", "org", "controls"]
+
+catalog:
+  id: "org"
+  framework: "Org"
+  controls:
+    - id: "org:iam.mfa"
+      title: "Multi-factor authentication"
+      tags: ["identity", "prevent"]
+      defense_in_depth_layers: ["prevent"]
+
+    - id: "org:mail.dmarc"
+      title: "Email authentication (DMARC)"
+      tags: ["email", "prevent"]
+      defense_in_depth_layers: ["prevent"]
+
+    - id: "org:awareness.security"
+      title: "Security awareness training"
+      tags: ["people", "prevent"]
+      defense_in_depth_layers: ["prevent"]
+
+    - id: "org:endpoint.edr"
+      title: "Endpoint detection and response"
+      tags: ["endpoint", "detect", "respond"]
+      defense_in_depth_layers: ["detect", "respond"]

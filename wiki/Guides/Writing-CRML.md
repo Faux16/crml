@@ -69,7 +69,7 @@ See:
 Use validation frequently while authoring:
 
 ```bash
-crml validate my.yaml
+crml-lang validate my.yaml
 ```
 
 See: [Validation](../Language/Validation.md)

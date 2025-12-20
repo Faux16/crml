@@ -1,0 +1,78 @@
+# Lesson 05 — CIS → Org mapping layer (teaching portfolio)
+#
+# What this lesson teaches
+# ------------------------
+# - How to *represent* CIS→Org mappings as portable relationship packs.
+# - How an organization can keep internal posture in org controls but still
+#   accept portable scenarios authored against CIS.
+#
+# IMPORTANT (reference engine behavior today)
+# ------------------------------------------
+# The reference engine currently expects `scenario.controls[*].id` to match ids
+# present in portfolio inventory/assessment.
+# It does not automatically apply `control_relationships` packs to translate
+# scenario control ids at runtime.
+#
+# Therefore this file contains BOTH:
+# 1) The portable scenario (CIS-authored) referenced for teaching.
+# 2) A runnable "translated" copy of the scenario (org-authored) that represents
+#    what tooling would produce by applying the mapping pack.
+#
+# Run:
+#   crml validate examples/portfolios/lesson-05-cis-to-org-mapping-layer.yaml
+#   crml simulate examples/portfolios/lesson-05-cis-to-org-mapping-layer.yaml --runs 20000
+
+crml_portfolio: "1.0"
+
+meta:
+  name: "Lesson 05 — CIS→Org mapping layer"
+  description: |
+    Demonstrates CIS→Org control mappings and how they relate to scenario execution.
+
+    - Portable inputs: CIS scenario + CIS→Org mapping pack
+    - Executable today: the "translated" org scenario + org posture
+  tags: ["example", "lessons", "portfolio", "cisv8", "org", "mapping"]
+
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+      validate_scenarios: true
+
+  assets:
+    - name: employees
+      cardinality: 120
+    - name: endpoints
+      cardinality: 180
+
+  # Catalogs and posture are in ORG terms (what a real org owns).
+  control_catalogs:
+    - ../control_catalogs/lesson-org-control-catalog.yaml
+  assessments:
+    - ../control_assessments/lesson-org-control-assessment.yaml
+
+  # Mapping pack (portable artifact for tooling, not used automatically at runtime today).
+  control_relationships:
+    - ../control_relationships/lesson-05-cisv8-to-org-mapping.yaml
+
+  # Also include ATT&CK and ATT&CK→CIS mapping for the full story chain:
+  #   scenario meta.attck → ATT&CK→CIS → CIS→Org → internal posture
+  attack_catalogs:
+    - ../attack_catalogs/attck-catalog.yaml
+  attack_control_relationships:
+    - ../attack_control_relationships/lesson-04-attck-to-cisv8-phishing.yaml
+
+  scenarios:
+    # Portable CIS-authored scenario (explicit, but not executed here):
+    # - examples/scenarios/lesson-04-phishing-attck-cis-controls.yaml
+    #
+    # IMPORTANT: The reference engine currently does not translate scenario control ids
+    # via control-relationship packs at runtime. If we referenced the CIS scenario here,
+    # the planner would error because this portfolio posture is in `org:*` ids.
+    #
+    # Runnable org-authored scenario: represents what tooling would generate by
+    # translating CIS ids using the mapping pack.
+    - id: phishing_org_translated
+      path: ../scenarios/lesson-02-phishing-org-controls.yaml
+      weight: 1.0

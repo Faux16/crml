@@ -61,6 +61,10 @@ jobs:
         working-directory: web
         run: npm run typecheck
 
+      - name: Check legacy /simulation route is not referenced
+        working-directory: web
+        run: npm run check:no-simulation-route
+
       - name: Build
         working-directory: web
         run: npm run build

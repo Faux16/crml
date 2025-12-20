@@ -1,0 +1,85 @@
+# Lesson 03B — Bundle (executable)
+#
+# Runs the Lesson 03 phishing-variant scenario with the same posture as 03A.
+
+crml_portfolio_bundle: "1.0"
+
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "Lesson 03B — phishing variant (bundle)"
+      description: "Executable bundle for Lesson 03B (variant threat-specific factors)."
+      tags: ["example", "lessons", "bundle", "compare"]
+
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+
+      assets:
+        - name: employees
+          cardinality: 120
+        - name: endpoints
+          cardinality: 180
+
+      scenarios:
+        - id: phishing_variant
+          path: ../scenarios/lesson-03-phishing-variant-org-controls.yaml
+
+  scenarios:
+    - id: phishing_variant
+      weight: 1.0
+      source_path: "examples/scenarios/lesson-03-phishing-variant-org-controls.yaml"
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "Lesson 03B — phishing variant (in bundle)"
+          tags: ["example", "lessons", "bundle", "phishing", "variant"]
+        scenario:
+          frequency:
+            basis: per_organization_per_year
+            model: poisson
+            parameters:
+              lambda: 0.25
+          severity:
+            model: lognormal
+            parameters:
+              currency: USD
+              median: "35 000"
+              sigma: 1.25
+          controls:
+            - id: "org:iam.mfa"
+              effectiveness_against_threat: 0.55
+            - id: "org:mail.dmarc"
+              effectiveness_against_threat: 0.50
+            - id: "org:awareness.security"
+              effectiveness_against_threat: 0.20
+            - id: "org:endpoint.edr"
+              effectiveness_against_threat: 0.45
+
+  control_catalogs:
+    - crml_control_catalog: "1.0"
+      meta: {name: "Lesson 03B — org control catalog", tags: ["example", "bundle", "org"]}
+      catalog:
+        id: "org"
+        framework: "Org"
+        controls:
+          - {id: "org:iam.mfa", title: "Multi-factor authentication"}
+          - {id: "org:mail.dmarc", title: "Email authentication (DMARC)"}
+          - {id: "org:awareness.security", title: "Security awareness training"}
+          - {id: "org:endpoint.edr", title: "Endpoint detection and response"}
+
+  assessments:
+    - crml_assessment: "1.0"
+      meta: {name: "Lesson 03B — org assessment", tags: ["example", "bundle", "assessment"]}
+      assessment:
+        framework: "Org"
+        assessed_at: "2025-12-20T00:00:00Z"
+        assessments:
+          - {id: "org:iam.mfa", affects: frequency, scf_cmm_level: 3}
+          - {id: "org:mail.dmarc", affects: frequency, scf_cmm_level: 2}
+          - {id: "org:awareness.security", affects: frequency, scf_cmm_level: 2}
+          - {id: "org:endpoint.edr", affects: severity, scf_cmm_level: 3}

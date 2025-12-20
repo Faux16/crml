@@ -17,32 +17,41 @@ pip install crml-engine
 Pick an example scenario from the repo:
 
 ```bash
-crml validate examples/scenarios/scenario-phishing.yaml
+crml-lang validate examples/scenarios/scenario-phishing.yaml
 ```
 
 ---
 
-## 3) Simulate a scenario
+## 3) Simulate (via a portfolio bundle)
+
+The reference engine only executes **portfolio bundles** (`crml_portfolio_bundle`).
+
+- A `crml_scenario` is not executable “in a vacuum” (it needs exposure/frequency context).
+- A `crml_portfolio` is non-executable (it may reference other files); bundle it first.
 
 ```bash
-crml simulate examples/scenarios/scenario-phishing.yaml --runs 20000
+crml simulate examples/portfolio_bundles/portfolio-bundle-documented.yaml --runs 20000
 ```
 
 For JSON output:
 
 ```bash
-crml simulate examples/scenarios/scenario-phishing.yaml --runs 20000 --format json > result.json
+crml simulate examples/portfolio_bundles/portfolio-bundle-documented.yaml --runs 20000 --format json > result.json
 ```
 
 ---
 
-## 4) Run a portfolio (exposure + multiple scenarios)
+## 4) Bundle + run a portfolio (exposure + multiple scenarios)
 
 Portfolios bind scenarios to assets and scale per-asset frequency basis.
 
 ```bash
-crml validate examples/portfolios/portfolio.yaml
-crml simulate examples/portfolios/portfolio.yaml --runs 20000
+crml-lang validate examples/portfolios/portfolio.yaml
+
+# Create an executable bundle (self-contained artifact)
+crml-lang bundle-portfolio examples/portfolios/portfolio.yaml portfolio-bundle.yaml
+
+crml simulate portfolio-bundle.yaml --runs 20000
 ```
 
 Read the portable rules for exposure scaling here:

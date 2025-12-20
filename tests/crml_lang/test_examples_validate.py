@@ -10,9 +10,10 @@ from crml_lang.validators import validate_attack_control_relationships
 
 def test_example_attack_catalog_validates() -> None:
     root = Path(__file__).resolve().parents[2]
-    example = root / "examples" / "attack_catalogs" / "attck-catalog.yaml"
-    report = validate_attack_catalog(str(example), source_kind="path", strict_model=True)
-    assert report.ok, report.render_text(source_label=str(example))
+    examples_dir = root / "examples" / "attack_catalogs"
+    for example in sorted(examples_dir.glob("*.yaml")):
+        report = validate_attack_catalog(str(example), source_kind="path", strict_model=True)
+        assert report.ok, report.render_text(source_label=str(example))
 
 
 def test_example_attck_tagged_scenario_validates() -> None:

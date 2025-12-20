@@ -50,41 +50,198 @@ def _schema_validation_errors(schema: dict[str, Any], data: dict[str, Any]) -> l
     return errors
 
 
-def _semantic_attack_id_errors(data: dict[str, Any]) -> list[ValidationMessage]:
-    """Validate attack ids for presence/type and uniqueness."""
-    catalog = data.get("catalog")
-    attacks = catalog.get("attacks") if isinstance(catalog, dict) else None
+def _attack_catalog_get_attacks(doc: dict[str, Any]) -> list[Any] | None:
+    catalog = doc.get("catalog")
+    if not isinstance(catalog, dict):
+        return None
+    attacks = catalog.get("attacks")
     if not isinstance(attacks, list):
-        return []
+        return None
+    return attacks
 
-    errors: list[ValidationMessage] = []
+
+def _attack_catalog_get_prefix(doc: dict[str, Any]) -> str | None:
+    catalog = doc.get("catalog")
+    if not isinstance(catalog, dict):
+        return None
+    catalog_id = catalog.get("id")
+    if not isinstance(catalog_id, str) or not catalog_id:
+        return None
+    return f"{catalog_id}:"
+
+
+def _attack_catalog_collect_ids(attacks: list[Any], prefix: str | None) -> tuple[list[str], list[ValidationMessage]]:
     ids: list[str] = []
+    errs: list[ValidationMessage] = []
     for idx, attack in enumerate(attacks):
         if not isinstance(attack, dict):
             continue
         aid = attack.get("id")
-        if isinstance(aid, str):
-            ids.append(aid)
+        if not isinstance(aid, str):
+            errs.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"catalog -> attacks -> {idx} -> id",
+                    message="Attack catalog entry 'id' must be a string.",
+                )
+            )
             continue
-        errors.append(
+        ids.append(aid)
+        if prefix and not aid.startswith(prefix):
+            errs.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"catalog -> attacks -> {idx} -> id",
+                    message=f"Attack id '{aid}' must begin with catalog namespace prefix '{prefix}'.",
+                )
+            )
+    return ids, errs
+
+
+def _attack_catalog_duplicate_id_errors(ids: list[str]) -> list[ValidationMessage]:
+    if len(ids) == len(set(ids)):
+        return []
+    return [
+        ValidationMessage(
+            level="error",
+            source="semantic",
+            path="catalog -> attacks",
+            message="Attack catalog contains duplicate attack ids.",
+        )
+    ]
+
+
+def _attack_catalog_validate_parent_refs(
+    attacks: list[Any],
+    *,
+    id_set: set[str],
+    prefix: str | None,
+) -> list[ValidationMessage]:
+    errs: list[ValidationMessage] = []
+    for idx, attack in enumerate(attacks):
+        if not isinstance(attack, dict):
+            continue
+        aid = attack.get("id")
+        if not isinstance(aid, str) or not aid:
+            continue
+        parent = attack.get("parent")
+        if parent is None:
+            continue
+        if not isinstance(parent, str):
+            errs.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"catalog -> attacks -> {idx} -> parent",
+                    message="Attack catalog entry 'parent' must be a string.",
+                )
+            )
+            continue
+        if prefix and not parent.startswith(prefix):
+            errs.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"catalog -> attacks -> {idx} -> parent",
+                    message=f"Parent id '{parent}' must begin with catalog namespace prefix '{prefix}'.",
+                )
+            )
+        if parent not in id_set:
+            errs.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"catalog -> attacks -> {idx} -> parent",
+                    message=f"Parent id '{parent}' does not exist in this catalog.",
+                )
+            )
+    return errs
+
+
+def _attack_catalog_validate_phase_refs_for_attack(
+    idx: int,
+    *,
+    attack: dict[str, Any],
+    id_set: set[str],
+    prefix: str | None,
+) -> list[ValidationMessage]:
+    phases = attack.get("phases")
+    if phases is None:
+        return []
+
+    if not isinstance(phases, list) or any(not isinstance(p, str) for p in phases):
+        return [
             ValidationMessage(
                 level="error",
                 source="semantic",
-                path=f"catalog -> attacks -> {idx} -> id",
-                message="Attack catalog entry 'id' must be a string.",
+                path=f"catalog -> attacks -> {idx} -> phases",
+                message="Attack catalog entry 'phases' must be a list of strings.",
+            )
+        ]
+
+    errs: list[ValidationMessage] = []
+    for phase_id in phases:
+        if prefix and not phase_id.startswith(prefix):
+            errs.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"catalog -> attacks -> {idx} -> phases",
+                    message=f"Phase id '{phase_id}' must begin with catalog namespace prefix '{prefix}'.",
+                )
+            )
+        if phase_id not in id_set:
+            errs.append(
+                ValidationMessage(
+                    level="error",
+                    source="semantic",
+                    path=f"catalog -> attacks -> {idx} -> phases",
+                    message=f"Phase id '{phase_id}' does not exist in this catalog.",
+                )
+            )
+    return errs
+
+
+def _attack_catalog_validate_phase_refs(
+    attacks: list[Any],
+    *,
+    id_set: set[str],
+    prefix: str | None,
+) -> list[ValidationMessage]:
+    errs: list[ValidationMessage] = []
+    for idx, attack in enumerate(attacks):
+        if not isinstance(attack, dict):
+            continue
+        aid = attack.get("id")
+        if not isinstance(aid, str) or not aid:
+            continue
+        errs.extend(
+            _attack_catalog_validate_phase_refs_for_attack(
+                idx,
+                attack=attack,
+                id_set=id_set,
+                prefix=prefix,
             )
         )
+    return errs
 
-    if len(ids) != len(set(ids)):
-        errors.append(
-            ValidationMessage(
-                level="error",
-                source="semantic",
-                path="catalog -> attacks",
-                message="Attack catalog contains duplicate attack ids.",
-            )
-        )
 
+def _semantic_attack_id_errors(data: dict[str, Any]) -> list[ValidationMessage]:
+    """Validate attack ids for presence/type, uniqueness, namespace alignment, and internal references."""
+
+    attacks = _attack_catalog_get_attacks(data)
+    if attacks is None:
+        return []
+
+    prefix = _attack_catalog_get_prefix(data)
+    ids, errors = _attack_catalog_collect_ids(attacks, prefix)
+    errors.extend(_attack_catalog_duplicate_id_errors(ids))
+
+    id_set = set(ids)
+    errors.extend(_attack_catalog_validate_parent_refs(attacks, id_set=id_set, prefix=prefix))
+    errors.extend(_attack_catalog_validate_phase_refs(attacks, id_set=id_set, prefix=prefix))
     return errors
 
 

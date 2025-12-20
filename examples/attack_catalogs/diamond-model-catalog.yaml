@@ -1,0 +1,14 @@
+crml_attack_catalog: "1.0"
+meta:
+  name: "Diamond Model vocabulary (example)"
+  description: "Example attack catalog for Diamond Model roles/vocabulary nodes."
+  tags: ["example", "diamond"]
+catalog:
+  id: "diamond"
+  framework: "Diamond Model of Intrusion Analysis"
+  attacks:
+    - { id: "diamond:adversary", kind: "role", title: "Adversary" }
+    - { id: "diamond:capability", kind: "role", title: "Capability" }
+    - { id: "diamond:infrastructure", kind: "role", title: "Infrastructure" }
+    - { id: "diamond:victim", kind: "role", title: "Victim" }
+    - { id: "diamond:event", kind: "event", title: "Intrusion Event" }

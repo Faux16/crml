@@ -40,12 +40,19 @@ crml_attack_catalog: "1.0"
 meta:
   name: "demo-attacks"
 catalog:
+  id: "attck"
   framework: "MITRE ATT&CK Enterprise"
   attacks:
     - id: "attck:T1059.003"
+      kind: "sub-technique"
+      parent: "attck:T1059"
       title: "Command and Scripting Interpreter: Windows Command Shell"
       tags: ["execution"]
-      kill_chain_phases: ["mitre-attack:execution"]
+      phases: ["attck:TA0002"]
+
+    - id: "attck:TA0002"
+      kind: "tactic"
+      title: "Execution"
 """
 
     doc = CRAttackCatalog.load_from_yaml_str(yaml_text)
@@ -156,9 +163,11 @@ crml_attack_catalog: "1.0"
 meta:
   name: "demo-attacks"
 catalog:
+  id: "attck"
   framework: "MITRE ATT&CK Enterprise"
   attacks:
     - id: "attck:T1059.003"
+      kind: "technique"
 """
     attck_rels_yaml = """
 crml_attack_control_relationships: "1.0"

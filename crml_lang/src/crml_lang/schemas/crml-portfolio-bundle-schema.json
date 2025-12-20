@@ -247,17 +247,12 @@
     "AttackCatalog": {
       "properties": {
         "id": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional identifier for this catalog (organization-owned).",
-          "title": "Id"
+          "description": "Catalog identifier and namespace for all attack ids in this catalog. All catalog.attacks[*].id values must begin with '<catalog.id>:' (e.g. catalog.id='attck' -> 'attck:T1566').",
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "Id",
+          "type": "string"
         },
         "framework": {
           "description": "Free-form framework label for humans/tools. Example: 'MITRE ATT&CK Enterprise'.",
@@ -274,6 +269,7 @@
         }
       },
       "required": [
+        "id",
         "framework",
         "attacks"
       ],
@@ -281,14 +277,31 @@
       "type": "object"
     },
     "AttackCatalogEntry": {
-      "description": "Portable metadata about an ATT&CK (or similar) attack-pattern id.\n\nImportant: do not embed copyrighted framework text here.\nKeep this to identifiers and tool-friendly metadata.",
+      "description": "Portable metadata about an attack id.\n\nImportant: do not embed copyrighted framework text here.\nKeep this to identifiers and tool-friendly metadata.",
       "properties": {
         "id": {
-          "description": "Canonical unique attack pattern id present in this catalog.",
+          "description": "Canonical unique attack id present in this catalog.",
           "maxLength": 256,
           "minLength": 1,
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Required normalized entry kind for engines and tools.",
+          "enum": [
+            "tactic",
+            "technique",
+            "sub-technique",
+            "attack-pattern",
+            "phase",
+            "function",
+            "category",
+            "subcategory",
+            "role",
+            "event"
+          ],
+          "title": "Kind",
           "type": "string"
         },
         "title": {
@@ -301,7 +314,7 @@
             }
           ],
           "default": null,
-          "description": "Optional short human-readable title for the attack pattern.",
+          "description": "Optional short human-readable title for the attack entry.",
           "title": "Title"
         },
         "url": {
@@ -317,6 +330,43 @@
           "description": "Optional URL for additional reference material.",
           "title": "Url"
         },
+        "parent": {
+          "anyOf": [
+            {
+              "description": "Attack identifier in canonical namespaced form 'namespace:key' (no whitespace). The namespace is expected to match the attack catalog's catalog.id.",
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional parent attack id (same catalog namespace). Useful for hierarchical frameworks (e.g. ATT&CK technique -> sub-technique, NIST CSF function -> category -> subcategory).",
+          "title": "Parent"
+        },
+        "phases": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "Attack identifier in canonical namespaced form 'namespace:key' (no whitespace). The namespace is expected to match the attack catalog's catalog.id.",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of phase-like ids (same catalog namespace) that this entry is associated with. For ATT&CK, this can point to tactic ids. For kill chains, phases are typically represented as entries themselves.",
+          "title": "Phases"
+        },
         "tags": {
           "anyOf": [
             {
@@ -330,28 +380,13 @@
             }
           ],
           "default": null,
-          "description": "Optional list of tags for grouping/filtering.",
+          "description": "Optional extra tags for grouping/filtering. Tags are non-semantic and must not replace 'kind'.",
           "title": "Tags"
-        },
-        "kill_chain_phases": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional STIX kill chain phases, expressed as strings. Recommended format is '<kill_chain_name>:<phase_name>' (e.g. 'mitre-attack:execution').",
-          "title": "Kill Chain Phases"
         }
       },
       "required": [
-        "id"
+        "id",
+        "kind"
       ],
       "title": "AttackCatalogEntry",
       "type": "object"

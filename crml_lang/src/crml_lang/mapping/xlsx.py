@@ -747,16 +747,22 @@ def _write_attack_catalogs_sheet(wb, docs: list[CRAttackCatalog]) -> None:
         ws,
         _doc_meta_columns(tags_desc=_DOC_TAGS_DESC)
         + [
-            ("catalog_id", "Catalog id", "Optional catalog identifier (catalog.id)."),
+            ("catalog_id", "Catalog id", "Required catalog identifier / namespace (catalog.id)."),
             ("framework", "Framework", "Framework label (e.g. MITRE ATT&CK Enterprise)."),
             ("attack_id", "Attack id", "Canonical attack id (e.g. attck:T1059.003)."),
+            (
+                "kind",
+                "Kind",
+                "Required enum describing the entry kind (e.g. tactic, technique, sub-technique, phase, category, attack-pattern).",
+            ),
             ("title", "Title", "Optional short title."),
             ("url", "URL", "Optional URL."),
+            ("parent", "Parent", "Optional parent attack id (same namespace)."),
             ("tags_json", _TAGS_JSON_LABEL, _TAGS_JSON_DESC),
             (
-                "kill_chain_phases_json",
-                "Kill chain phases (JSON)",
-                "Optional kill_chain_phases array as JSON (recommended '<kill_chain_name>:<phase_name>').",
+                "phases_json",
+                "Phases (JSON)",
+                "Optional phases array as JSON (recommended list of phase-like ids in the same catalog, e.g. ATT&CK tactic ids).",
             ),
         ],
     )
@@ -774,10 +780,12 @@ def _write_attack_catalogs_sheet(wb, docs: list[CRAttackCatalog]) -> None:
                     cat.id,
                     cat.framework,
                     entry.id,
+                    entry.kind,
                     entry.title,
                     entry.url,
+                    entry.parent,
                     _to_json_cell(entry.tags),
-                    _to_json_cell(entry.kill_chain_phases),
+                    _to_json_cell(entry.phases),
                 ]
             )
 
@@ -846,6 +854,8 @@ def _read_attack_catalogs_sheet(wb, *, header_rows: int) -> list[CRAttackCatalog
         framework = _cell_str(data.get("framework"))
         if not framework:
             raise ValueError(f"attack_catalogs row missing framework for doc {doc_name!r}")
+        if not catalog_id:
+            raise ValueError(f"attack_catalogs row missing catalog_id for doc {doc_name!r}")
 
         key = _doc_key(doc_name, doc_version, doc_description, doc_tags, catalog_id)
         container = out_by_doc.get(key)
@@ -875,10 +885,12 @@ def _read_attack_catalogs_sheet(wb, *, header_rows: int) -> list[CRAttackCatalog
         container["catalog"]["attacks"].append(
             {
                 "id": _cell_str(data.get("attack_id")),
+                "kind": _cell_str(data.get("kind")),
                 "title": _cell_str(data.get("title")),
                 "url": _cell_str(data.get("url")),
+                "parent": _cell_str(data.get("parent")),
                 "tags": _from_json_cell(data.get("tags_json")),
-                "kill_chain_phases": _from_json_cell(data.get("kill_chain_phases_json")),
+                "phases": _from_json_cell(data.get("phases_json")),
             }
         )
 

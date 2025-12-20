@@ -1,0 +1,22 @@
+crml_attack_catalog: "1.0"
+meta:
+  name: "NIST CSF catalog (example)"
+  description: "Example attack catalog for NIST CSF functions/categories/subcategories. Metadata only; no framework text."
+  tags: ["example", "nist-csf"]
+catalog:
+  id: "nist-csf"
+  framework: "NIST Cybersecurity Framework"
+  attacks:
+    - id: "nist-csf:PR"
+      kind: "function"
+      title: "Protect"
+
+    - id: "nist-csf:PR.DS"
+      kind: "category"
+      title: "Data Security"
+      parent: "nist-csf:PR"
+
+    - id: "nist-csf:PR.DS-01"
+      kind: "subcategory"
+      title: "Data-at-rest is protected"
+      parent: "nist-csf:PR.DS"

@@ -209,19 +209,20 @@ portfolio_bundle:
         framework: "MITRE ATT&CK (Enterprise)"
         attacks:
           - id: "attck:TA0001"
+            kind: "tactic"
             title: "Initial Access"
             url: "https://attack.mitre.org/tactics/TA0001/"
-            tags: ["tactic"]
           - id: "attck:T1566"
+            kind: "technique"
             title: "Phishing"
             url: "https://attack.mitre.org/techniques/T1566/"
-            tags: ["technique"]
-            kill_chain_phases: ["mitre-attack:initial-access"]
+            phases: ["attck:TA0001"]
           - id: "attck:T1566.001"
+            kind: "sub-technique"
             title: "Spearphishing Attachment"
             url: "https://attack.mitre.org/techniques/T1566/001/"
-            tags: ["sub-technique"]
-            kill_chain_phases: ["mitre-attack:initial-access"]
+            parent: "attck:T1566"
+            phases: ["attck:TA0001"]
 
   # ---------------------------------------------------------------------------
   # 7) Optional inlined attack-to-control relationships

@@ -118,6 +118,23 @@ def _iter_list_dicts(value: Any) -> Iterator[dict[str, Any]]:
             yield d
 
 
+def _format_pack_references(value: Any, *, max_items: int = 5) -> str:
+    refs = _as_list(value) or []
+    # Most commonly these are strings (paths); be defensive.
+    rendered: list[str] = []
+    for r in refs:
+        if isinstance(r, str):
+            rendered.append(r)
+        else:
+            rendered.append(repr(r))
+
+    if not rendered:
+        return "(none)"
+    if len(rendered) <= max_items:
+        return ", ".join(rendered)
+    return ", ".join(rendered[:max_items]) + f", … (+{len(rendered) - max_items} more)"
+
+
 def _iter_pack_docs(pb: dict[str, Any], pack_field: str) -> Iterator[dict[str, Any]]:
     """Iterate over a bundle pack field that is a list of documents."""
     yield from _iter_list_dicts(pb.get(pack_field))
@@ -287,8 +304,10 @@ def _errors_for_missing_inlined_packs(pb: dict[str, Any]) -> list[ValidationMess
                     source="semantic",
                     path=f"portfolio_bundle.{bundle_field}",
                     message=(
-                        f"Portfolio references '{portfolio_field}' but the bundle does not inline any '{bundle_field}' documents. "
-                        "A portfolio bundle is expected to be self-contained; inline the referenced documents or remove the references."
+                        f"Portfolio references '{portfolio_field}': {_format_pack_references(refs)} "
+                        f"but the bundle does not inline any '{bundle_field}' documents under 'portfolio_bundle.{bundle_field}'. "
+                        "A portfolio bundle is expected to be self-contained. "
+                        f"Fix: inline the referenced {bundle_field} documents, or remove '{portfolio_field}' references from the embedded portfolio."
                     ),
                 )
             )

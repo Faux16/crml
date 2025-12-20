@@ -376,7 +376,9 @@ def run_monte_carlo(
             runtime_ms=None,
             lambda_baseline=None,
             lambda_effective=None,
-            controls_applied=None,
+            # For scenario-only runs, controls are not applied unless a higher-level
+            # portfolio/bundle workflow provides control state.
+            controls_applied=False,
             control_reduction_pct=None,
             control_details=None,
             control_warnings=None,

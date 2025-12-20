@@ -32,6 +32,25 @@ relationships:
     assert report.ok, report.render_text(source_label="inline")
 
 
+def test_validate_control_relationships_rejects_attack_ids_as_controls() -> None:
+    yaml_text = """
+crml_control_relationships: "1.0"
+meta:
+  name: "cisv8-to-attck-should-fail"
+relationships:
+  relationships:
+    - source: "cisv8:4.1"
+      targets:
+        - target: "attck:T1566.001"
+          relationship_type: "mitigates"
+          overlap:
+            weight: 0.6
+"""
+
+    report = validate_control_relationships(yaml_text, source_kind="yaml")
+    assert report.ok is False
+
+
 def test_validate_control_relationships_rejects_duplicate_edges() -> None:
     yaml_text = """
 crml_control_relationships: "1.0"

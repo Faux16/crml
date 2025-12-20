@@ -7,6 +7,9 @@
           "description": "Canonical unique control id in the form 'namespace:key' (no whitespace).",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Id",
           "type": "string"
@@ -473,6 +476,9 @@
           "description": "Target control id.",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Control",
           "type": "string"
@@ -924,6 +930,9 @@
           "description": "Canonical unique control id present in this catalog.",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Id",
           "type": "string"
@@ -1018,6 +1027,9 @@
           "description": "Source control id (often scenario/threat-centric).",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Source",
           "type": "string"
@@ -2302,6 +2314,9 @@
           "description": "Canonical unique control id present in the portfolio inventory.",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Id",
           "type": "string"
@@ -2489,6 +2504,9 @@
           "description": "Target control id (often portfolio/implementation-centric).",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Target",
           "type": "string"
@@ -2606,6 +2624,9 @@
                     "description": "Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1",
                     "maxLength": 256,
                     "minLength": 1,
+                    "not": {
+                      "pattern": "^attck:"
+                    },
                     "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
                     "type": "string"
                   },
@@ -2661,6 +2682,9 @@
           "description": "Canonical unique control id referenced by this scenario.",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Id",
           "type": "string"

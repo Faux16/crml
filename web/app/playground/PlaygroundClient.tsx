@@ -557,6 +557,30 @@ export default function PlaygroundClient() {
         setDisabledAttackIds(new Set());
     }, [inclusions?.docKind]);
 
+    useEffect(() => {
+        // Keep disabled-id sets consistent with the currently loaded YAML.
+        // (Prevents negative counts if the user switches to a bundle with fewer/no ids.)
+        if (!inclusions) {
+            setDisabledControlIds(new Set());
+            setDisabledAttackIds(new Set());
+            return;
+        }
+
+        setDisabledControlIds((prev) => {
+            if (prev.size === 0) return prev;
+            const allowed = new Set(inclusions.controlIds);
+            const next = new Set(Array.from(prev).filter((id) => allowed.has(id)));
+            return next.size === prev.size ? prev : next;
+        });
+
+        setDisabledAttackIds((prev) => {
+            if (prev.size === 0) return prev;
+            const allowed = new Set(inclusions.attackIds);
+            const next = new Set(Array.from(prev).filter((id) => allowed.has(id)));
+            return next.size === prev.size ? prev : next;
+        });
+    }, [inclusions]);
+
     const handleValidate = async () => {
         setIsValidating(true);
         try {
@@ -776,10 +800,6 @@ export default function PlaygroundClient() {
         if (activeTab !== "simulate") return null;
         if (!inclusions) return null;
 
-        const hasControls = inclusions.controlIds.length > 0;
-        const hasAttacks = inclusions.attackIds.length > 0;
-        if (!hasControls && !hasAttacks) return null;
-
         const makeToggle = (kind: InclusionKind, id: string, enabled: boolean) => (
             <button
                 key={id}
@@ -824,7 +844,7 @@ export default function PlaygroundClient() {
                                     Controls: {inclusions.controlIds.length - disabledControlIds.size}/{inclusions.controlIds.length} on
                                 </span>
                                 <span>
-                                    ATT&CK: {inclusions.attackIds.length - disabledAttackIds.size}/{inclusions.attackIds.length} on
+                                    Attacks: {inclusions.attackIds.length - disabledAttackIds.size}/{inclusions.attackIds.length} on
                                 </span>
                             </div>
                         </CardHeader>
@@ -855,7 +875,7 @@ export default function PlaygroundClient() {
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium">ATT&CK ids (meta.attck)</p>
+                                    <p className="text-sm font-medium">Attacks</p>
                                     <p className="text-xs text-muted-foreground">
                                         {inclusions.attackIds.length - disabledAttackIds.size}/{inclusions.attackIds.length} on
                                     </p>

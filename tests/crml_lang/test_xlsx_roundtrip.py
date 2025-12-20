@@ -43,6 +43,11 @@ catalog:
   id: "attck"
   framework: "MITRE ATT&CK Enterprise"
   attacks:
+    - id: "attck:T1059"
+      kind: "technique"
+      title: "Command and Scripting Interpreter"
+      phases: ["attck:TA0002"]
+
     - id: "attck:T1059.003"
       kind: "sub-technique"
       parent: "attck:T1059"

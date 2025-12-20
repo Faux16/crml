@@ -260,4 +260,7 @@ def test_validate_portfolio_bundle_errors_when_portfolio_references_assessments_
 
     report = validate_document(bundle, source_kind="data")
     assert report.ok is False
-    assert any("Portfolio references 'portfolio.assessments'" in e.message for e in report.errors)
+    assert any(
+        "Portfolio references 'portfolio.assessments'" in e.message and "control-assessment.yaml" in e.message
+        for e in report.errors
+    )

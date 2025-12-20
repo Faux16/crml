@@ -138,7 +138,6 @@ export function tryExtractInclusionsFromYaml(yamlContent: string): CrmlInclusion
 
     if (typeof root["crml_scenario"] === "string") {
         const { controlIds, attackIds } = extractScenarioInclusionsFromScenarioDoc(root);
-        if (controlIds.length === 0 && attackIds.length === 0) return null;
         return { docKind: "scenario", controlIds, attackIds };
     }
 
@@ -157,8 +156,6 @@ export function tryExtractInclusionsFromYaml(yamlContent: string): CrmlInclusion
 
         const controlIds = uniqSorted(allControls);
         const attackIds = uniqSorted(allAttacks);
-        if (controlIds.length === 0 && attackIds.length === 0) return null;
-
         return { docKind: "portfolio_bundle", controlIds, attackIds };
     }
 

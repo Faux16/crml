@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Optional, Union
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import AfterValidator, BaseModel, Field, field_validator
 
 
 """Control identifier primitives.
@@ -31,9 +31,26 @@ ControlId = Annotated[
         min_length=1,
         max_length=256,
         pattern=r"^[a-z][a-z0-9_-]{0,31}:[^\s]{1,223}$",
-        description="Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1",
+        description=(
+            "Canonical unique control id in the form 'namespace:key' (no whitespace). "
+            "Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1"
+        ),
+        json_schema_extra={
+            # NOTE: Attack-pattern ids (e.g. ATT&CK) must use the dedicated AttckId/attack models.
+            # This prevents accidentally treating attack ids like controls in control-to-control mapping packs.
+            "not": {"pattern": "^attck:"}
+        },
     ),
+    AfterValidator(lambda v: (_raise_if_attck_namespace(v))),
 ]
+
+
+def _raise_if_attck_namespace(value: str) -> str:
+    # Keep this intentionally minimal and explicit.
+    # If we later add more attack namespaces, we'll extend this list.
+    if value.startswith("attck:"):
+        raise ValueError("'attck' is reserved for attack ids; use an attack id field/document type instead")
+    return value
 
 
 class ControlStructuredRef(BaseModel):

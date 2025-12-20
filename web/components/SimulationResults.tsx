@@ -231,6 +231,16 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
     const histogram = artifacts.find((a): a is CrmlHistogramArtifact => a.kind === "histogram" && a.id === "loss.annual");
     const samples = artifacts.find((a): a is CrmlSamplesArtifact => a.kind === "samples" && a.id === "loss.annual");
 
+    const zeroLossShare = (() => {
+        const values = samples?.values;
+        if (!values || values.length === 0) return null;
+        let zeroCount = 0;
+        for (const v of values) {
+            if (typeof v === "number" && Number.isFinite(v) && v === 0) zeroCount += 1;
+        }
+        return zeroCount / values.length;
+    })();
+
     const metrics: SimulationMetrics = {
         eal: numberOrZero(getMeasure("loss.eal")?.value),
         var_95: numberOrZero(getVar(VAR_LEVEL_95)?.value),
@@ -653,6 +663,11 @@ export default function SimulationResults({ result, isSimulating }: SimulationRe
                                     <span className="text-muted-foreground">Median:</span>
                                     <span className="font-medium">{formatCurrency(metrics.median)}</span>
                                 </div>
+                                {metrics.median === 0 && metrics.max > 0 && (zeroLossShare ?? 0) >= 0.5 ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        Median is {formatCurrency(0)} because more than half of simulated years had no loss.
+                                    </p>
+                                ) : null}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Std Dev:</span>
                                     <span className="font-medium">{formatCurrency(metrics.std_dev)}</span>

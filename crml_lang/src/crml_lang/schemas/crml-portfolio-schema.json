@@ -671,6 +671,9 @@
           "description": "Canonical unique control id present in the portfolio inventory.",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Id",
           "type": "string"

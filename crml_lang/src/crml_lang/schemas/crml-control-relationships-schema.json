@@ -7,6 +7,9 @@
           "description": "Source control id (often scenario/threat-centric).",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Source",
           "type": "string"
@@ -356,6 +359,9 @@
           "description": "Target control id (often portfolio/implementation-centric).",
           "maxLength": 256,
           "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
           "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
           "title": "Target",
           "type": "string"

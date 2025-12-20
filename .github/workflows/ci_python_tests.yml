@@ -1,0 +1,181 @@
+name: CI (Python tests + secrets scan)
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  trufflehog:
+    name: TruffleHog secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog
+        uses: trufflesecurity/trufflehog@v3.92.4
+        with:
+          path: .
+          base: ${{ github.event.before }}
+          head: ${{ github.sha }}
+          extra_args: --results=verified,unknown --fail
+
+  web:
+    name: Web (lint, typecheck, build, smoke)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies (CRML CLI)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "./crml_lang[dev,xlsx]"
+          python -m pip install -e "./crml_engine[dev]"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        working-directory: web
+        run: npm run lint
+
+      - name: Typecheck
+        working-directory: web
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: web
+        run: npm run build
+
+      - name: Start web app
+        working-directory: web
+        run: |
+          npm run start -- --port 3000 &
+          echo $! > /tmp/next_pid
+
+      - name: Smoke check endpoints
+        run: |
+          npx --yes wait-on@7 http://127.0.0.1:3000
+          curl -fsS http://127.0.0.1:3000/ > /dev/null
+
+          curl -fsS http://127.0.0.1:3000/api/examples -o /tmp/examples.json
+          python - <<'PY'
+          import json
+          with open('/tmp/examples.json', 'r', encoding='utf-8') as f:
+              data = json.load(f)
+          assert isinstance(data.get('examples'), list), data
+          assert len(data['examples']) > 0, 'Expected examples to be non-empty'
+          PY
+
+          cat > /tmp/validate_payload.json <<'JSON'
+          {
+            "yaml": "crml_scenario: \"1.0\"\nmeta:\n  name: \"ci-smoke\"\nscenario:\n  frequency:\n    basis: per_organization_per_year\n    model: poisson\n    parameters: {lambda: 0.5}\n  severity:\n    model: lognormal\n    parameters: {mu: 10.0, sigma: 1.0}\n"
+          }
+          JSON
+
+          curl -fsS -X POST http://127.0.0.1:3000/api/validate \
+            -H 'Content-Type: application/json' \
+            --data @/tmp/validate_payload.json \
+            -o /tmp/validate.json
+          python - <<'PY'
+          import json
+          with open('/tmp/validate.json', 'r', encoding='utf-8') as f:
+              data = json.load(f)
+          assert data.get('valid') is True, data
+          PY
+
+      - name: Stop web app
+        if: always()
+        run: |
+          if [ -f /tmp/next_pid ]; then
+            kill "$(cat /tmp/next_pid)" || true
+          fi
+
+  tests:
+    name: Pytest (${{ matrix.name }})
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-x64
+            runs_on: ubuntu-latest
+            python_version: "3.11"
+            arch: x64
+            mode: native
+
+          - name: ubuntu-arm64 (emulated)
+            runs_on: ubuntu-latest
+            python_version: "3.11"
+            arch: arm64
+            mode: docker
+
+          - name: windows-x64
+            runs_on: windows-latest
+            python_version: "3.11"
+            arch: x64
+            mode: native
+
+          - name: macos-13-x64
+            runs_on: macos-13
+            python_version: "3.11"
+            arch: x64
+            mode: native
+
+          - name: macos-14-arm64
+            runs_on: macos-14
+            python_version: "3.11"
+            arch: arm64
+            mode: native
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: matrix.mode == 'native'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Install dependencies
+        if: matrix.mode == 'native'
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "./crml_lang[dev,xlsx]"
+          python -m pip install -e "./crml_engine[dev]"
+
+      - name: Run pytest
+        if: matrix.mode == 'native'
+        run: python -m pytest
+
+      - name: Set up QEMU (Linux ARM64 emulation)
+        if: matrix.mode == 'docker'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Run pytest in Linux/ARM64 container
+        if: matrix.mode == 'docker'
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v "${{ github.workspace }}:/work" \
+            -w /work \
+            python:${{ matrix.python_version }} \
+            bash -lc "python -m pip install --upgrade pip && python -m pip install -e './crml_lang[dev,xlsx]' && python -m pip install -e './crml_engine[dev]' && python -m pytest"

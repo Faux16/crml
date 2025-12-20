@@ -190,6 +190,8 @@ Open http://localhost:3000
 
 See the docs under [wiki/](wiki/) (start at [wiki/Home.md](wiki/Home.md)).
 
+OSCAL interoperability and mapping rules: [wiki/Guides/OSCAL.md](wiki/Guides/OSCAL.md).
+
 Current document types:
 
 - Scenario documents: `crml_scenario: "1.0"` with top-level `scenario:`

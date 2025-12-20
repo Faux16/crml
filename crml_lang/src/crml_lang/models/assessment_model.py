@@ -14,6 +14,13 @@ class Assessment(BaseModel):
     id: ControlId = Field(
         ..., description="Canonical unique control id in the form 'namespace:key' (no whitespace)."
     )
+    oscal_uuid: Optional[str] = Field(
+        None,
+        description=(
+            "Optional OSCAL UUID for this control assessment target. This is interoperability metadata only; "
+            "referencing/joining within CRML should use the canonical 'id'."
+        ),
+    )
     ref: Optional[ControlStructuredRef] = Field(
         None,
         description=(

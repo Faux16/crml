@@ -67,6 +67,7 @@ See also: `examples/control_assessments/control-assessment.yaml`.
 Each entry supports:
 
 - `id` (required): canonical control id
+- `oscal_uuid` (optional): OSCAL UUID for the assessed control (interoperability metadata)
 - Either quantitative posture fields:
   - `implementation_effectiveness` (optional, 0..1)
   - `coverage` (optional): `{ value: 0..1, basis: <string> }`
@@ -84,6 +85,9 @@ Each entry supports:
 - `description` (optional): extra context (avoid copyrighted standard text)
 - `notes` (optional)
 - `ref` (optional): structured locator metadata (tools/UI)
+
+Note: CRML tools should continue to join and reference controls using `id` (the canonical `namespace:key`).
+`oscal_uuid` is intended for importing/exporting OSCAL Assessment Results and Catalogs.
 
 ---
 

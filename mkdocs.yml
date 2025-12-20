@@ -44,6 +44,7 @@ nav:
     - Understanding Parameters: Guides/Understanding-Parameters.md
     - Executive Reporting: Guides/Executive-Reporting.md
     - Tool Integration: Guides/Tool-Integration.md
+    - OSCAL Interop: Guides/OSCAL.md
     - Calibrate from Data: Guides/Calibrate-from-Data.md
     - Add New Distribution: Guides/Add-New-Distribution.md
     - Auto-Calibration: Auto-Calibration.md

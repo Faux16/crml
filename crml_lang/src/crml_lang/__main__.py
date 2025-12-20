@@ -4,7 +4,11 @@ import argparse
 import sys
 from typing import Optional
 
-from .cli import bundle_portfolio_to_yaml, validate_to_text
+from .cli import (
+    bundle_portfolio_to_yaml,
+    import_oscal_catalog_to_control_catalog_yaml,
+    validate_to_text,
+)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -22,6 +26,44 @@ def _build_parser() -> argparse.ArgumentParser:
     b.add_argument("out_bundle", help="Output portfolio bundle YAML file path")
     b.add_argument("--sort-keys", action="store_true", help="Sort YAML keys")
 
+    o = sub.add_parser(
+        "oscal-import-catalog",
+        help="Convert an OSCAL Catalog (JSON/YAML) into a CRML skeleton control catalog YAML",
+    )
+    o.add_argument("in_oscal_catalog", help="Input OSCAL Catalog file path (JSON or YAML)")
+    o.add_argument("out_control_catalog", help="Output CRML control catalog YAML file path")
+    o.add_argument(
+        "--namespace",
+        required=True,
+        help="CRML namespace to use for generated control ids (e.g. cisv8, nist80053r5)",
+    )
+    o.add_argument(
+        "--framework",
+        required=True,
+        help="Human framework label to store in the CRML catalog (e.g. 'CIS v8')",
+    )
+    o.add_argument(
+        "--catalog-id",
+        default=None,
+        help="Optional catalog id (organization-owned). Example: cisv8",
+    )
+    o.add_argument(
+        "--meta-name",
+        default=None,
+        help="Optional CRML meta.name override for the output document",
+    )
+    o.add_argument(
+        "--source-url",
+        default=None,
+        help="Optional provenance URL recorded in meta.description",
+    )
+    o.add_argument(
+        "--license-terms",
+        default=None,
+        help="Optional license/terms note recorded in meta.description",
+    )
+    o.add_argument("--sort-keys", action="store_true", help="Sort YAML keys")
+
     return p
 
 
@@ -36,6 +78,19 @@ def main(argv: Optional[list[str]] = None) -> int:
             return bundle_portfolio_to_yaml(
                 args.in_portfolio,
                 args.out_bundle,
+                sort_keys=bool(args.sort_keys),
+            )
+
+        if args.cmd == "oscal-import-catalog":
+            return import_oscal_catalog_to_control_catalog_yaml(
+                args.in_oscal_catalog,
+                args.out_control_catalog,
+                namespace=args.namespace,
+                framework=args.framework,
+                catalog_id=args.catalog_id,
+                meta_name=args.meta_name,
+                source_url=args.source_url,
+                license_terms=args.license_terms,
                 sort_keys=bool(args.sort_keys),
             )
 

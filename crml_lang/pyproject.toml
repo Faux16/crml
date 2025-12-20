@@ -25,6 +25,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest"]
 xlsx = ["openpyxl>=3.1"]
+oscal = ["compliance-trestle>=3,<4"]
 
 [project.scripts]
 crml-xlsx = "crml_lang.mapping.__main__:main"

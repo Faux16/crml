@@ -84,6 +84,7 @@ Optional structured locator (`ref_*`):
 Notes:
 
 - Keep `id` values stable (e.g. `cisv8:4.2`, `org:edr`). These are what portfolios/assessments reference.
+- If you are integrating with OSCAL, catalog entries can also carry an optional `oscal_uuid` (OSCAL control UUID) in YAML.
 - Avoid embedding copyrighted standard text in titles/descriptions.
 
 ---

@@ -66,11 +66,24 @@ See also: `examples/control_catalogs/control-catalog.yaml`.
 Each entry is intentionally minimal:
 
 - `id` (required): canonical id (`namespace:key`)
+- `oscal_uuid` (optional): OSCAL UUID for this control (interoperability metadata)
 - `title` (optional): short human-readable label
 - `url` (optional): pointer to reference material
 - `tags` (optional): free-form tags
 - `ref` (optional): structured locator metadata for tools
 - `defense_in_depth_layers` (optional): list of layer tags with allowed values: `prevent`, `detect`, `respond`, `recover`
+
+### Choosing canonical control ids (OSCAL compatibility)
+
+CRML uses `id` (`namespace:key`) as the canonical join key across catalogs, assessments, scenarios, and portfolios.
+
+To remain compatible with OSCAL and common control frameworks:
+
+- Keep `key` aligned with the framework's **human-readable control identifier** (e.g. `AC-2`, `4.2`, `A.5.10`).
+- Encode the standard/version/granularity in the `namespace` (e.g. `nist80053r5`, `cisv8`, `iso27001_2022`).
+- If you have OSCAL data, store the OSCAL control UUID in `oscal_uuid`.
+
+This keeps CRML authoring readable while enabling stable machine linkage to OSCAL documents.
 
 ### `defense_in_depth_layers` (defense-in-depth)
 

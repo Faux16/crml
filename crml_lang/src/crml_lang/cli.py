@@ -69,3 +69,57 @@ def validate_to_text(
     except Exception as e:
         print(str(e), file=stderr)
         return 1
+
+
+def import_oscal_catalog_to_control_catalog_yaml(
+    in_oscal_catalog: str,
+    out_control_catalog: str,
+    *,
+    namespace: str,
+    framework: str,
+    catalog_id: Optional[str] = None,
+    meta_name: Optional[str] = None,
+    source_url: Optional[str] = None,
+    license_terms: Optional[str] = None,
+    sort_keys: bool = False,
+    stdout: Optional[TextIO] = None,
+    stderr: Optional[TextIO] = None,
+) -> int:
+    """Convert an OSCAL catalog to a CRML skeleton control catalog YAML.
+
+    This requires optional dependencies: `pip install "crml-lang[oscal]"`.
+    """
+
+    stdout = stdout or sys.stdout
+    stderr = stderr or sys.stderr
+
+    try:
+        from crml_lang.integrations.oscal import (
+            OscalCatalogProvenance,
+            oscal_catalog_to_crml_control_catalog,
+            read_oscal_catalog,
+        )
+
+        oscal_catalog = read_oscal_catalog(in_oscal_catalog)
+        crml_catalog = oscal_catalog_to_crml_control_catalog(
+            oscal_catalog,
+            namespace=namespace,
+            framework=framework,
+            catalog_id=catalog_id,
+            meta_name=meta_name,
+            provenance=OscalCatalogProvenance(
+                source_path=in_oscal_catalog,
+                source_url=source_url,
+                license=license_terms,
+            ),
+        )
+
+        crml_catalog.dump_to_yaml(out_control_catalog, sort_keys=bool(sort_keys))
+        print(f"Wrote {out_control_catalog}", file=stdout)
+        return 0
+    except ImportError as e:
+        print(str(e), file=stderr)
+        return 2
+    except Exception as e:
+        print(str(e), file=stderr)
+        return 1

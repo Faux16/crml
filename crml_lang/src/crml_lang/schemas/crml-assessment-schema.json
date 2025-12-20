@@ -14,6 +14,19 @@
           "title": "Id",
           "type": "string"
         },
+        "oscal_uuid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional OSCAL UUID for this control assessment target. This is interoperability metadata only; referencing/joining within CRML should use the canonical 'id'.",
+          "title": "Oscal Uuid"
+        },
         "ref": {
           "anyOf": [
             {

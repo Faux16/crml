@@ -16,6 +16,13 @@ class ControlCatalogEntry(BaseModel):
     """
 
     id: ControlId = Field(..., description="Canonical unique control id present in this catalog.")
+    oscal_uuid: Optional[str] = Field(
+        None,
+        description=(
+            "Optional OSCAL UUID for this control. This is interoperability metadata only; "
+            "CRML tools should continue to reference this control via the canonical 'id'."
+        ),
+    )
     ref: Optional[ControlStructuredRef] = Field(
         None, description="Optional structured locator to map the id to an external standard."
     )

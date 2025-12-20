@@ -1,4 +1,4 @@
-from typing import Any, Literal, Union, Optional
+from typing import Any, Iterator, Literal, Optional, Union
 
 from jsonschema import Draft202012Validator
 
@@ -92,6 +92,85 @@ def _pydantic_strict_model_errors(data: dict[str, Any]) -> list[ValidationMessag
     return errors
 
 
+def _is_nonempty_list(value: Any) -> bool:
+    return isinstance(value, list) and len(value) > 0
+
+
+def _iter_inlined_scenario_payloads(pb: dict[str, Any]) -> Iterator[dict[str, Any]]:
+    scenarios = pb.get("scenarios")
+    if not isinstance(scenarios, list):
+        return
+
+    for entry in scenarios:
+        if not isinstance(entry, dict):
+            continue
+        sc_doc = entry.get("scenario")
+        if not isinstance(sc_doc, dict):
+            continue
+        sc_payload = sc_doc.get("scenario")
+        if not isinstance(sc_payload, dict):
+            continue
+        yield sc_payload
+
+
+def _bundle_has_scenario_controls(pb: dict[str, Any]) -> bool:
+    for sc_payload in _iter_inlined_scenario_payloads(pb):
+        if _is_nonempty_list(sc_payload.get("controls")):
+            return True
+    return False
+
+
+def _bundle_has_inventory_controls(pb: dict[str, Any]) -> bool:
+    portfolio_doc = pb.get("portfolio")
+    if not isinstance(portfolio_doc, dict):
+        return False
+    portfolio_payload = portfolio_doc.get("portfolio")
+    if not isinstance(portfolio_payload, dict):
+        return False
+    return _is_nonempty_list(portfolio_payload.get("controls"))
+
+
+def _bundle_has_assessments(pb: dict[str, Any]) -> bool:
+    return _is_nonempty_list(pb.get("assessments"))
+
+
+def _bundle_has_control_relationships(pb: dict[str, Any]) -> bool:
+    return _is_nonempty_list(pb.get("control_relationships"))
+
+
+def _warn_missing_control_artifacts_for_inlined_scenarios(
+    pb: dict[str, Any], warnings: list[ValidationMessage]
+) -> None:
+    if not _bundle_has_scenario_controls(pb):
+        return
+
+    has_control_context = _bundle_has_inventory_controls(pb) or _bundle_has_assessments(pb)
+    has_relationships = _bundle_has_control_relationships(pb)
+
+    missing_bits: list[str] = []
+    if not has_control_context:
+        missing_bits.append("control context (portfolio controls inventory and/or inlined assessments packs)")
+    if not has_relationships:
+        missing_bits.append("control relationship packs (control-to-control mappings)")
+
+    if not missing_bits:
+        return
+
+    warnings.append(
+        ValidationMessage(
+            level="warning",
+            source="semantic",
+            path="portfolio_bundle",
+            message=(
+                "One or more inlined scenarios reference controls, but the bundle is missing "
+                + " and ".join(missing_bits)
+                + ". Engines may be unable to resolve/apply controls. "
+                "Consider bundling the needed artifacts (e.g. include portfolio controls, assessments, and control_relationships)."
+            ),
+        )
+    )
+
+
 def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
     """Compute semantic (non-schema) warnings for a valid portfolio bundle document."""
     warnings: list[ValidationMessage] = []
@@ -109,61 +188,7 @@ def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
     try:
         pb = data.get("portfolio_bundle")
         if isinstance(pb, dict):
-            scenarios = pb.get("scenarios")
-            has_scenario_controls = False
-            if isinstance(scenarios, list):
-                for entry in scenarios:
-                    if not isinstance(entry, dict):
-                        continue
-                    sc_doc = entry.get("scenario")
-                    if not isinstance(sc_doc, dict):
-                        continue
-                    sc_payload = sc_doc.get("scenario")
-                    if not isinstance(sc_payload, dict):
-                        continue
-                    controls = sc_payload.get("controls")
-                    if isinstance(controls, list) and len(controls) > 0:
-                        has_scenario_controls = True
-                        break
-
-            if has_scenario_controls:
-                portfolio_doc = pb.get("portfolio")
-                portfolio_payload = None
-                if isinstance(portfolio_doc, dict):
-                    portfolio_payload = portfolio_doc.get("portfolio")
-
-                inventory_controls = None
-                if isinstance(portfolio_payload, dict):
-                    inventory_controls = portfolio_payload.get("controls")
-
-                has_inventory = isinstance(inventory_controls, list) and len(inventory_controls) > 0
-                has_assessments = isinstance(pb.get("assessments"), list) and len(pb.get("assessments") or []) > 0
-                has_control_context = has_inventory or has_assessments
-
-                has_relationships = isinstance(pb.get("control_relationships"), list) and len(pb.get("control_relationships") or []) > 0
-
-                missing_bits: list[str] = []
-                if not has_control_context:
-                    missing_bits.append(
-                        "control context (portfolio controls inventory and/or inlined assessments packs)"
-                    )
-                if not has_relationships:
-                    missing_bits.append("control relationship packs (control-to-control mappings)")
-
-                if missing_bits:
-                    warnings.append(
-                        ValidationMessage(
-                            level="warning",
-                            source="semantic",
-                            path="portfolio_bundle",
-                            message=(
-                                "One or more inlined scenarios reference controls, but the bundle is missing "
-                                + " and ".join(missing_bits)
-                                + ". Engines may be unable to resolve/apply controls. "
-                                "Consider bundling the needed artifacts (e.g. include portfolio controls, assessments, and control_relationships)."
-                            ),
-                        )
-                    )
+            _warn_missing_control_artifacts_for_inlined_scenarios(pb, warnings)
     except Exception:
         # Best-effort warning only; never fail validation for this check.
         pass

@@ -312,7 +312,7 @@ portfolio_bundle:
   # ---------------------------------------------------------------------------
   # These are usually produced by a bundler (language tooling). They are not
   # interpreted by engines, but are useful for auditability.
-  warnings: []
+  # `warnings` is optional and may be omitted when empty.
 
   metadata:
     source_kind: "example"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -204,6 +204,27 @@ export default function PlaygroundClient() {
         setSimulationResult(null);
     };
 
+    type InclusionKind = "control" | "attack";
+
+    const toggleIdInSet = useCallback((prev: Set<string>, id: string) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+    }, []);
+
+    const handleInclusionToggle = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+        const id = event.currentTarget.dataset.id;
+        const kind = event.currentTarget.dataset.kind as InclusionKind | undefined;
+        if (!id || !kind) return;
+
+        if (kind === "control") {
+            setDisabledControlIds((prev) => toggleIdInSet(prev, id));
+        } else {
+            setDisabledAttackIds((prev) => toggleIdInSet(prev, id));
+        }
+    }, [toggleIdInSet]);
+
     const toggleCard = useMemo(() => {
         if (activeTab !== "simulate") return null;
         if (!inclusions) return null;
@@ -212,12 +233,14 @@ export default function PlaygroundClient() {
         const hasAttacks = inclusions.attackIds.length > 0;
         if (!hasControls && !hasAttacks) return null;
 
-        const makeToggle = (id: string, enabled: boolean, onToggle: () => void) => (
+        const makeToggle = (kind: InclusionKind, id: string, enabled: boolean) => (
             <button
                 key={id}
                 type="button"
                 aria-pressed={enabled}
-                onClick={onToggle}
+                data-kind={kind}
+                data-id={id}
+                onClick={handleInclusionToggle}
                 className={cn(
                     "flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -276,14 +299,7 @@ export default function PlaygroundClient() {
                                         ) : (
                                             inclusions.controlIds.map((id) => {
                                                 const enabled = !disabledControlIds.has(id);
-                                                return makeToggle(id, enabled, () => {
-                                                    setDisabledControlIds((prev) => {
-                                                        const next = new Set(prev);
-                                                        if (next.has(id)) next.delete(id);
-                                                        else next.add(id);
-                                                        return next;
-                                                    });
-                                                });
+                                                return makeToggle("control", id, enabled);
                                             })
                                         )}
                                     </div>
@@ -304,14 +320,7 @@ export default function PlaygroundClient() {
                                         ) : (
                                             inclusions.attackIds.map((id) => {
                                                 const enabled = !disabledAttackIds.has(id);
-                                                return makeToggle(id, enabled, () => {
-                                                    setDisabledAttackIds((prev) => {
-                                                        const next = new Set(prev);
-                                                        if (next.has(id)) next.delete(id);
-                                                        else next.add(id);
-                                                        return next;
-                                                    });
-                                                });
+                                                return makeToggle("attack", id, enabled);
                                             })
                                         )}
                                     </div>
@@ -322,7 +331,7 @@ export default function PlaygroundClient() {
                 </details>
             </Card>
         );
-    }, [activeTab, disabledAttackIds, disabledControlIds, inclusions]);
+    }, [activeTab, disabledAttackIds, disabledControlIds, handleInclusionToggle, inclusions]);
 
     const exampleBanner = useMemo(() => {
         if (!loadedExample) return null;
@@ -493,9 +502,7 @@ export default function PlaygroundClient() {
                         {activeTab === "validate" ? (
                             <ValidationResults result={validationResult} isValidating={isValidating} />
                         ) : (
-                            <>
-                                <SimulationResults result={simulationResult} isSimulating={isSimulating} />
-                            </>
+                            <SimulationResults result={simulationResult} isSimulating={isSimulating} />
                         )}
                     </div>
                 </div>

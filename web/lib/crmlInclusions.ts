@@ -24,7 +24,56 @@ function cloneJsonLike<T>(value: T): T {
     if (typeof structuredClone === "function") {
         return structuredClone(value);
     }
-    return JSON.parse(JSON.stringify(value)) as T;
+
+    const cloneUnknown = (input: unknown): unknown => {
+        if (Array.isArray(input)) {
+            return input.map(cloneUnknown);
+        }
+        if (input instanceof Date) {
+            return new Date(input);
+        }
+        if (isRecord(input)) {
+            const output: Record<string, unknown> = {};
+            for (const [key, val] of Object.entries(input)) {
+                output[key] = cloneUnknown(val);
+            }
+            return output;
+        }
+        return input;
+    };
+
+    return cloneUnknown(value) as T;
+}
+
+function tryParseYamlRootRecord(yamlContent: string): Record<string, unknown> | null {
+    let parsed: unknown;
+    try {
+        parsed = yaml.load(yamlContent);
+    } catch {
+        return null;
+    }
+
+    return isRecord(parsed) ? parsed : null;
+}
+
+function tryGetPortfolioBundleScenarios(doc: Record<string, unknown>): unknown[] | null {
+    const bundle = isRecord(doc["portfolio_bundle"]) ? doc["portfolio_bundle"] : null;
+    if (!bundle) return null;
+
+    return Array.isArray(bundle["scenarios"]) ? bundle["scenarios"] : null;
+}
+
+function extractScenarioDocsFromBundleScenarios(scenarios: unknown[]): Record<string, unknown>[] {
+    const scenarioDocs: Record<string, unknown>[] = [];
+
+    for (const scenarioEntry of scenarios) {
+        if (!isRecord(scenarioEntry)) continue;
+        const scenarioDoc = isRecord(scenarioEntry["scenario"]) ? scenarioEntry["scenario"] : null;
+        if (!scenarioDoc) continue;
+        scenarioDocs.push(scenarioDoc);
+    }
+
+    return scenarioDocs;
 }
 
 function extractControlIdsFromControlsArray(controls: unknown): string[] {
@@ -55,33 +104,23 @@ function extractScenarioInclusionsFromScenarioDoc(doc: Record<string, unknown>):
 }
 
 export function tryExtractInclusionsFromYaml(yamlContent: string): CrmlInclusions | null {
-    let parsed: unknown;
-    try {
-        parsed = yaml.load(yamlContent);
-    } catch {
-        return null;
-    }
+    const root = tryParseYamlRootRecord(yamlContent);
+    if (!root) return null;
 
-    if (!isRecord(parsed)) return null;
-
-    if (typeof parsed["crml_scenario"] === "string") {
-        const { controlIds, attackIds } = extractScenarioInclusionsFromScenarioDoc(parsed);
+    if (typeof root["crml_scenario"] === "string") {
+        const { controlIds, attackIds } = extractScenarioInclusionsFromScenarioDoc(root);
         if (controlIds.length === 0 && attackIds.length === 0) return null;
         return { docKind: "scenario", controlIds, attackIds };
     }
 
-    if (typeof parsed["crml_portfolio_bundle"] === "string") {
-        const bundle = isRecord(parsed["portfolio_bundle"]) ? parsed["portfolio_bundle"] : undefined;
-        const scenarios = Array.isArray(bundle?.["scenarios"]) ? bundle?.["scenarios"] : [];
+    if (typeof root["crml_portfolio_bundle"] === "string") {
+        const scenarios = tryGetPortfolioBundleScenarios(root) ?? [];
+        const scenarioDocs = extractScenarioDocsFromBundleScenarios(scenarios);
 
         const allControls: string[] = [];
         const allAttacks: string[] = [];
 
-        for (const scenarioEntry of scenarios) {
-            if (!isRecord(scenarioEntry)) continue;
-            const scenarioDoc = isRecord(scenarioEntry["scenario"]) ? scenarioEntry["scenario"] : undefined;
-            if (!scenarioDoc) continue;
-
+        for (const scenarioDoc of scenarioDocs) {
             const { controlIds, attackIds } = extractScenarioInclusionsFromScenarioDoc(scenarioDoc);
             allControls.push(...controlIds);
             allAttacks.push(...attackIds);
@@ -110,8 +149,8 @@ function filterControlsArray(controls: unknown, disabledControls: Set<string>): 
 }
 
 function applyScenarioTogglesToScenarioDoc(doc: Record<string, unknown>, disabledControls: Set<string>, disabledAttacks: Set<string>) {
-    const meta = isRecord(doc["meta"]) ? (doc["meta"] as Record<string, unknown>) : undefined;
-    const scenario = isRecord(doc["scenario"]) ? (doc["scenario"] as Record<string, unknown>) : undefined;
+    const meta = isRecord(doc["meta"]) ? doc["meta"] : undefined;
+    const scenario = isRecord(doc["scenario"]) ? doc["scenario"] : undefined;
 
     if (meta && Array.isArray(meta["attck"])) {
         const filteredAttacks = asStringArray(meta["attck"]).filter((id) => !disabledAttacks.has(id));
@@ -139,17 +178,10 @@ export function applyInclusionTogglesToYaml(
 ): string {
     if (disabledControls.size === 0 && disabledAttacks.size === 0) return yamlContent;
 
-    let parsed: unknown;
-    try {
-        parsed = yaml.load(yamlContent);
-    } catch {
-        return yamlContent;
-    }
+    const root = tryParseYamlRootRecord(yamlContent);
+    if (!root) return yamlContent;
 
-    if (!isRecord(parsed)) return yamlContent;
-
-    const doc = cloneJsonLike(parsed);
-    if (!isRecord(doc)) return yamlContent;
+    const doc = cloneJsonLike(root);
 
     if (typeof doc["crml_scenario"] === "string") {
         applyScenarioTogglesToScenarioDoc(doc, disabledControls, disabledAttacks);
@@ -157,16 +189,11 @@ export function applyInclusionTogglesToYaml(
     }
 
     if (typeof doc["crml_portfolio_bundle"] === "string") {
-        const bundle = isRecord(doc["portfolio_bundle"]) ? (doc["portfolio_bundle"] as Record<string, unknown>) : undefined;
-        if (!bundle) return yamlContent;
-
-        const scenarios = Array.isArray(bundle["scenarios"]) ? bundle["scenarios"] : undefined;
+        const scenarios = tryGetPortfolioBundleScenarios(doc);
         if (!scenarios) return yamlContent;
 
-        for (const scenarioEntry of scenarios) {
-            if (!isRecord(scenarioEntry)) continue;
-            const scenarioDoc = isRecord(scenarioEntry["scenario"]) ? (scenarioEntry["scenario"] as Record<string, unknown>) : undefined;
-            if (!scenarioDoc) continue;
+        const scenarioDocs = extractScenarioDocsFromBundleScenarios(scenarios);
+        for (const scenarioDoc of scenarioDocs) {
             applyScenarioTogglesToScenarioDoc(scenarioDoc, disabledControls, disabledAttacks);
         }
 

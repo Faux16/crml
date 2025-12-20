@@ -30,7 +30,6 @@ portfolio_bundle:
   control_catalogs: [ ... ]
   assessments: [ ... ]
   control_relationships: [ ... ]
-  warnings: [ ... ]
   metadata: { ... }
 ```
 
@@ -55,9 +54,9 @@ A list of inlined scenarios with portfolio ids:
 
 Inlined documents corresponding to any packs referenced by the portfolio.
 
-### `warnings`
+### `warnings` (optional)
 
-Non-fatal bundling warnings; tools should surface these to users.
+Non-fatal bundling warnings; tools should surface these to users. This field may be omitted when empty.
 
 ### `metadata`
 
@@ -77,7 +76,6 @@ portfolio_bundle:
   control_catalogs: []
   assessments: []
   control_relationships: []
-  warnings: []
   metadata: {}
 ```
 

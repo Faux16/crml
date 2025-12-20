@@ -251,7 +251,7 @@ portfolio_bundle:
   # ---------------------------------------------------------------------------
   # 8) Optional bundle messages + metadata
   # ---------------------------------------------------------------------------
-  warnings: []
+  # warnings is optional and may be omitted when empty.
 
   metadata:
     source_kind: "example"

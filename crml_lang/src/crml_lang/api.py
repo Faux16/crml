@@ -55,6 +55,22 @@ from .validators import validate_attack_catalog
 from .validators import validate_attack_control_relationships
 
 
+def _drop_empty_portfolio_bundle_warnings(data: dict[str, Any]) -> None:
+    """Remove `portfolio_bundle.warnings` if it is an empty list.
+
+    This keeps bundle YAML concise while still allowing warnings to be present
+    when they exist. The field remains optional during validation.
+    """
+
+    payload = data.get("portfolio_bundle")
+    if not isinstance(payload, dict):
+        return
+
+    warnings = payload.get("warnings")
+    if isinstance(warnings, list) and len(warnings) == 0:
+        payload.pop("warnings", None)
+
+
 class CRScenario(_CRScenario):
     """Root CRML Scenario document model.
 
@@ -104,11 +120,13 @@ class CRPortfolioBundle(_CRPortfolioBundle):
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
         """Serialize this model to a YAML file at `path`."""
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        _drop_empty_portfolio_bundle_warnings(data)
         dump_yaml_to_path(data, path, sort_keys=sort_keys)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
         """Serialize this model to a YAML string."""
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
+        _drop_empty_portfolio_bundle_warnings(data)
         return dump_yaml_to_str(data, sort_keys=sort_keys)
 
 def load_from_yaml(path: str) -> CRScenario:

@@ -18,6 +18,7 @@ import SimulationResults, { CRSimulationResult } from "@/components/SimulationRe
 import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
 import { applyInclusionTogglesToYaml, tryExtractInclusionsFromYaml } from "@/lib/crmlInclusions";
 import {
+    ChevronDown,
     Download,
     FileText,
     HelpCircle,
@@ -230,71 +231,95 @@ export default function PlaygroundClient() {
 
         return (
             <Card className="mb-6">
-                <CardHeader>
-                    <CardTitle className="text-base">Included attacks & controls</CardTitle>
-                    <CardDescription>
-                        Toggles strip ids from the YAML payload sent to the simulator (the editor text is unchanged).
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium">Controls</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {inclusions.controlIds.length - disabledControlIds.size}/{inclusions.controlIds.length} on
-                                </p>
-                            </div>
-                            <ScrollArea className="h-48 rounded-md border p-2">
-                                <div className="space-y-2">
-                                    {inclusions.controlIds.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground">No controls found.</p>
-                                    ) : (
-                                        inclusions.controlIds.map((id) => {
-                                            const enabled = !disabledControlIds.has(id);
-                                            return makeToggle(id, enabled, () => {
-                                                setDisabledControlIds((prev) => {
-                                                    const next = new Set(prev);
-                                                    if (next.has(id)) next.delete(id);
-                                                    else next.add(id);
-                                                    return next;
-                                                });
-                                            });
-                                        })
-                                    )}
+                <details className="group">
+                    <summary
+                        className={cn(
+                            "cursor-pointer list-none rounded-lg",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                            "[&::-webkit-details-marker]:hidden",
+                        )}
+                    >
+                        <CardHeader>
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="space-y-1">
+                                    <CardTitle className="text-base">Included attacks & controls</CardTitle>
+                                    <CardDescription>
+                                        Use these toggles to turn items on/off for the simulation — your editor content stays the same.
+                                    </CardDescription>
                                 </div>
-                            </ScrollArea>
-                        </div>
+                                <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                <span>
+                                    Controls: {inclusions.controlIds.length - disabledControlIds.size}/{inclusions.controlIds.length} on
+                                </span>
+                                <span>
+                                    ATT&CK: {inclusions.attackIds.length - disabledAttackIds.size}/{inclusions.attackIds.length} on
+                                </span>
+                            </div>
+                        </CardHeader>
+                    </summary>
 
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium">ATT&CK ids (meta.attck)</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {inclusions.attackIds.length - disabledAttackIds.size}/{inclusions.attackIds.length} on
-                                </p>
-                            </div>
-                            <ScrollArea className="h-48 rounded-md border p-2">
-                                <div className="space-y-2">
-                                    {inclusions.attackIds.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground">No attacks found.</p>
-                                    ) : (
-                                        inclusions.attackIds.map((id) => {
-                                            const enabled = !disabledAttackIds.has(id);
-                                            return makeToggle(id, enabled, () => {
-                                                setDisabledAttackIds((prev) => {
-                                                    const next = new Set(prev);
-                                                    if (next.has(id)) next.delete(id);
-                                                    else next.add(id);
-                                                    return next;
-                                                });
-                                            });
-                                        })
-                                    )}
+                    <CardContent>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-medium">Controls</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {inclusions.controlIds.length - disabledControlIds.size}/{inclusions.controlIds.length} on
+                                    </p>
                                 </div>
-                            </ScrollArea>
+                                <ScrollArea className="h-48 rounded-md border p-2">
+                                    <div className="space-y-2">
+                                        {inclusions.controlIds.length === 0 ? (
+                                            <p className="text-sm text-muted-foreground">No controls found.</p>
+                                        ) : (
+                                            inclusions.controlIds.map((id) => {
+                                                const enabled = !disabledControlIds.has(id);
+                                                return makeToggle(id, enabled, () => {
+                                                    setDisabledControlIds((prev) => {
+                                                        const next = new Set(prev);
+                                                        if (next.has(id)) next.delete(id);
+                                                        else next.add(id);
+                                                        return next;
+                                                    });
+                                                });
+                                            })
+                                        )}
+                                    </div>
+                                </ScrollArea>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-medium">ATT&CK ids (meta.attck)</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {inclusions.attackIds.length - disabledAttackIds.size}/{inclusions.attackIds.length} on
+                                    </p>
+                                </div>
+                                <ScrollArea className="h-48 rounded-md border p-2">
+                                    <div className="space-y-2">
+                                        {inclusions.attackIds.length === 0 ? (
+                                            <p className="text-sm text-muted-foreground">No attacks found.</p>
+                                        ) : (
+                                            inclusions.attackIds.map((id) => {
+                                                const enabled = !disabledAttackIds.has(id);
+                                                return makeToggle(id, enabled, () => {
+                                                    setDisabledAttackIds((prev) => {
+                                                        const next = new Set(prev);
+                                                        if (next.has(id)) next.delete(id);
+                                                        else next.add(id);
+                                                        return next;
+                                                    });
+                                                });
+                                            })
+                                        )}
+                                    </div>
+                                </ScrollArea>
+                            </div>
                         </div>
-                    </div>
-                </CardContent>
+                    </CardContent>
+                </details>
             </Card>
         );
     }, [activeTab, disabledAttackIds, disabledControlIds, inclusions]);
@@ -446,6 +471,8 @@ export default function PlaygroundClient() {
                     </TabsContent>
                 </Tabs>
 
+                {activeTab === "simulate" ? toggleCard : null}
+
                 <div className="grid gap-6 lg:grid-cols-2">
                     <Card className="flex flex-col">
                         <CardHeader>
@@ -467,7 +494,6 @@ export default function PlaygroundClient() {
                             <ValidationResults result={validationResult} isValidating={isValidating} />
                         ) : (
                             <>
-                                {toggleCard}
                                 <SimulationResults result={simulationResult} isSimulating={isSimulating} />
                             </>
                         )}

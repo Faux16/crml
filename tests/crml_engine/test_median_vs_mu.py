@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from crml_engine.runtime import run_simulation
+from crml_engine.simulation.engine import run_monte_carlo
 
 
 def test_median_equivalent_to_mu():
@@ -48,8 +48,8 @@ scenario:
     n_runs = 50000
     seed = 42
     
-    res_median = run_simulation(median_model, n_runs=n_runs, seed=seed)
-    res_mu = run_simulation(mu_model, n_runs=n_runs, seed=seed)
+    res_median = run_monte_carlo(median_model, n_runs=n_runs, seed=seed)
+    res_mu = run_monte_carlo(mu_model, n_runs=n_runs, seed=seed)
     
     assert res_median.success is True
     assert res_mu.success is True
@@ -90,7 +90,7 @@ scenario:
       sigma: 1.2
 """
     
-    result = run_simulation(conflicting_model, n_runs=100)
+    result = run_monte_carlo(conflicting_model, n_runs=100)
     assert result.success is False
     assert len(result.errors) > 0
 
@@ -116,7 +116,7 @@ scenario:
       sigma: 1.2
 """
     
-    result = run_simulation(model, n_runs=1000, seed=42)
+    result = run_monte_carlo(model, n_runs=1000, seed=42)
     assert result.success is True
     # Median should be parsed as 100000
     assert result.metrics.eal > 0
@@ -141,7 +141,7 @@ scenario:
       sigma: 1.2
 """
     
-    result = run_simulation(missing_model, n_runs=100)
+    result = run_monte_carlo(missing_model, n_runs=100)
     assert result.success is False
     assert any("median" in str(err).lower() or "mu" in str(err).lower() 
                for err in result.errors)

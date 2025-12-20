@@ -1,11 +1,12 @@
 from crml_engine.runtime import run_simulation, run_simulation_envelope, DEFAULT_FX_RATES
+from crml_engine.simulation.engine import run_monte_carlo
 from crml_engine.models.result_model import SimulationResult
 from crml_lang import CRSimulationResult
 
-def test_run_simulation_valid(valid_crml_file):
+def test_run_simulation_valid(valid_bundle_file):
     # Mock numpy random to make test deterministic if needed, 
     # but for now we just check it runs without error.
-    result = run_simulation(valid_crml_file, n_runs=100, seed=123)
+    result = run_simulation(valid_bundle_file, n_runs=100, seed=123)
     assert isinstance(result, SimulationResult)
     assert result.success is True
 
@@ -16,7 +17,7 @@ def test_run_simulation_invalid_file(tmp_path):
     assert result.success is False
 
 def test_run_simulation_unsupported_model(tmp_path):
-    content = """
+    scenario = """
 crml_scenario: "1.0"
 meta: {name: "unsupported-model"}
 scenario:
@@ -28,15 +29,34 @@ scenario:
     model: lognormal
     parameters: {median: 1000, sigma: 1.0}
 """
-    p = tmp_path / "unsupported.yaml"
-    p.write_text(content)
+
+    bundle = f"""
+crml_portfolio_bundle: "1.0"
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta: {{name: "bundle"}}
+    portfolio:
+      semantics: {{method: sum, constraints: {{require_paths_exist: false, validate_scenarios: false}}}}
+      assets: []
+      scenarios:
+        - id: s1
+          path: scenario.yaml
+  scenarios:
+    - id: s1
+      scenario:
+{scenario.rstrip().replace('\n', '\n        ')}
+""".lstrip()
+
+    p = tmp_path / "unsupported-bundle.yaml"
+    p.write_text(bundle, encoding="utf-8")
     result = run_simulation(str(p), n_runs=10, seed=123)
     assert result.success is False
 
 
-  def test_run_simulation_envelope_valid(valid_crml_content):
+def test_run_simulation_envelope_valid(valid_bundle_content):
     env = run_simulation_envelope(
-      valid_crml_content,
+      valid_bundle_content,
       n_runs=200,
       seed=123,
       fx_config={
@@ -111,8 +131,9 @@ scenario:
     n_runs = 50000
     seed = 42
 
-    res_single = run_simulation(single_losses_model, n_runs=n_runs, seed=seed, fx_config=fx_config)
-    res_mu = run_simulation(mu_sigma_model, n_runs=n_runs, seed=seed, fx_config=fx_config)
+    # Scenario-level regression: use the low-level scenario runner.
+    res_single = run_monte_carlo(single_losses_model, n_runs=n_runs, seed=seed, fx_config=fx_config)
+    res_mu = run_monte_carlo(mu_sigma_model, n_runs=n_runs, seed=seed, fx_config=fx_config)
 
     assert res_single.success is True
     assert res_mu.success is True

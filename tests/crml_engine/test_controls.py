@@ -22,7 +22,7 @@ from crml_engine.controls import (
     adjust_for_dependencies,
     calculate_control_roi
 )
-from crml_engine.runtime import run_simulation
+from crml_engine.simulation.engine import run_monte_carlo
 
 
 class TestControlValidation:
@@ -368,7 +368,7 @@ class TestIntegration:
                         sigma: 1.2
             """
         )
-        result = run_simulation(model_yaml, n_runs=1000, seed=42)
+        result = run_monte_carlo(model_yaml, n_runs=1000, seed=42)
 
         assert result.success
     
@@ -393,7 +393,7 @@ class TestIntegration:
                         """
         )
         
-        result = run_simulation(model_yaml, n_runs=1000, seed=42)
+        result = run_monte_carlo(model_yaml, n_runs=1000, seed=42)
         
         assert result.success
         assert not result.metadata.controls_applied

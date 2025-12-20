@@ -96,6 +96,78 @@ def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
     """Compute semantic (non-schema) warnings for a valid portfolio bundle document."""
     warnings: list[ValidationMessage] = []
     _warn_non_current_version(data=data, warnings=warnings)
+
+    # Bundle completeness warnings for control context.
+    # If any inlined scenario references controls, the bundle should carry enough
+    # context for engines/tools to resolve and apply them. In CRML v1, that
+    # context typically comes from:
+    # - portfolio control inventory (portfolio_bundle.portfolio.portfolio.controls)
+    # - inlined assessments packs (portfolio_bundle.assessments)
+    # - inlined control-relationships packs (portfolio_bundle.control_relationships)
+    # We warn if *either* the inventory/assessment context is missing OR the
+    # control-relationships packs are missing.
+    try:
+        pb = data.get("portfolio_bundle")
+        if isinstance(pb, dict):
+            scenarios = pb.get("scenarios")
+            has_scenario_controls = False
+            if isinstance(scenarios, list):
+                for entry in scenarios:
+                    if not isinstance(entry, dict):
+                        continue
+                    sc_doc = entry.get("scenario")
+                    if not isinstance(sc_doc, dict):
+                        continue
+                    sc_payload = sc_doc.get("scenario")
+                    if not isinstance(sc_payload, dict):
+                        continue
+                    controls = sc_payload.get("controls")
+                    if isinstance(controls, list) and len(controls) > 0:
+                        has_scenario_controls = True
+                        break
+
+            if has_scenario_controls:
+                portfolio_doc = pb.get("portfolio")
+                portfolio_payload = None
+                if isinstance(portfolio_doc, dict):
+                    portfolio_payload = portfolio_doc.get("portfolio")
+
+                inventory_controls = None
+                if isinstance(portfolio_payload, dict):
+                    inventory_controls = portfolio_payload.get("controls")
+
+                has_inventory = isinstance(inventory_controls, list) and len(inventory_controls) > 0
+                has_assessments = isinstance(pb.get("assessments"), list) and len(pb.get("assessments") or []) > 0
+                has_control_context = has_inventory or has_assessments
+
+                has_relationships = isinstance(pb.get("control_relationships"), list) and len(pb.get("control_relationships") or []) > 0
+
+                missing_bits: list[str] = []
+                if not has_control_context:
+                    missing_bits.append(
+                        "control context (portfolio controls inventory and/or inlined assessments packs)"
+                    )
+                if not has_relationships:
+                    missing_bits.append("control relationship packs (control-to-control mappings)")
+
+                if missing_bits:
+                    warnings.append(
+                        ValidationMessage(
+                            level="warning",
+                            source="semantic",
+                            path="portfolio_bundle",
+                            message=(
+                                "One or more inlined scenarios reference controls, but the bundle is missing "
+                                + " and ".join(missing_bits)
+                                + ". Engines may be unable to resolve/apply controls. "
+                                "Consider bundling the needed artifacts (e.g. include portfolio controls, assessments, and control_relationships)."
+                            ),
+                        )
+                    )
+    except Exception:
+        # Best-effort warning only; never fail validation for this check.
+        pass
+
     return warnings
 
 

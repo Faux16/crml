@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-from crml_engine.runtime import run_simulation, convert_currency, DEFAULT_FX_RATES
+from crml_engine.runtime import convert_currency, DEFAULT_FX_RATES
+from crml_engine.simulation.engine import run_monte_carlo
 
 
 def test_single_currency_usd():
@@ -24,7 +25,7 @@ scenario:
       sigma: 1.2
 """
     
-    result = run_simulation(model, n_runs=10000, seed=42)
+    result = run_monte_carlo(model, n_runs=10000, seed=42)
     assert result.success is True
     assert result.metadata.currency_code == "USD"
     assert result.metrics.eal > 0
@@ -65,7 +66,7 @@ scenario:
         "rates": DEFAULT_FX_RATES
     }
     
-    result = run_simulation(model, n_runs=10000, seed=42, fx_config=fx_config)
+    result = run_monte_carlo(model, n_runs=10000, seed=42, fx_config=fx_config)
     assert result.success is True
     assert result.metadata.currency_code == "USD"
 
@@ -97,7 +98,7 @@ scenario:
         "output_currency": "USD",
         "rates": DEFAULT_FX_RATES
     }
-    result_usd = run_simulation(model, n_runs=50000, seed=42, fx_config=fx_usd)
+    result_usd = run_monte_carlo(model, n_runs=50000, seed=42, fx_config=fx_usd)
     
     # Run in EUR
     fx_eur = {
@@ -105,7 +106,7 @@ scenario:
         "output_currency": "EUR",
         "rates": DEFAULT_FX_RATES
     }
-    result_eur = run_simulation(model, n_runs=50000, seed=42, fx_config=fx_eur)
+    result_eur = run_monte_carlo(model, n_runs=50000, seed=42, fx_config=fx_eur)
     
     assert result_usd.success is True
     assert result_eur.success is True
@@ -208,8 +209,8 @@ scenario:
         "rates": DEFAULT_FX_RATES
     }
     
-    result_eur = run_simulation(model_eur, n_runs=50000, seed=42, fx_config=fx_config)
-    result_usd = run_simulation(model_usd, n_runs=50000, seed=42, fx_config=fx_config)
+    result_eur = run_monte_carlo(model_eur, n_runs=50000, seed=42, fx_config=fx_config)
+    result_usd = run_monte_carlo(model_usd, n_runs=50000, seed=42, fx_config=fx_config)
     
     assert result_eur.success is True
     assert result_usd.success is True
@@ -248,5 +249,5 @@ scenario:
       sigma: 1.0
 """
         
-        result = run_simulation(model, n_runs=1000, seed=42)
+        result = run_monte_carlo(model, n_runs=1000, seed=42)
         assert result.success is True, f"Failed for currency {currency}"

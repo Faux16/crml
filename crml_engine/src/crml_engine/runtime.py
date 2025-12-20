@@ -16,8 +16,9 @@ from typing import Union, Optional, Tuple, Any
 
 import hashlib
 import os
+import crml_lang
 
-from crml_engine.pipeline import plan_bundle, plan_portfolio
+from crml_engine.pipeline import plan_bundle
 import numpy as np
 
 from .models.result_model import (
@@ -27,29 +28,11 @@ from .models.result_model import (
     Metadata,
     print_result,
 )
-from crml_lang.models.simulation_result import (
-    CurrencyUnit,
-    EngineInfo,
-    SimulationResult as EnvelopeSimulationResult,
-    HistogramArtifact,
-    InputInfo,
-    Measure,
-    RunInfo,
-    SamplesArtifact,
-    SummaryBlock,
-    SummaryEstimation,
-    SummaryStatistics,
-    Quantile,
-    TailExpectation,
-    Traceability,
-    InputReference,
-    ModelComponent,
-    DependencyStructure,
-    CRSimulationResult,
-    Units,
-    now_utc,
-)
-from crml_lang.models.scenario_model import CRScenario, load_crml_from_yaml_str
+# NOTE: We intentionally avoid static imports from `crml_lang.models.*` here.
+# In some dev environments, VS Code/Pylance may resolve `crml_lang` to an
+# installed package version instead of the in-repo workspace package, causing
+# false-positive import errors. We instead import the envelope models lazily
+# where needed.
 from .models.fx_model import (
     FXConfig,
     convert_currency,
@@ -78,7 +61,7 @@ def _sha256_digest_bytes(data: bytes) -> str:
     return "sha256:" + h.hexdigest()
 
 
-def _input_reference_from_yaml_content(yaml_content: Union[str, dict]) -> InputReference:
+def _input_reference_from_yaml_content(yaml_content: Union[str, dict]) -> Any:
     """Best-effort input reference for traceability.
 
     This is intentionally engine-agnostic: it records where the input came from
@@ -104,23 +87,25 @@ def _input_reference_from_yaml_content(yaml_content: Union[str, dict]) -> InputR
         except Exception:
             digest = None
 
-    return InputReference(type="scenario", uri=uri, digest=digest)
+    sr = _simulation_result_models()
+    return sr.InputReference(type="scenario", uri=uri, digest=digest)
 
 
-def _try_parse_scenario(yaml_content: Union[str, dict]) -> Optional[CRScenario]:
+def _try_parse_scenario(yaml_content: Union[str, dict]) -> Optional[Any]:
     """Parse a scenario for traceability extraction.
 
     This is separate from the simulation engine's parsing so trace extraction
     does not depend on internal engine state.
     """
     try:
+        lang = _crml_lang_module()
         if isinstance(yaml_content, str) and os.path.isfile(yaml_content):
             with open(yaml_content, "r", encoding="utf-8") as f:
-                return load_crml_from_yaml_str(f.read())
+                return lang.CRScenario.load_from_yaml_str(f.read())
         if isinstance(yaml_content, str):
-            return load_crml_from_yaml_str(yaml_content)
+            return lang.CRScenario.load_from_yaml_str(yaml_content)
         if isinstance(yaml_content, dict):
-            return CRScenario.model_validate(yaml_content)
+            return lang.CRScenario.model_validate(yaml_content)
     except Exception:
         return None
     return None
@@ -225,18 +210,38 @@ def _approx_right_tail_expectation_from_histogram(
     return sum_accum / mass_accum
 
 
+def _simulation_result_models() -> Any:
+    """Load `crml_lang` simulation-result envelope models lazily.
+
+    This avoids module-level imports that can be mis-resolved in some IDE
+    configurations.
+    """
+    from importlib import import_module
+
+    return import_module("crml_lang.models.simulation_result")
+
+
+def _crml_lang_module() -> Any:
+    """Load the `crml_lang` top-level module lazily (as `Any`)."""
+    from importlib import import_module
+
+    return import_module("crml_lang")
+
+
 def _populate_envelope_summaries(
     *,
-    envelope: CRSimulationResult,
+    envelope: Any,
     result: EngineSimulationResult,
-    currency_unit: Optional[CurrencyUnit],
+    currency_unit: Optional[Any],
     runs: Optional[int],
 ) -> None:
     """Populate `envelope.result.summaries` from engine outputs (best-effort)."""
     if result.metrics is None:
         return
 
-    stats = SummaryStatistics(
+    sr = _simulation_result_models()
+
+    stats = sr.SummaryStatistics(
         mean=result.metrics.eal,
         median=result.metrics.median,
         std_dev=result.metrics.std_dev,
@@ -246,13 +251,13 @@ def _populate_envelope_summaries(
 
     stats.quantiles.extend(
         [
-            Quantile(p=0.50, value=result.metrics.median),
-            Quantile(p=0.95, value=result.metrics.var_95),
-            Quantile(p=0.99, value=result.metrics.var_99),
+            sr.Quantile(p=0.50, value=result.metrics.median),
+            sr.Quantile(p=0.95, value=result.metrics.var_95),
+            sr.Quantile(p=0.99, value=result.metrics.var_99),
         ]
     )
 
-    estimation = SummaryEstimation(
+    estimation = sr.SummaryEstimation(
         computed_from="unknown",
         sample_count_used=runs,
         truncated=None,
@@ -263,20 +268,20 @@ def _populate_envelope_summaries(
     if dist is not None and dist.bins and dist.frequencies:
         stats.quantiles.extend(
             [
-                Quantile(p=0.05, value=_approx_quantile_from_histogram(dist.bins, dist.frequencies, 0.05)),
-                Quantile(p=0.90, value=_approx_quantile_from_histogram(dist.bins, dist.frequencies, 0.90)),
+                sr.Quantile(p=0.05, value=_approx_quantile_from_histogram(dist.bins, dist.frequencies, 0.05)),
+                sr.Quantile(p=0.90, value=_approx_quantile_from_histogram(dist.bins, dist.frequencies, 0.90)),
             ]
         )
 
         stats.tail_expectations.extend(
             [
-                TailExpectation(
+                sr.TailExpectation(
                     kind="cvar",
                     level=0.95,
                     tail="right",
                     value=_approx_right_tail_expectation_from_histogram(dist.bins, dist.frequencies, level=0.95),
                 ),
-                TailExpectation(
+                sr.TailExpectation(
                     kind="cvar",
                     level=0.99,
                     tail="right",
@@ -290,7 +295,7 @@ def _populate_envelope_summaries(
         estimation.method = "histogram_linear_interpolation"
 
     envelope.result.summaries.append(
-        SummaryBlock(
+        sr.SummaryBlock(
             id=LOSS_ANNUAL_ID,
             label=LOSS_ANNUAL_LABEL,
             unit=currency_unit,
@@ -303,13 +308,15 @@ def _populate_envelope_summaries(
 def _build_traceability(
     *,
     yaml_content: Union[str, dict],
-    parsed_scenario: Optional[CRScenario],
+    parsed_scenario: Optional[Any],
     fx_config: Optional[FXConfig],
-) -> Traceability:
+) -> Any:
     """Build a best-effort Traceability object for the result envelope."""
     input_ref = _input_reference_from_yaml_content(yaml_content)
 
-    trace = Traceability(
+    sr = _simulation_result_models()
+
+    trace = sr.Traceability(
         scenario_ids=[],
         inputs=[input_ref],
         model_components=[],
@@ -332,14 +339,14 @@ def _build_traceability(
 
         trace.model_components.extend(
             [
-                ModelComponent(
+                sr.ModelComponent(
                     id="frequency",
                     role="frequency",
                     model=parsed_scenario.scenario.frequency.model,
                     parameters={"parameters": parsed_scenario.scenario.frequency.parameters},
                     source_input_id=scenario_name,
                 ),
-                ModelComponent(
+                sr.ModelComponent(
                     id="severity",
                     role="severity",
                     model=parsed_scenario.scenario.severity.model,
@@ -354,7 +361,7 @@ def _build_traceability(
 
     if fx_config is not None:
         trace.model_components.append(
-            ModelComponent(
+            sr.ModelComponent(
                 id="fx",
                 role="fx",
                 model="fixed_rates",
@@ -428,16 +435,18 @@ def _route_simulation_document(
         )
 
     if "crml_portfolio" in root:
-        return run_portfolio_simulation(
-            source,
-            source_kind=kind,
-            n_runs=n_runs,
-            seed=seed,
-            fx_config=fx_config,
+        return _portfolio_error_result(
+            "Refusing to simulate a raw 'crml_portfolio' input. "
+            "Portfolios are non-executable inputs; create a 'crml_portfolio_bundle' first. "
+            "Use the language-layer bundler API: from crml_lang import bundle_portfolio."
         )
 
     if "crml_scenario" in root:
-        return run_monte_carlo(source, n_runs, seed, fx_config)
+        return _portfolio_error_result(
+            "Refusing to simulate a raw 'crml_scenario' input. "
+            "Scenarios are not executable in a vacuum; execute a 'crml_portfolio_bundle' that provides context. "
+            "Use the language-layer bundler API: from crml_lang import bundle_portfolio."
+        )
 
     return None
 
@@ -460,7 +469,7 @@ def _portfolio_error_result(msg: str) -> EngineSimulationResult:
     )
 
 
-def _collect_control_info(scenarios: list[object]) -> dict[str, dict[str, object]]:
+def _collect_control_info(scenarios: list[Any]) -> dict[str, dict[str, Any]]:
     """Collect minimal control metadata needed for sampling control state.
 
     The portfolio runtime can optionally sample a per-run binary state for each
@@ -474,7 +483,7 @@ def _collect_control_info(scenarios: list[object]) -> dict[str, dict[str, object
     Returns:
         Mapping control_id -> {"reliability": float, "affects": str}.
     """
-    control_info: dict[str, dict[str, object]] = {}
+    control_info: dict[str, dict[str, Any]] = {}
     for sc in scenarios:
         for c in sc.controls:
             control_info.setdefault(
@@ -521,7 +530,7 @@ def _extract_copula_targets(dependency: object) -> Tuple[list[str], Optional[np.
 
 def _sample_control_state(
     *,
-    control_info: dict[str, dict[str, object]],
+    control_info: dict[str, dict[str, Any]],
     target_controls: list[str],
     corr: Optional[np.ndarray],
     n_runs: int,
@@ -551,12 +560,12 @@ def _sample_control_state(
     if target_controls and corr is not None:
         u = gaussian_copula_uniforms(corr=corr, n=n_runs, seed=seed)
         for i, cid in enumerate(target_controls):
-            rel = float(control_info.get(cid, {}).get("reliability", 1.0))
+            rel = float((control_info.get(cid, {}) or {}).get("reliability", 1.0) or 1.0)
             control_state[cid] = (u[:, i] <= rel).astype(np.float64)
         return control_state
 
     for cid, info in control_info.items():
-        rel = float(info.get("reliability", 1.0))
+        rel = float((info or {}).get("reliability", 1.0) or 1.0)
         control_state[cid] = (rng.random(n_runs) <= rel).astype(np.float64)
     return control_state
 
@@ -567,7 +576,7 @@ def _load_text_file(path: str) -> str:
         return f.read()
 
 
-def _control_multipliers_for_scenario(sc: object, control_state: dict[str, np.ndarray], n_runs: int) -> tuple[np.ndarray, np.ndarray]:
+def _control_multipliers_for_scenario(sc: Any, control_state: dict[str, np.ndarray], n_runs: int) -> tuple[np.ndarray, np.ndarray]:
     """Compute per-run frequency and severity multipliers for a planned scenario.
 
     Each control contributes a multiplicative reduction of the form:
@@ -655,7 +664,7 @@ def _aggregate_portfolio_losses(
 
 def _run_single_portfolio_scenario(
     *,
-    sc: object,
+    sc: Any,
     idx: int,
     control_state: dict[str, np.ndarray],
     n_runs: int,
@@ -690,7 +699,7 @@ def _run_single_portfolio_scenario(
     if scenario_doc is not None:
         # `run_monte_carlo` expects CRML-shaped keys (e.g. "lambda"), but Pydantic
         # models dump field names by default (e.g. "lambda_"). Use aliases here.
-        scenario_input: object = scenario_doc.model_dump(exclude_none=True, by_alias=True)
+        scenario_input: Any = scenario_doc.model_dump(exclude_none=True, by_alias=True)
     else:
         scenario_path = sc.resolved_path or sc.path
         if not scenario_path:
@@ -727,7 +736,7 @@ def _run_single_portfolio_scenario(
 
 def _run_portfolio_scenarios(
     *,
-    scenarios: list[object],
+    scenarios: list[Any],
     control_state: dict[str, np.ndarray],
     n_runs: int,
     seed: Optional[int],
@@ -826,68 +835,12 @@ def run_portfolio_simulation(
         are caught and converted to failures.
     """
 
-    fx_config = normalize_fx_config(fx_config)
-    output_symbol = get_currency_symbol(fx_config.output_currency)
-
-    report = plan_portfolio(portfolio_source, source_kind=source_kind)  # type: ignore[arg-type]
-    if not report.ok or report.plan is None:
-        errors = [e.message for e in (report.errors or [])]
-        return EngineSimulationResult(success=False, errors=errors)
-
-    plan = report.plan
-    semantics = plan.semantics_method
-    scenarios = list(plan.scenarios)
-    if not scenarios:
-        return _portfolio_error_result("Portfolio contains no scenarios")
-
-    control_info = _collect_control_info(scenarios)
-    target_controls, corr = _extract_copula_targets(plan.dependency)
-    control_state = _sample_control_state(
-        control_info=control_info,
-        target_controls=target_controls,
-        corr=corr,
-        n_runs=n_runs,
-        seed=seed,
-    )
-
-    try:
-        scenario_losses, scenario_weights = _run_portfolio_scenarios(
-            scenarios=scenarios,
-            control_state=control_state,
-            n_runs=n_runs,
-            seed=seed,
-            fx_config=fx_config,
-        )
-    except (ValueError, RuntimeError) as e:
-        return _portfolio_error_result(str(e))
-
-    try:
-        total = _aggregate_portfolio_losses(
-            semantics=semantics,
-            scenario_losses=scenario_losses,
-            scenario_weights=scenario_weights,
-            n_runs=n_runs,
-            seed=seed,
-        )
-    except ValueError as e:
-        return _portfolio_error_result(str(e))
-
-    metrics, distribution = _compute_metrics_and_distribution(total, bin_count=50)
-    return EngineSimulationResult(
-        success=True,
-        metrics=metrics,
-        distribution=distribution,
-        metadata=Metadata(
-            runs=n_runs,
-            seed=seed,
-            currency=output_symbol,
-            currency_code=fx_config.output_currency,
-            model_name=plan.portfolio_name,
-            model_version="N/A",
-            description="",
-            controls_applied=True,
-        ),
-        errors=[],
+    # Keep signature stable, but make it explicit that portfolios are not executable.
+    del portfolio_source, source_kind, n_runs, seed, fx_config
+    return _portfolio_error_result(
+        "Refusing to simulate a raw 'crml_portfolio' input. "
+        "Portfolios are non-executable inputs; create a 'crml_portfolio_bundle' first via "
+        "the language-layer API: from crml_lang import bundle_portfolio."
     )
 
 
@@ -918,7 +871,7 @@ def run_portfolio_bundle_simulation(
     Returns:
         A `SimulationResult` for the bundled portfolio.
     """
-    from crml_lang import CRPortfolioBundle
+    lang = _crml_lang_module()
 
     fx_config = normalize_fx_config(fx_config)
     output_symbol = get_currency_symbol(fx_config.output_currency)
@@ -926,20 +879,20 @@ def run_portfolio_bundle_simulation(
     try:
         if source_kind == "path":
             assert isinstance(bundle_source, str)
-            bundle = CRPortfolioBundle.load_from_yaml(bundle_source)
+            bundle = lang.CRPortfolioBundle.load_from_yaml(bundle_source)
         elif source_kind == "yaml":
             assert isinstance(bundle_source, str)
-            bundle = CRPortfolioBundle.load_from_yaml_str(bundle_source)
+            bundle = lang.CRPortfolioBundle.load_from_yaml_str(bundle_source)
         else:
             assert isinstance(bundle_source, dict)
-            bundle = CRPortfolioBundle.model_validate(bundle_source)
+            bundle = lang.CRPortfolioBundle.model_validate(bundle_source)
     except Exception as e:
-        return EngineSimulationResult(success=False, errors=[str(e)])
+        return _portfolio_error_result(str(e))
 
     report = plan_bundle(bundle)
     if not report.ok or report.plan is None:
         errors = [e.message for e in (report.errors or [])]
-        return EngineSimulationResult(success=False, errors=errors)
+        return EngineSimulationResult(success=False, metrics=None, distribution=None, metadata=None, errors=errors)
 
     plan = report.plan
     semantics = plan.semantics_method
@@ -992,7 +945,14 @@ def run_portfolio_bundle_simulation(
             model_name=plan.portfolio_name,
             model_version="N/A",
             description="",
+            runtime_ms=None,
+            lambda_baseline=None,
+            lambda_effective=None,
             controls_applied=True,
+            control_reduction_pct=None,
+            control_details=None,
+            control_warnings=None,
+            correlation_info=None,
         ),
         errors=[],
     )
@@ -1004,9 +964,7 @@ def run_simulation(
 ) -> EngineSimulationResult:
     """Run a Monte Carlo simulation for CRML inputs.
 
-    This convenience wrapper accepts multiple CRML document types:
-    - CRML scenario (runs `run_monte_carlo`)
-    - CRML portfolio (runs `run_portfolio_simulation`)
+    This convenience wrapper accepts only one executable CRML artifact:
     - CRML portfolio bundle (runs `run_portfolio_bundle_simulation`)
 
     Args:
@@ -1033,8 +991,8 @@ def run_simulation(
             return routed
 
         # Diagnostic: If not routed, use crml_lang to explain exactly what is wrong/unsupported.
-        from crml_lang import validate_document
-        report = validate_document(yaml_content)
+        lang = _crml_lang_module()
+        report = lang.validate_document(yaml_content)
         
         if report.ok:
             # Document is valid CRML, but not one we can simulate.
@@ -1049,7 +1007,10 @@ def run_simulation(
             err_msg = "Document failed validation:\n" + report.render_text()
             return _portfolio_error_result(err_msg)
 
-    return run_monte_carlo(yaml_content, n_runs, seed, fx_config)
+    return _portfolio_error_result(
+        "Unsupported simulation input. Expected a 'crml_portfolio_bundle' document. "
+        "To execute, bundle a portfolio using the language-layer API: from crml_lang import bundle_portfolio."
+    )
 
 
 def run_simulation_envelope(
@@ -1057,14 +1018,14 @@ def run_simulation_envelope(
     n_runs: int = 10000,
     seed: Optional[int] = None,
     fx_config: Optional[Union[FXConfig, dict]] = None,
-) -> CRSimulationResult:
+) -> Any:
     """Run a simulation and return the engine-agnostic result envelope.
 
     The envelope type is defined by `crml_lang` to provide a stable interchange
     format across engines/implementations.
 
     Args:
-        yaml_content: Scenario input (YAML string, dict, or file path).
+        yaml_content: Portfolio bundle input (YAML string, dict, or file path).
         n_runs: Number of Monte Carlo iterations.
         seed: Optional RNG seed.
         fx_config: Optional FX configuration.
@@ -1074,6 +1035,7 @@ def run_simulation_envelope(
         artifacts.
     """
 
+    sr = _simulation_result_models()
     fx_config_norm = normalize_fx_config(fx_config)
     result = run_simulation(yaml_content, n_runs=n_runs, seed=seed, fx_config=fx_config_norm)
 
@@ -1106,23 +1068,23 @@ def run_simulation_envelope(
 
     currency_unit = None
     if currency_code is not None:
-        currency_unit = CurrencyUnit(code=currency_code, symbol=currency_symbol)
+        currency_unit = sr.CurrencyUnit(code=currency_code, symbol=currency_symbol)
 
-    envelope = CRSimulationResult(
-        result=EnvelopeSimulationResult(
+    envelope = sr.CRSimulationResult(
+        result=sr.SimulationResult(
             success=result.success,
             errors=list(result.errors or []),
             warnings=list(getattr(result, "warnings", None) or []),
-            engine=EngineInfo(name="crml_engine", version=engine_version),
-            run=RunInfo(
+            engine=sr.EngineInfo(name="crml_engine", version=engine_version),
+            run=sr.RunInfo(
                 runs=runs,
                 seed=seed,
                 runtime_ms=runtime_ms,
-                started_at=now_utc(),
+                started_at=sr.now_utc(),
             ),
-            inputs=InputInfo(model_name=model_name, model_version=model_version, description=description),
-            units=Units(
-                currency=CurrencyUnit(code=currency_code or "USD", symbol=currency_symbol),
+            inputs=sr.InputInfo(model_name=model_name, model_version=model_version, description=description),
+            units=sr.Units(
+                currency=sr.CurrencyUnit(code=currency_code or "USD", symbol=currency_symbol),
                 horizon="annual",
             ),
             summaries=[],
@@ -1141,31 +1103,31 @@ def run_simulation_envelope(
     if metrics is not None:
         envelope.result.results.measures.extend(
             [
-                Measure(id="loss.eal", label="Expected Annual Loss", value=metrics.eal, unit=currency_unit),
-                Measure(id="loss.min", label="Minimum Loss", value=metrics.min, unit=currency_unit),
-                Measure(id="loss.max", label="Maximum Loss", value=metrics.max, unit=currency_unit),
-                Measure(id="loss.median", label="Median Loss", value=metrics.median, unit=currency_unit),
-                Measure(id="loss.std_dev", label="Standard Deviation", value=metrics.std_dev, unit=currency_unit),
+                sr.Measure(id="loss.eal", label="Expected Annual Loss", value=metrics.eal, unit=currency_unit),
+                sr.Measure(id="loss.min", label="Minimum Loss", value=metrics.min, unit=currency_unit),
+                sr.Measure(id="loss.max", label="Maximum Loss", value=metrics.max, unit=currency_unit),
+                sr.Measure(id="loss.median", label="Median Loss", value=metrics.median, unit=currency_unit),
+                sr.Measure(id="loss.std_dev", label="Standard Deviation", value=metrics.std_dev, unit=currency_unit),
             ]
         )
 
         envelope.result.results.measures.extend(
             [
-                Measure(
+                sr.Measure(
                     id=LOSS_VAR_ID,
                     label=VALUE_AT_RISK_LABEL,
                     value=metrics.var_95,
                     unit=currency_unit,
                     parameters={"level": 0.95},
                 ),
-                Measure(
+                sr.Measure(
                     id=LOSS_VAR_ID,
                     label=VALUE_AT_RISK_LABEL,
                     value=metrics.var_99,
                     unit=currency_unit,
                     parameters={"level": 0.99},
                 ),
-                Measure(
+                sr.Measure(
                     id=LOSS_VAR_ID,
                     label=VALUE_AT_RISK_LABEL,
                     value=metrics.var_999,
@@ -1179,7 +1141,7 @@ def run_simulation_envelope(
     if distribution is not None:
         if distribution.bins and distribution.frequencies:
             envelope.result.results.artifacts.append(
-                HistogramArtifact(
+                sr.HistogramArtifact(
                     id=LOSS_ANNUAL_ID,
                     unit=currency_unit,
                     bin_edges=list(distribution.bins),
@@ -1189,7 +1151,7 @@ def run_simulation_envelope(
             )
         if distribution.raw_data:
             envelope.result.results.artifacts.append(
-                SamplesArtifact(
+                sr.SamplesArtifact(
                     id=LOSS_ANNUAL_ID,
                     unit=currency_unit,
                     values=list(distribution.raw_data),
@@ -1227,16 +1189,16 @@ def calibrate_lognormal_from_single_losses(
     )
 
 def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str = 'text', fx_config_path: Optional[str] = None):
-    """CLI-friendly wrapper to run a scenario or portfolio and print results.
+    """CLI-friendly wrapper to run a portfolio bundle and print results.
 
-    Behavior:
-        - Detects portfolio vs scenario by checking for a `crml_portfolio` key
-          in the parsed YAML.
-        - Loads FX config from `fx_config_path` (or uses defaults).
-        - Prints results to stdout in either text or JSON form.
+        Behavior:
+                - Accepts only `crml_portfolio_bundle` documents.
+                - Refuses raw `crml_portfolio` inputs (portfolios are non-executable).
+                - Refuses raw `crml_scenario` inputs (scenarios are not executable in a vacuum).
+                - Prints results to stdout in either text or JSON form.
 
     Args:
-        file_path: Path to a CRML scenario or portfolio YAML file.
+        file_path: Path to a CRML portfolio bundle YAML file.
         n_runs: Number of Monte Carlo iterations.
         output_format: "text" (pretty console output) or "json".
         fx_config_path: Optional path to an FX config YAML document.
@@ -1255,11 +1217,41 @@ def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str =
         root = None
 
     if isinstance(root, dict) and "crml_portfolio_bundle" in root:
-        result = run_portfolio_bundle_simulation(file_path, source_kind="path", n_runs=n_runs, seed=None, fx_config=fx_config)
-    elif isinstance(root, dict) and "crml_portfolio" in root:
-        result = run_portfolio_simulation(file_path, source_kind="path", n_runs=n_runs, seed=None, fx_config=fx_config)
+        result = run_portfolio_bundle_simulation(
+            file_path, source_kind="path", n_runs=n_runs, seed=None, fx_config=fx_config
+        )
     else:
-        result = run_simulation(file_path, n_runs, fx_config=fx_config)
+        import sys
+
+        if isinstance(root, dict) and "crml_portfolio" in root:
+            print(
+                "Refusing to simulate a raw 'crml_portfolio' input. "
+                "Portfolios are non-executable; create a 'crml_portfolio_bundle' first.",
+                file=sys.stderr,
+            )
+            print(
+                "Bundle via the language-layer API: from crml_lang import bundle_portfolio",
+                file=sys.stderr,
+            )
+            return False
+
+        if isinstance(root, dict) and "crml_scenario" in root:
+            print(
+                "Refusing to simulate a raw 'crml_scenario' input. "
+                "Scenarios are not executable in a vacuum; execute a 'crml_portfolio_bundle' that provides context.",
+                file=sys.stderr,
+            )
+            print(
+                "Bundle via the language-layer API: from crml_lang import bundle_portfolio",
+                file=sys.stderr,
+            )
+            return False
+
+        print(
+            "Unsupported input for simulation. Expected a 'crml_portfolio_bundle' document.",
+            file=sys.stderr,
+        )
+        return False
 
     if output_format == 'json':
         # Use model_dump for pretty JSON output

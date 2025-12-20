@@ -16,7 +16,7 @@ import CodeEditor from "@/components/CodeEditor";
 import ValidationResults, { ValidationResult } from "@/components/ValidationResults";
 import SimulationResults, { CRSimulationResult } from "@/components/SimulationResults";
 import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
-import { applyInclusionTogglesToYaml, tryExtractInclusionsFromYaml } from "@/lib/crmlInclusions";
+import { applyInclusionTogglesToYaml, tryDetectCrmlDocKindFromYaml, tryExtractInclusionsFromYaml } from "@/lib/crmlInclusions";
 import {
     ChevronDown,
     Download,
@@ -105,6 +105,16 @@ export default function PlaygroundClient() {
 
         void loadExample();
     }, [exampleId]);
+
+    const docKind = useMemo(() => tryDetectCrmlDocKindFromYaml(yamlContent), [yamlContent]);
+    const canSimulate = docKind === "portfolio_bundle";
+
+    useEffect(() => {
+        // Guard against deep links like ?tab=simulate when the loaded YAML can't be simulated.
+        if (!canSimulate && activeTab === "simulate") {
+            setActiveTab("validate");
+        }
+    }, [activeTab, canSimulate]);
 
     const inclusions = useMemo(() => tryExtractInclusionsFromYaml(yamlContent), [yamlContent]);
 
@@ -226,6 +236,7 @@ export default function PlaygroundClient() {
     }, [toggleIdInSet]);
 
     const toggleCard = useMemo(() => {
+        if (!canSimulate) return null;
         if (activeTab !== "simulate") return null;
         if (!inclusions) return null;
 
@@ -331,7 +342,7 @@ export default function PlaygroundClient() {
                 </details>
             </Card>
         );
-    }, [activeTab, disabledAttackIds, disabledControlIds, handleInclusionToggle, inclusions]);
+    }, [activeTab, canSimulate, disabledAttackIds, disabledControlIds, handleInclusionToggle, inclusions]);
 
     const exampleBanner = useMemo(() => {
         if (!loadedExample) return null;
@@ -358,7 +369,7 @@ export default function PlaygroundClient() {
                 <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)}>
                     <TabsList className="mb-6">
                         <TabsTrigger value="validate">Validate</TabsTrigger>
-                        <TabsTrigger value="simulate">Simulate</TabsTrigger>
+                        {canSimulate ? <TabsTrigger value="simulate">Simulate</TabsTrigger> : null}
                     </TabsList>
 
                     <TabsContent value="validate" className="m-0">
@@ -387,7 +398,8 @@ export default function PlaygroundClient() {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="simulate" className="m-0">
+                    {canSimulate ? (
+                        <TabsContent value="simulate" className="m-0">
                         <Card className="mb-6">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -477,7 +489,8 @@ export default function PlaygroundClient() {
                                 </div>
                             </CardContent>
                         </Card>
-                    </TabsContent>
+                        </TabsContent>
+                    ) : null}
                 </Tabs>
 
                 {activeTab === "simulate" ? toggleCard : null}
@@ -499,7 +512,7 @@ export default function PlaygroundClient() {
                     </Card>
 
                     <div className="h-full">
-                        {activeTab === "validate" ? (
+                        {activeTab === "validate" || !canSimulate ? (
                             <ValidationResults result={validationResult} isValidating={isValidating} />
                         ) : (
                             <SimulationResults result={simulationResult} isSimulating={isSimulating} />

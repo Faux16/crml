@@ -3,6 +3,18 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import yaml from "js-yaml";
 
+type CrmlExampleDocKind =
+    | "portfolio_bundle"
+    | "scenario"
+    | "portfolio"
+    | "attack_catalog"
+    | "control_catalog"
+    | "control_relationships"
+    | "attack_control_relationships"
+    | "assessment"
+    | "fx_config"
+    | "unknown";
+
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -15,6 +27,20 @@ function asStringArrayOrSingleton(value: unknown): string[] {
     if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
     if (typeof value === "string") return [value];
     return [];
+}
+
+function detectDocKind(parsedObj: Record<string, unknown> | undefined): CrmlExampleDocKind {
+    if (!parsedObj) return "unknown";
+    if (typeof parsedObj["crml_portfolio_bundle"] === "string") return "portfolio_bundle";
+    if (typeof parsedObj["crml_scenario"] === "string") return "scenario";
+    if (typeof parsedObj["crml_portfolio"] === "string") return "portfolio";
+    if (typeof parsedObj["crml_attack_catalog"] === "string") return "attack_catalog";
+    if (typeof parsedObj["crml_control_catalog"] === "string") return "control_catalog";
+    if (typeof parsedObj["crml_control_relationships"] === "string") return "control_relationships";
+    if (typeof parsedObj["crml_attack_control_relationships"] === "string") return "attack_control_relationships";
+    if (typeof parsedObj["crml_assessment"] === "string") return "assessment";
+    if (typeof parsedObj["crml_fx_config"] === "string") return "fx_config";
+    return "unknown";
 }
 
 async function listYamlFiles(dir: string, baseDir: string): Promise<string[]> {
@@ -61,6 +87,7 @@ export async function GET() {
                     const parsed = yaml.load(content);
                     const parsedObj = isRecord(parsed) ? parsed : undefined;
                     const meta = parsedObj && isRecord(parsedObj["meta"]) ? parsedObj["meta"] : undefined;
+                    const docKind = detectDocKind(parsedObj);
 
                     // According to schema, regions and countries are in meta.locale
                     const locale = meta && isRecord(meta["locale"]) ? meta["locale"] : undefined;
@@ -82,6 +109,7 @@ export async function GET() {
                         regions,
                         countries,
                         company_size: asStringArray(meta?.["company_size"]),
+                        docKind,
                         content,
                     };
                 } catch {
@@ -98,6 +126,7 @@ export async function GET() {
                         regions: [],
                         countries: [],
                         company_size: [],
+                        docKind: "unknown" as const,
                         content,
                     };
                 }

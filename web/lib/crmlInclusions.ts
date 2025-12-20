@@ -2,6 +2,18 @@ import yaml from "js-yaml";
 
 export type CrmlToggleableDocKind = "scenario" | "portfolio_bundle";
 
+export type CrmlDocKind =
+    | "portfolio_bundle"
+    | "scenario"
+    | "portfolio"
+    | "attack_catalog"
+    | "control_catalog"
+    | "control_relationships"
+    | "attack_control_relationships"
+    | "assessment"
+    | "fx_config"
+    | "unknown";
+
 export interface CrmlInclusions {
     docKind: CrmlToggleableDocKind;
     controlIds: string[];
@@ -54,6 +66,23 @@ function tryParseYamlRootRecord(yamlContent: string): Record<string, unknown> | 
     }
 
     return isRecord(parsed) ? parsed : null;
+}
+
+export function tryDetectCrmlDocKindFromYaml(yamlContent: string): CrmlDocKind | null {
+    const root = tryParseYamlRootRecord(yamlContent);
+    if (!root) return null;
+
+    if (typeof root["crml_portfolio_bundle"] === "string") return "portfolio_bundle";
+    if (typeof root["crml_scenario"] === "string") return "scenario";
+    if (typeof root["crml_portfolio"] === "string") return "portfolio";
+    if (typeof root["crml_attack_catalog"] === "string") return "attack_catalog";
+    if (typeof root["crml_control_catalog"] === "string") return "control_catalog";
+    if (typeof root["crml_control_relationships"] === "string") return "control_relationships";
+    if (typeof root["crml_attack_control_relationships"] === "string") return "attack_control_relationships";
+    if (typeof root["crml_assessment"] === "string") return "assessment";
+    if (typeof root["crml_fx_config"] === "string") return "fx_config";
+
+    return "unknown";
 }
 
 function tryGetPortfolioBundleScenarios(doc: Record<string, unknown>): unknown[] | null {

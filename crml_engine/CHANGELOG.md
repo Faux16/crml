@@ -2,7 +2,7 @@
 
 This changelog covers the `crml-engine` package (reference runtime/CLI).
 
-## 1.1.0
+## 1.2.0
 
 ### Added
 - `crml` CLI (`validate`, `simulate`, `explain`)

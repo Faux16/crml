@@ -18,7 +18,6 @@ nav:
     - Installation: Language/Installation.md
     - Python API: Language/Python-API.md
     - Validation: Language/Validation.md
-    - CRML 1.1 Specification: Reference/CRML-1.1.md
     - CRML Schema: Reference/CRML-Schema.md
 
   - Engine (crml_engine):

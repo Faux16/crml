@@ -18,7 +18,7 @@ portfolio:
 
   control_catalogs:
     - ../control_catalogs/control-catalog.yaml
-    - ../../datasets/cisv8-control-catalog.yaml
+    - ../control_catalogs/cisv8-control-catalog.yaml
   assessments:
     - ../assessments/assessment.yaml
 

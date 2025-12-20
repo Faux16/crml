@@ -142,7 +142,7 @@ crml simulate examples/portfolio_bundles/lesson-03b-org-controls-phishing-varian
 - Scenario: [examples/scenarios/lesson-04-phishing-attck-cis-controls.yaml](../../examples/scenarios/lesson-04-phishing-attck-cis-controls.yaml)
 - ATT&CK catalog (subset): [examples/attack_catalogs/attck-catalog.yaml](../../examples/attack_catalogs/attck-catalog.yaml)
 - ATT&CK → CIS mapping pack (lesson): [examples/attack_control_relationships/lesson-04-attck-to-cisv8-phishing.yaml](../../examples/attack_control_relationships/lesson-04-attck-to-cisv8-phishing.yaml)
-- CIS v8 control catalog: [datasets/cisv8-control-catalog.yaml](../../datasets/cisv8-control-catalog.yaml)
+- CIS v8 control catalog: [examples/control_catalogs/cisv8-control-catalog.yaml](../../examples/control_catalogs/cisv8-control-catalog.yaml)
 - Portfolio (treat CIS as canonical controls): [examples/portfolios/lesson-04-cis-controls-scenario-portable.yaml](../../examples/portfolios/lesson-04-cis-controls-scenario-portable.yaml)
 
 **Run**

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -246,15 +246,32 @@ function ComposeTab(props: {
         onDownload,
     } = props;
 
-    const canSendToSimulation = composeBundle.yaml.length > 0 && composeBundle.errors.length === 0 && composeValidationResult?.valid === true;
+    const canSendToSimulation =
+        composeBundle.yaml.length > 0 &&
+        composeBundle.errors.length === 0 &&
+        !isComposeValidating &&
+        composeValidationResult?.valid === true;
 
-    const catalogPacks = packExamples.filter(
-        (p) => p.docKind === "control_catalog" || p.docKind === "attack_catalog" || p.docKind === "assessment",
+    const sortByName = useCallback(
+        (a: Example, b: Example) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+        [],
     );
-    const mappingPacks = packExamples.filter(
-        (p) => p.docKind === "control_relationships" || p.docKind === "attack_control_relationships",
+
+    const sortedPortfolioExamples = useMemo(() => [...portfolioExamples].sort(sortByName), [portfolioExamples, sortByName]);
+    const sortedScenarioExamples = useMemo(() => [...scenarioExamples].sort(sortByName), [scenarioExamples, sortByName]);
+    const sortedPackExamples = useMemo(() => [...packExamples].sort(sortByName), [packExamples, sortByName]);
+
+    const catalogPacks = useMemo(
+        () => sortedPackExamples.filter((p) => p.docKind === "control_catalog" || p.docKind === "attack_catalog"),
+        [sortedPackExamples],
     );
-    const hasAnyPacks = catalogPacks.length > 0 || mappingPacks.length > 0;
+    const assessmentPacks = useMemo(() => sortedPackExamples.filter((p) => p.docKind === "assessment"), [sortedPackExamples]);
+    const mappingPacks = useMemo(
+        () => sortedPackExamples.filter((p) => p.docKind === "control_relationships" || p.docKind === "attack_control_relationships"),
+        [sortedPackExamples],
+    );
+
+    const hasAnyPacks = catalogPacks.length > 0 || assessmentPacks.length > 0 || mappingPacks.length > 0;
 
     const renderPackButton = (p: Example) => {
         const selected = composePackIds.has(p.id);
@@ -311,14 +328,14 @@ function ComposeTab(props: {
                                 <SelectValue placeholder={examplesLoading ? "Loading..." : "Select a portfolio"} />
                             </SelectTrigger>
                             <SelectContent>
-                                {portfolioExamples.map((p) => (
+                                {sortedPortfolioExamples.map((p) => (
                                     <SelectItem key={p.id} value={p.id}>
                                         {p.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                        {portfolioExamples.length === 0 && !examplesLoading ? (
+                        {sortedPortfolioExamples.length === 0 && !examplesLoading ? (
                             <p className="text-sm text-muted-foreground">No portfolio examples found.</p>
                         ) : null}
                         </div>
@@ -330,10 +347,10 @@ function ComposeTab(props: {
                             </div>
                             <ScrollArea className="min-h-0 flex-1 rounded-md border p-2">
                             <div className="space-y-2">
-                                {scenarioExamples.length === 0 && !examplesLoading ? (
+                                {sortedScenarioExamples.length === 0 && !examplesLoading ? (
                                     <p className="text-sm text-muted-foreground">No scenario examples found.</p>
                                 ) : (
-                                    scenarioExamples.map((s) => {
+                                    sortedScenarioExamples.map((s) => {
                                         const selected = composeScenarioIds.has(s.id);
                                         return (
                                             <button
@@ -374,6 +391,12 @@ function ComposeTab(props: {
                                             <div className="space-y-2">
                                                 <p className="text-xs font-medium text-muted-foreground">Catalogs</p>
                                                 {catalogPacks.map(renderPackButton)}
+                                            </div>
+                                        ) : null}
+                                        {assessmentPacks.length > 0 ? (
+                                            <div className="space-y-2 pt-2">
+                                                <p className="text-xs font-medium text-muted-foreground">Assessments</p>
+                                                {assessmentPacks.map(renderPackButton)}
                                             </div>
                                         ) : null}
                                         {mappingPacks.length > 0 ? (
@@ -467,6 +490,8 @@ export default function PlaygroundClient() {
 
     const [composeValidationResult, setComposeValidationResult] = useState<ValidationResult | null>(null);
     const [isComposeValidating, setIsComposeValidating] = useState(false);
+
+    const composeValidationSeq = useRef(0);
 
     const [simulationResult, setSimulationResult] = useState<CRSimulationResult | null>(null);
     const [isSimulating, setIsSimulating] = useState(false);
@@ -715,9 +740,6 @@ export default function PlaygroundClient() {
         if (portfolioExamples.length > 0 && !composePortfolioId) {
             setComposePortfolioId(portfolioExamples[0].id);
         }
-        if (scenarioExamples.length > 0 && composeScenarioIds.size === 0) {
-            setComposeScenarioIds(new Set([scenarioExamples[0].id]));
-        }
         // Intentionally do not auto-select packs.
     }, [composePortfolioId, composeScenarioIds.size, portfolioExamples, scenarioExamples]);
 
@@ -730,13 +752,21 @@ export default function PlaygroundClient() {
 
     useEffect(() => {
         // Validate the generated bundle directly in the Compose tab.
+        const seq = ++composeValidationSeq.current;
+
         const validateComposed = async () => {
             if (!composeBundle.yaml) {
-                setComposeValidationResult(null);
+                if (seq === composeValidationSeq.current) {
+                    setComposeValidationResult(null);
+                    setIsComposeValidating(false);
+                }
                 return;
             }
 
-            setIsComposeValidating(true);
+            if (seq === composeValidationSeq.current) {
+                setComposeValidationResult(null);
+                setIsComposeValidating(true);
+            }
             try {
                 const response = await fetch("/api/validate", {
                     method: "POST",
@@ -747,20 +777,27 @@ export default function PlaygroundClient() {
                 });
 
                 const result = await response.json();
-                setComposeValidationResult(result);
+                if (seq === composeValidationSeq.current) {
+                    setComposeValidationResult(result);
+                }
             } catch (error) {
-                setComposeValidationResult({
-                    valid: false,
-                    errors: ["Failed to validate: " + (error as Error).message],
-                });
+                if (seq === composeValidationSeq.current) {
+                    setComposeValidationResult({
+                        valid: false,
+                        errors: ["Failed to validate: " + (error as Error).message],
+                    });
+                }
             } finally {
-                setIsComposeValidating(false);
+                if (seq === composeValidationSeq.current) {
+                    setIsComposeValidating(false);
+                }
             }
         };
 
         // Reset while selection errors exist.
         if (composeBundle.errors.length > 0) {
             setComposeValidationResult(null);
+            setIsComposeValidating(false);
             return;
         }
 

@@ -2,7 +2,7 @@ crml_control_relationships: '1.0'
 meta:
   name: CIS v8 mapping relationships (example)
   description: Generated from CIS Controls and source ids use cisv8:<control>.<safeguard>
-    as defined in datasets/cisv8-control-catalog.yaml. Targets are derived from mappings.
+    as defined in examples/control_catalogs/cisv8-control-catalog.yaml. Targets are derived from mappings.
   tags:
   - example
   - cisv8

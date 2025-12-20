@@ -44,3 +44,7 @@ assessment:
     - id: "cisv8:10.1"  # anti-malware
       affects: frequency
       scf_cmm_level: 3
+
+    - id: "cisv8:10.5"
+      affects: frequency
+      scf_cmm_level: 2

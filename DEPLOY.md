@@ -71,7 +71,7 @@ No environment variables required for basic deployment.
 
 ## Python Backend
 
-CRML Studio calls the Python backend via API routes. Ensure Python 3.9+ is available in your deployment environment.
+CRML Studio calls the Python backend via API routes. Ensure Python 3.10+ is available in your deployment environment.
 
 For Vercel, Python is automatically available.
 

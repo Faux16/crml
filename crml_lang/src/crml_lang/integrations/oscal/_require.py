@@ -1,4 +1,5 @@
 from __future__ import annotations
+import importlib
 
 
 def require_oscal() -> None:
@@ -8,7 +9,7 @@ def require_oscal() -> None:
     """
 
     try:
-        import trestle  # noqa: F401
+        importlib.import_module("trestle")
     except Exception as exc:  # pragma: no cover
         raise ImportError(
             "OSCAL support requires optional dependencies. "

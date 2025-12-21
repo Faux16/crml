@@ -2,7 +2,7 @@
 
 [![crml-lang](https://img.shields.io/pypi/v/crml-lang.svg)](https://pypi.org/project/crml-lang/)
 [![crml-engine](https://img.shields.io/pypi/v/crml-engine.svg)](https://pypi.org/project/crml-engine/)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **Status:** Draft. This project is under heavy development and may change without notice.
@@ -10,7 +10,7 @@
 > **⚠️ WARNING**
 > This codebase is currently being developed on the **`1.2` branch**. For the latest work-in-progress and source of truth, see: https://github.com/Faux16/crml/tree/crml-dev-1.2
 
-**Version:** 1.2
+**Version:** 1.3
 
 **Maintained by:** Zeron Research Labs and CyberSec Consulting LLC
 
@@ -131,8 +131,6 @@ If you only want the language library:
 
 ```bash
 pip install crml-lang
-# or with SCF support:
-pip install "crml-lang[scf]"
 ```
 
 ## Quick start (CLI)
@@ -141,8 +139,8 @@ pip install "crml-lang[scf]"
 crml-lang validate examples/scenarios/qber-enterprise.yaml
 crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
 
-# Import SCF Catalog from Excel
-crml-lang scf-import-catalog path/to/SCF_2025.xlsx scf-catalog.yaml
+# Import a control catalog via OSCAL
+crml-lang oscal-import-catalog path/to/catalog.json out-control-catalog.yaml --namespace cisv8 --framework "CIS v8"
 ```
 
 ## Quick start (Python)
@@ -200,8 +198,6 @@ Open http://localhost:3000
 See the docs under [wiki/](wiki/) (start at [wiki/Home.md](wiki/Home.md)).
 
 OSCAL interoperability and mapping rules: [wiki/Guides/OSCAL.md](wiki/Guides/OSCAL.md).
-
-SCF integration and mapping guide: [wiki/Guides/SCF.md](wiki/Guides/SCF.md).
 
 Current document types:
 

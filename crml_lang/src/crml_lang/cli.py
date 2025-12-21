@@ -123,38 +123,3 @@ def import_oscal_catalog_to_control_catalog_yaml(
     except Exception as e:
         print(str(e), file=stderr)
         return 1
-
-
-def import_scf_catalog_to_control_catalog_yaml(
-    in_scf_catalog: str,
-    out_control_catalog: str,
-    *,
-    sort_keys: bool = False,
-    stdout: Optional[TextIO] = None,
-    stderr: Optional[TextIO] = None,
-) -> int:
-    """Convert an SCF catalog (Excel) to a CRML skeleton control catalog YAML.
-
-    This requires optional dependencies: `pip install "crml-lang[scf]"`.
-    """
-
-    stdout = stdout or sys.stdout
-    stderr = stderr or sys.stderr
-
-    try:
-        from crml_lang.integrations.scf import read_scf_catalog_as_crml
-        from crml_lang.yamlio import dump_yaml_to_path
-
-        crml_catalog = read_scf_catalog_as_crml(in_scf_catalog)
-        
-        data = crml_catalog.model_dump(by_alias=True, exclude_none=True)
-        dump_yaml_to_path(data, out_control_catalog, sort_keys=bool(sort_keys))
-        
-        print(f"Wrote {out_control_catalog}", file=stdout)
-        return 0
-    except ImportError as e:
-        print(str(e), file=stderr)
-        return 2
-    except Exception as e:
-        print(str(e), file=stderr)
-        return 1

@@ -4,7 +4,7 @@ Get up and running with CRML in just 5 minutes!
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip package manager
 
 ## Step 1: Install CRML (30 seconds)

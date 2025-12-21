@@ -17,7 +17,7 @@ A modern, interactive web UI for validating and exploring CRML (Cyber Risk Model
 
 - Node.js 18+ 
 - npm or yarn
-- Python 3.9+ (for the backend API routes)
+- Python 3.10+ (for the backend API routes)
 - CRML engine installed (`pip install crml-engine`)
 
 ### Installation

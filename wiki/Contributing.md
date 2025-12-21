@@ -8,9 +8,18 @@ Thank you for your interest in contributing to CRML! We welcome contributions fr
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.10+
 - git
 - pip
+
+### VS Code Tooling (Required)
+
+We use VS Code static analysis as part of our “definition of done” for contributions.
+
+- **Pylance**: required for Python type checking and editor diagnostics.
+- **SonarQube for IDE (free VS Code extension)**: required for code quality/security feedback.
+
+Before opening a Pull Request, ensure **VS Code → Problems** is clean (no Errors/Warnings) for the files you changed.
 
 ### 1. Fork and Clone
 
@@ -102,11 +111,15 @@ flake8 .
    - If adding a feature, add a test case in `tests/`.
    - Ensure all tests pass with `pytest`.
 
-4. **Commit:**
+4. **No Problems in PR:**
+   - Ensure **VS Code → Problems** shows **no Errors/Warnings** from **Pylance** and **SonarQube for IDE**.
+   - Fix findings, or if you believe something is a false positive, call it out in the PR description.
+
+5. **Commit:**
    - Use clear commit messages (Conventional Commits preferred).
    - Example: `feat: add attack chain validation`
 
-5. **Push and PR:**
+6. **Push and PR:**
    ```bash
    git push origin feature/my-new-feature
    ```

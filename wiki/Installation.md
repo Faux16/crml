@@ -33,7 +33,7 @@ crml --help
 
 **Option 1: Using pip (Recommended)**
 ```bash
-# Install Python 3.9+ if needed
+# Install Python 3.10+ if needed
 brew install python3
 
 # Install CRML engine + CLI
@@ -64,7 +64,7 @@ crml --help
 # Update package list
 sudo apt update
 
-# Install Python 3.9+
+# Install Python 3.10+
 sudo apt install python3 python3-pip
 
 # Install CRML engine + CLI
@@ -84,7 +84,7 @@ crml --help
 
 **Option 1: Using pip**
 ```powershell
-# Install Python 3.9+ from python.org
+# Install Python 3.10+ from python.org
 
 # Install CRML engine + CLI
 pip install crml-engine

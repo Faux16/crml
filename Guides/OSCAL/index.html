@@ -1,0 +1,3249 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://Faux16.github.io/crml/Guides/OSCAL/">
+      
+      
+        <link rel="prev" href="../Tool-Integration/">
+      
+      
+        <link rel="next" href="../Calibrate-from-Data/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>OSCAL Interop - CRML Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#oscal-and-crml" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CRML Documentation" class="md-header__button md-logo" aria-label="CRML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CRML Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              OSCAL Interop
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CRML Documentation" class="md-nav__button md-logo" aria-label="CRML Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CRML Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Home/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language (crml_lang)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Language (crml_lang)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Language/Overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Language/Installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Language/Python-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Language/Validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/CRML-Schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CRML Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engine (crml_engine)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Engine (crml_engine)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Engine/Overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Engine/Installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Engine/CLI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Engine/Python-API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Engine/Capabilities/Supported-Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supported Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Engine/Capabilities/Portfolio-Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Portfolio Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Engine/Capabilities/Controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Engine/Capabilities/Results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Multi-Currency-Support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Currency Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Control-Effectiveness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Control Effectiveness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Getting-Started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Writing-CRML/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writing CRML Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Lessons-Example-Suite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lessons (Examples)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Excel-Controls-and-Mappings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Excel Controls & Mappings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Understanding-Parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Understanding Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Executive-Reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Executive Reporting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Tool-Integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tool Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OSCAL Interop
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OSCAL Interop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-oscal-is-not-built-for-quantification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why OSCAL is not “built for quantification”
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-crml-relates-to-oscal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How CRML relates to OSCAL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-limitation-framework-catalogs-licensing-and-identifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Practical limitation: framework catalogs, licensing, and identifiers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Practical limitation: framework catalogs, licensing, and identifiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#normative-identifier-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Normative identifier rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oscal-crml-skeleton-catalogs-practical-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OSCAL → CRML skeleton catalogs (practical ingestion)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skeleton-catalogs-and-licensed-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        “Skeleton” catalogs and licensed enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mapping-rules-normative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapping rules (normative)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mapping rules (normative)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-finding-object-fields-and-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) Finding object — fields and mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1) Finding object — fields and mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-mapping-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field mapping rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#crml-extension-props-for-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CRML extension props for findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-risk-object-fields-and-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) Risk object — fields and mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2) Risk object — fields and mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-mapping-rules_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field mapping rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-risk-characterizations-very-important" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Risk characterizations (very important)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3) Risk characterizations (very important)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quantitative-export-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quantitative export rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-qualitative-bucketing-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional qualitative bucketing rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimal-example-crml-oscal-risk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal example: CRML → OSCAL risk
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Calibrate-from-Data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calibrate from Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Add-New-Distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add New Distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Auto-Calibration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto-Calibration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/By-Industry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    By Industry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/Full-Examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Full Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/FAIR-Baseline-Model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAIR Baseline Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/QBER-Enterprise-Model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QBER Enterprise Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/Best-Practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Best Practices
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/Spec-Examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/FAIR-vs-QBER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAIR vs QBER
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Attack-Graphs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attack Graphs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Runtime-Frequency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime (Frequency)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Runtime-Severity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime (Severity)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Runtime-Entropy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime (Entropy)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Runtime-Copula/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime (Copula)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Runtime-MCMC/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime (MCMC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Deep-Math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deep Mathematics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Concepts/Mermaid-Diagrams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagrams (Mermaid)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/CRML-Specification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CRML Specification (Overview)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/FAQ/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Reference/Glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-oscal-is-not-built-for-quantification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why OSCAL is not “built for quantification”
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-crml-relates-to-oscal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How CRML relates to OSCAL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-limitation-framework-catalogs-licensing-and-identifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Practical limitation: framework catalogs, licensing, and identifiers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Practical limitation: framework catalogs, licensing, and identifiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#normative-identifier-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Normative identifier rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oscal-crml-skeleton-catalogs-practical-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OSCAL → CRML skeleton catalogs (practical ingestion)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skeleton-catalogs-and-licensed-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        “Skeleton” catalogs and licensed enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mapping-rules-normative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapping rules (normative)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mapping rules (normative)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-finding-object-fields-and-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) Finding object — fields and mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1) Finding object — fields and mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-mapping-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field mapping rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#crml-extension-props-for-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CRML extension props for findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-risk-object-fields-and-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) Risk object — fields and mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2) Risk object — fields and mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-mapping-rules_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field mapping rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-risk-characterizations-very-important" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Risk characterizations (very important)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3) Risk characterizations (very important)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quantitative-export-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quantitative export rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-qualitative-bucketing-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional qualitative bucketing rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimal-example-crml-oscal-risk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal example: CRML → OSCAL risk
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="oscal-and-crml">OSCAL and CRML</h1>
+<p>CRML and OSCAL solve adjacent problems:</p>
+<ul>
+<li><strong>OSCAL (NIST Open Security Controls Assessment Language)</strong> is a <em>standard interchange format</em> for controls, assessments, and assessment results.</li>
+<li><strong>CRML</strong> is a <em>risk modeling language</em> aimed at <strong>quantification</strong> (distributions, simulation, calibration, currencies), and at making those assumptions reviewable and reproducible.</li>
+</ul>
+<h2 id="why-oscal-is-not-built-for-quantification">Why OSCAL is not “built for quantification”</h2>
+<p>OSCAL’s assessment results model is intentionally designed to support:</p>
+<ul>
+<li>traceability (what control/objective/component an assessment result applies to),</li>
+<li>evidence linking (observations),</li>
+<li>lifecycle and workflow (status),</li>
+<li>interoperability across tools.</li>
+</ul>
+<p>It is intentionally <strong>not</strong> designed to standardize quantitative risk math:</p>
+<ul>
+<li>Findings do <strong>not</strong> have native numeric fields for <em>severity, likelihood, impact</em>.</li>
+<li>Risk “characterizations” are <strong>open strings</strong>; OSCAL does not enforce units, scales, or calculations.</li>
+</ul>
+<p>That’s why OSCAL by itself is not a quantitative risk modeling standard.</p>
+<h2 id="how-crml-relates-to-oscal">How CRML relates to OSCAL</h2>
+<p>CRML can still interoperate with OSCAL because CRML can:</p>
+<ul>
+<li><strong>ingest OSCAL-like assessment artifacts</strong> (findings/risks) as structured inputs to a portfolio and governance workflow, and</li>
+<li><strong>export CRML outcomes</strong> into OSCAL Assessment Results structures so other governance/compliance tooling can consume them.</li>
+</ul>
+<p>In practice, teams often position them like this:</p>
+<ul>
+<li><strong>OSCAL</strong> is well-suited as an interchange format for <strong>compliance artifacts and organizational posture</strong>: what controls exist, how they’re implemented, what was assessed, and what evidence supports the assessment.</li>
+<li><strong>CRML</strong> acts as the bridge from posture to the <strong>threat landscape</strong> for risk modeling: it can reference and normalize threat/control catalogs and mappings (e.g., ATT&amp;CK/CAPEC/internal catalogs) into modelable scenarios, then quantify outcomes.</li>
+</ul>
+<p>The key idea:</p>
+<ul>
+<li>Use OSCAL for <strong>interchange and auditability</strong>.</li>
+<li>Use CRML for <strong>quantification and computation</strong>.</li>
+</ul>
+<p>CRML’s quantitative outputs can be preserved in OSCAL using:</p>
+<ul>
+<li><code>risk.characterizations</code> (preferred for likelihood/impact-like concepts), and</li>
+<li><code>props</code> (for structured extensions, units, currencies, scale definitions, and tool-specific metadata).</li>
+</ul>
+<h2 id="practical-limitation-framework-catalogs-licensing-and-identifiers">Practical limitation: framework catalogs, licensing, and identifiers</h2>
+<p>In the real world, OSCAL representations of major control frameworks are often:</p>
+<ul>
+<li>published only on official standards bodies’ websites,</li>
+<li>sometimes behind paywalls or licensing terms, and</li>
+<li>may contain copyrighted material.</li>
+</ul>
+<p>CRML documentation and examples in this repository therefore <strong>SHOULD NOT</strong> embed or redistribute copyrighted framework text.</p>
+<p>For quantitative risk modeling, the <em>human-readable control description text</em> is usually not the critical input anyway. What matters most for modeling workflows is:</p>
+<ul>
+<li>stable control identifiers,</li>
+<li>and the <strong>relationships and mappings</strong> (control-to-control, control-to-objective, control-to-threat/technique, coverage/overlap, inheritance).</li>
+</ul>
+<h3 id="normative-identifier-rules">Normative identifier rules</h3>
+<p>CRML does <strong>not</strong> try to ship or maintain a global registry of every control framework.
+Instead, CRML’s rule is: <strong>every control you reference must exist (by id) in at least one control catalog you include</strong>.</p>
+<p>In practice, catalogs look like the CISv8 example in this repo (note the <code>cisv8:</code> namespace):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">catalog</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cisv8&quot;</span><span class="w">         </span><span class="c1"># optional document grouping identifier (organization-owned)</span>
+<span class="w">  </span><span class="nt">framework</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;CIS</span><span class="nv"> </span><span class="s">v8&quot;</span><span class="w">  </span><span class="c1"># human label</span>
+<span class="w">  </span><span class="nt">controls</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cisv8:1.1&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cisv8:1.2&quot;</span>
+</code></pre></div>
+<p>CRML’s canonical join key is the control entry <code>id</code> in the form <code>namespace:key</code>.</p>
+<h3 id="oscal-crml-skeleton-catalogs-practical-ingestion">OSCAL → CRML skeleton catalogs (practical ingestion)</h3>
+<p>If you have an OSCAL Catalog (JSON or YAML) for a framework, CRML can ingest it and generate a <strong>redistributable skeleton</strong> CRML control catalog.</p>
+<p>The skeleton intentionally keeps only:</p>
+<ul>
+<li>control identifiers (<code>id</code>),</li>
+<li>optional <code>oscal_uuid</code> (the OSCAL control UUID),</li>
+<li>short <code>title</code> (if present),</li>
+<li>a reference <code>url</code> (first OSCAL link, if present).</li>
+</ul>
+<p>It intentionally strips detailed statements/parts and any long copyrighted prose.</p>
+<p>CLI (requires optional dependency):</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;crml-lang[oscal]&quot;</span>
+
+crml-lang<span class="w"> </span>oscal-import-catalog<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>&lt;<span class="k">in</span>-oscal-catalog.json-or.yaml&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>&lt;out-crml-control-catalog.yaml&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--namespace<span class="w"> </span>cisv8<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--framework<span class="w"> </span><span class="s2">&quot;CIS v8&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--catalog-id<span class="w"> </span>cisv8
+</code></pre></div>
+<p>Notes:</p>
+<ul>
+<li><code>--namespace</code> becomes the <code>namespace</code> part in generated control ids like <code>cisv8:1.1</code>.</li>
+<li>The OSCAL control <code>id</code> becomes the <code>key</code> part.</li>
+<li>OSCAL control UUIDs are preserved in the CRML field <code>oscal_uuid</code> when present.</li>
+</ul>
+<p>Normative rules:</p>
+<ul>
+<li>Each control catalog entry <strong>MUST</strong> have an <code>id</code> (<code>namespace:key</code>) that is stable over time.</li>
+<li>The <code>id</code> values inside a catalog <strong>MUST</strong> be unique (no duplicates).</li>
+<li>Mapping work <strong>MUST</strong> be performed against these identifiers (not titles, not prose descriptions).</li>
+</ul>
+<p>Practical guidance:</p>
+<ul>
+<li>If you build cross-framework mappings (e.g., CISv8 → Org), it is usually simplest to include a complete catalog for the source framework so every <code>source_id</code> in the mapping has a corresponding catalog entry.</li>
+</ul>
+<p>When an original framework author/publisher provides an OSCAL representation, exporters/importers <strong>SHOULD</strong> treat the framework’s published identifier as canonical:</p>
+<ul>
+<li>Prefer the framework’s <strong>human-readable identifier</strong> (the control ID that humans cite, e.g., <code>AC-2</code>) as the primary mapping key.</li>
+<li>If OSCAL uses UUIDs internally, the UUID <strong>SHOULD</strong> be preserved alongside the human-readable identifier.
+  In CRML, store that UUID in <code>oscal_uuid</code> on the control catalog entry (and optionally on assessment entries when assessments are shared without catalogs).</li>
+</ul>
+<p>When no canonical OSCAL representation exists (or cannot be redistributed), CRML workflows <strong>SHOULD</strong> still operate by:</p>
+<ul>
+<li>minting stable IDs in an explicit namespace (e.g., <code>org:</code>, <code>vendor:</code>, or a URN scheme), and</li>
+<li>keeping catalogs minimal: identifiers + relationship structure + any non-copyrightable metadata needed for mapping.</li>
+</ul>
+<h3 id="skeleton-catalogs-and-licensed-enrichment">“Skeleton” catalogs and licensed enrichment</h3>
+<p>CRML examples and reference catalogs are intentionally <strong>skeleton models</strong>: they focus on identifiers and relationship structure, and avoid embedding copyrighted framework prose.</p>
+<p>Organizations that have the appropriate rights <strong>MAY</strong> enrich these skeleton catalogs locally by attaching the full, licensed control text and metadata sourced from the standards bodies themselves — either via:</p>
+<ul>
+<li>official OSCAL catalogs published by the framework owner, or</li>
+<li>licensed CRML control catalogs (if a standards body publishes CRML-native representations).</li>
+</ul>
+<p>This keeps the public CRML ecosystem redistributable while still enabling full-fidelity internal catalogs where licensing permits.</p>
+<h2 id="mapping-rules-normative">Mapping rules (normative)</h2>
+<p>This section defines rules for mapping CRML concepts to OSCAL Assessment Results-style <code>finding</code> and <code>risk</code> objects.</p>
+<h3 id="conventions">Conventions</h3>
+<ul>
+<li><strong>UUID stability:</strong> OSCAL requires stable <code>uuid</code> values. When CRML does not already have a UUID for an artifact, exporters <strong>SHOULD</strong> generate deterministic UUIDv5 values from stable CRML identifiers.</li>
+<li><strong>Namespace for CRML extensions:</strong> Use <code>props[].ns = "urn:crml"</code> for CRML-specific values.</li>
+<li><strong>Name convention:</strong> Use <code>props[].name</code> without a <code>crml:</code> prefix (because <code>ns</code> already carries the namespace).</li>
+<li><strong>Units and scales:</strong> Any numeric value exported into OSCAL <strong>MUST</strong> include units in the same string, or accompany it with unit metadata in <code>props</code> (see below).</li>
+</ul>
+<h3 id="1-finding-object-fields-and-mapping">1) Finding object — fields and mapping</h3>
+<p>A <code>finding</code> documents what was observed during an assessment.</p>
+<p><strong>OSCAL finding shape (summary)</strong></p>
+<div class="highlight"><pre><span></span><code><span class="nt">finding</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">uuid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uuid</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">markup</span>
+<span class="w">  </span><span class="nt">rationale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">markup</span>
+<span class="w">  </span><span class="nt">remark</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+
+<span class="w">  </span><span class="nt">target</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">component | objective | control</span>
+<span class="w">    </span><span class="nt">target-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uuid</span>
+<span class="w">    </span><span class="nt">status</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">satisfied | not-satisfied | partial | not-applicable</span>
+<span class="w">      </span><span class="nt">reason</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+
+<span class="w">  </span><span class="nt">related-observations</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">observation-uuid</span>
+
+<span class="w">  </span><span class="nt">related-risks</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">risk-uuid</span>
+
+<span class="w">  </span><span class="nt">origins</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">actor</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">assessor | tool | party</span>
+<span class="w">        </span><span class="nt">actor-uuid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uuid</span>
+
+<span class="w">  </span><span class="nt">props</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">      </span><span class="nt">ns</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uri</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+
+<span class="w">  </span><span class="nt">links</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">href</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uri</span>
+<span class="w">      </span><span class="nt">rel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">      </span><span class="nt">media-type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+</code></pre></div>
+<h4 id="field-mapping-rules">Field mapping rules</h4>
+<table>
+<thead>
+<tr>
+<th>OSCAL finding field</th>
+<th>CRML source</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>finding.uuid</code></td>
+<td>CRML stable ID (preferred)</td>
+<td><strong>MUST</strong> be stable across exports. If CRML has no UUID, <strong>SHOULD</strong> compute deterministic UUIDv5 from <code>(assessment_id, target_id, finding_kind)</code>.</td>
+</tr>
+<tr>
+<td><code>finding.title</code></td>
+<td>Control/objective/component label</td>
+<td><strong>SHOULD</strong> be a short label. Example: <code>"Control assessment: org:iam.mfa"</code>.</td>
+</tr>
+<tr>
+<td><code>finding.description</code></td>
+<td>CRML assessment notes / observed condition</td>
+<td><strong>SHOULD</strong> describe what was observed. Markup allowed.</td>
+</tr>
+<tr>
+<td><code>finding.rationale</code></td>
+<td>CRML rationale for why it matters</td>
+<td><strong>MAY</strong> explain why this finding affects risk/compliance.</td>
+</tr>
+<tr>
+<td><code>finding.remark</code></td>
+<td>Freeform</td>
+<td><strong>MAY</strong> hold additional context.</td>
+</tr>
+<tr>
+<td><code>finding.target.type</code></td>
+<td>CRML reference kind</td>
+<td><strong>MUST</strong> be <code>control</code> when finding is about a control; <code>component</code> when about a system component; <code>objective</code> when about a requirement/objective.</td>
+</tr>
+<tr>
+<td><code>finding.target.target-id</code></td>
+<td>Identifier of target</td>
+<td><strong>MUST</strong> be a UUID in OSCAL. If CRML uses non-UUID IDs (e.g., <code>org:iam.mfa</code>), <strong>MUST</strong> also store that original ID in <code>props</code> (see below).</td>
+</tr>
+<tr>
+<td><code>finding.target.status.state</code></td>
+<td>CRML posture state</td>
+<td><strong>MUST</strong> map to one of: <code>satisfied</code>, <code>not-satisfied</code>, <code>partial</code>, <code>not-applicable</code>.</td>
+</tr>
+<tr>
+<td><code>finding.target.status.reason</code></td>
+<td>CRML explanation</td>
+<td><strong>SHOULD</strong> capture “why” (e.g., missing evidence, not implemented).</td>
+</tr>
+<tr>
+<td><code>finding.related-observations[]</code></td>
+<td>Evidence references</td>
+<td><strong>MAY</strong> link to evidence/telemetry observations if available.</td>
+</tr>
+<tr>
+<td><code>finding.related-risks[]</code></td>
+<td>Derived risk UUIDs</td>
+<td><strong>MAY</strong> reference risks created/updated due to this finding.</td>
+</tr>
+<tr>
+<td><code>finding.origins[].actor.type</code></td>
+<td>Producer</td>
+<td><strong>MUST</strong> be <code>tool</code> for CRML engine exports; <strong>MAY</strong> be <code>assessor</code> for human-entered findings.</td>
+</tr>
+<tr>
+<td><code>finding.origins[].actor.actor-uuid</code></td>
+<td>Tool/assessor identity</td>
+<td><strong>SHOULD</strong> be stable for the same producer.</td>
+</tr>
+<tr>
+<td><code>finding.links[]</code></td>
+<td>Traceability links</td>
+<td><strong>SHOULD</strong> link to CRML artifacts (scenario/portfolio path, run report URL, commit).</td>
+</tr>
+</tbody>
+</table>
+<h4 id="crml-extension-props-for-findings">CRML extension props for findings</h4>
+<p>Because OSCAL findings have no native severity/likelihood/impact fields:</p>
+<ul>
+<li>Quantitative or categorical values attached to a finding <strong>MUST</strong> be represented using <code>props</code>.</li>
+</ul>
+<p>Recommended CRML property names:</p>
+<ul>
+<li><code>target.external_id</code> — original CRML target identifier if OSCAL <code>target-id</code> is a generated UUID</li>
+<li><code>confidence</code> — e.g., <code>"0.7"</code> or <code>"high"</code></li>
+<li><code>severity</code> — if you need a single roll-up, use a string with scale info (e.g., <code>"high (org-scale-v1)"</code>)</li>
+</ul>
+<h3 id="2-risk-object-fields-and-mapping">2) Risk object — fields and mapping</h3>
+<p>A <code>risk</code> represents potential loss or harm, not an observation.</p>
+<p><strong>OSCAL risk shape (summary)</strong></p>
+<div class="highlight"><pre><span></span><code><span class="nt">risk</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">uuid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uuid</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">markup</span>
+<span class="w">  </span><span class="nt">statement</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">markup</span>
+
+<span class="w">  </span><span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">open | investigating | mitigated | accepted | closed</span>
+
+<span class="w">  </span><span class="nt">origins</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">source</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">finding | observation | threat | vulnerability</span>
+<span class="w">        </span><span class="nt">uuid-ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uuid</span>
+
+<span class="w">  </span><span class="nt">threat-ids</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+
+<span class="w">  </span><span class="nt">characterizations</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">facet</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">likelihood | impact | confidence | exposure | severity</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+
+<span class="w">  </span><span class="nt">mitigation</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">uuid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uuid</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">markup</span>
+<span class="w">    </span><span class="nt">implementation</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">uuid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uuid</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">markup</span>
+
+<span class="w">  </span><span class="nt">props</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">      </span><span class="nt">ns</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uri</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+
+<span class="w">  </span><span class="nt">links</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">href</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uri</span>
+<span class="w">      </span><span class="nt">rel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">      </span><span class="nt">media-type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+</code></pre></div>
+<h4 id="field-mapping-rules_1">Field mapping rules</h4>
+<table>
+<thead>
+<tr>
+<th>OSCAL risk field</th>
+<th>CRML source</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>risk.uuid</code></td>
+<td>CRML stable risk ID</td>
+<td><strong>MUST</strong> be stable across exports. If derived from a scenario, <strong>SHOULD</strong> be deterministic from <code>(scenario_id, portfolio_id, risk_kind)</code>.</td>
+</tr>
+<tr>
+<td><code>risk.title</code></td>
+<td>CRML scenario/output label</td>
+<td><strong>SHOULD</strong> be a short label (e.g., <code>"Ransomware loss risk"</code>).</td>
+</tr>
+<tr>
+<td><code>risk.description</code></td>
+<td>CRML narrative summary</td>
+<td><strong>MAY</strong> summarize key assumptions and scope.</td>
+</tr>
+<tr>
+<td><code>risk.statement</code></td>
+<td>Formal risk statement</td>
+<td><strong>SHOULD</strong> follow “If X then Y resulting in Z”.</td>
+</tr>
+<tr>
+<td><code>risk.status</code></td>
+<td>Workflow status</td>
+<td>If CRML has no lifecycle state, <strong>MUST</strong> default to <code>open</code>.</td>
+</tr>
+<tr>
+<td><code>risk.origins[].source.type</code></td>
+<td>Source type</td>
+<td><strong>MUST</strong> be one of <code>finding</code>, <code>observation</code>, <code>threat</code>, <code>vulnerability</code>. For CRML simulation results, <strong>SHOULD</strong> use <code>observation</code>. For posture-driven items, <strong>SHOULD</strong> use <code>finding</code>.</td>
+</tr>
+<tr>
+<td><code>risk.origins[].source.uuid-ref</code></td>
+<td>Source UUID</td>
+<td><strong>SHOULD</strong> reference the upstream object (finding/observation) when known.</td>
+</tr>
+<tr>
+<td><code>risk.threat-ids[]</code></td>
+<td>Threat catalog refs</td>
+<td><strong>MAY</strong> include external IDs like ATT&amp;CK technique IDs.</td>
+</tr>
+<tr>
+<td><code>risk.mitigation</code></td>
+<td>CRML mitigation/control strategy</td>
+<td><strong>MAY</strong> reference the mitigation plan; use <code>implementation</code> for what is actually in place.</td>
+</tr>
+<tr>
+<td><code>risk.links[]</code></td>
+<td>Traceability</td>
+<td><strong>SHOULD</strong> link to CRML run outputs and model artifacts.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-risk-characterizations-very-important">3) Risk characterizations (very important)</h3>
+<p>OSCAL does not define numeric scales.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">characterizations</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">facet</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">likelihood</span>
+<span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">high</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">facet</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">impact</span>
+<span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">medium</span>
+</code></pre></div>
+<p>Allowed facet values are open strings, but typical facets include:</p>
+<ul>
+<li><code>likelihood</code></li>
+<li><code>impact</code></li>
+<li><code>severity</code></li>
+<li><code>confidence</code></li>
+<li><code>exposure</code></li>
+</ul>
+<h4 id="quantitative-export-rule">Quantitative export rule</h4>
+<p>If CRML produces numeric likelihood/impact outputs, exporters <strong>MUST NOT</strong> pretend OSCAL defines math for those numbers.</p>
+<p>Instead:</p>
+<p>1) Prefer encoding numeric values as strings with units inside <code>risk.characterizations[]</code>.</p>
+<p>Examples:</p>
+<ul>
+<li><code>facet: likelihood</code>, <code>value: "0.15 / year"</code></li>
+<li><code>facet: impact</code>, <code>value: "USD 250000 (median)"</code></li>
+<li><code>facet: severity</code>, <code>value: "USD 1.2M (P95)"</code></li>
+</ul>
+<p>2) For machine-readability, also include structured values in <code>risk.props[]</code>.</p>
+<p>Recommended property set:</p>
+<ul>
+<li><code>likelihood.annual_rate</code> → <code>"0.15"</code></li>
+<li><code>impact.median.currency</code> → <code>"USD"</code></li>
+<li><code>impact.median.value</code> → <code>"250000"</code></li>
+<li><code>severity.p95.currency</code> → <code>"USD"</code></li>
+<li><code>severity.p95.value</code> → <code>"1200000"</code></li>
+<li><code>time_basis</code> → <code>"per_organization_per_year"</code></li>
+</ul>
+<p>This preserves CRML’s quantitative results while keeping OSCAL semantics honest.</p>
+<h4 id="optional-qualitative-bucketing-rule">Optional qualitative bucketing rule</h4>
+<p>If an organization requires <code>high/medium/low</code> buckets, exporters <strong>MUST</strong> also export the bucket definition as <code>props</code>, e.g.:</p>
+<ul>
+<li><code>scale.likelihood</code> → <code>"org-scale-v1: low&lt;0.05, medium&lt;0.2, high&gt;=0.2 (/year)"</code></li>
+</ul>
+<h2 id="minimal-example-crml-oscal-risk">Minimal example: CRML → OSCAL risk</h2>
+<div class="highlight"><pre><span></span><code><span class="nt">risk</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">uuid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2ad9c1ee-6f05-5d2b-8a49-9d9a7c5aaf5f</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Ransomware</span><span class="nv"> </span><span class="s">loss</span><span class="nv"> </span><span class="s">risk&quot;</span>
+<span class="w">  </span><span class="nt">statement</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;If</span><span class="nv"> </span><span class="s">ransomware</span><span class="nv"> </span><span class="s">occurs,</span><span class="nv"> </span><span class="s">then</span><span class="nv"> </span><span class="s">operations</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">disrupted</span><span class="nv"> </span><span class="s">resulting</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">financial</span><span class="nv"> </span><span class="s">loss.&quot;</span>
+<span class="w">  </span><span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">open</span>
+<span class="w">  </span><span class="nt">origins</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">source</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">observation</span>
+<span class="w">        </span><span class="nt">uuid-ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6d3aefc6-1e7a-5df0-9c70-4f8d0c54a6f3</span>
+<span class="w">  </span><span class="nt">characterizations</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">facet</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">likelihood</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.15</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">year&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">facet</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">impact</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;USD</span><span class="nv"> </span><span class="s">250000</span><span class="nv"> </span><span class="s">(median)&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">facet</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">severity</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;USD</span><span class="nv"> </span><span class="s">1200000</span><span class="nv"> </span><span class="s">(P95)&quot;</span>
+<span class="w">  </span><span class="nt">props</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;likelihood.annual_rate&quot;</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.15&quot;</span>
+<span class="w">      </span><span class="nt">ns</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;urn:crml&quot;</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;number&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;impact.median.currency&quot;</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;USD&quot;</span>
+<span class="w">      </span><span class="nt">ns</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;urn:crml&quot;</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;impact.median.value&quot;</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;250000&quot;</span>
+<span class="w">      </span><span class="nt">ns</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;urn:crml&quot;</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;number&quot;</span>
+</code></pre></div>
+<h2 id="summary">Summary</h2>
+<ul>
+<li>OSCAL is excellent for interoperable assessment result interchange and traceability.</li>
+<li>CRML is designed for quantified modeling and computation.</li>
+<li>CRML can export results into OSCAL by:</li>
+<li>using <code>risk.characterizations</code> for likelihood/impact-like summaries,</li>
+<li>using <code>props</code> for precise numeric values, units, currencies, and scale definitions.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2024 Zeron Research Labs. Licensed under <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.<br>
+CRML is an open-source project. <a href="https://github.com/Faux16/crml/blob/main/CONTRIBUTING.md" target="_blank">Contributions welcome</a>!
+
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/Faux16/crml" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/crml-lang/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/crml-engine/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:research@zeron.one" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://zeron.one" target="_blank" rel="noopener" title="zeron.one" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

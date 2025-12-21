@@ -127,6 +127,8 @@ If you only want the language library:
 
 ```bash
 pip install crml-lang
+# or with SCF support:
+pip install "crml-lang[scf]"
 ```
 
 ## Quick start (CLI)
@@ -134,6 +136,9 @@ pip install crml-lang
 ```bash
 crml-lang validate examples/scenarios/qber-enterprise.yaml
 crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
+
+# Import SCF Catalog from Excel
+crml-lang scf-import-catalog path/to/SCF_2025.xlsx scf-catalog.yaml
 ```
 
 ## Quick start (Python)
@@ -191,6 +196,8 @@ Open http://localhost:3000
 See the docs under [wiki/](wiki/) (start at [wiki/Home.md](wiki/Home.md)).
 
 OSCAL interoperability and mapping rules: [wiki/Guides/OSCAL.md](wiki/Guides/OSCAL.md).
+
+SCF integration and mapping guide: [wiki/Guides/SCF.md](wiki/Guides/SCF.md).
 
 Current document types:
 

@@ -31,6 +31,7 @@ Documentation = "https://faux16.github.io/crml/"
 dev = ["pytest"]
 xlsx = ["openpyxl>=3.1"]
 oscal = ["compliance-trestle>=3,<4"]
+scf = ["openpyxl>=3.1"]
 
 [project.scripts]
 crml-xlsx = "crml_lang.mapping.__main__:main"

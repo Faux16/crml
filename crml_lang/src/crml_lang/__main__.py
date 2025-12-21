@@ -7,6 +7,7 @@ from typing import Optional
 from .cli import (
     bundle_portfolio_to_yaml,
     import_oscal_catalog_to_control_catalog_yaml,
+    import_scf_catalog_to_control_catalog_yaml,
     validate_to_text,
 )
 
@@ -64,6 +65,15 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     o.add_argument("--sort-keys", action="store_true", help="Sort YAML keys")
 
+    s = sub.add_parser(
+        "scf-import-catalog",
+        help="Convert an SCF Catalog (Excel) into a CRML skeleton control catalog YAML",
+    )
+    s.add_argument("in_scf_catalog", help="Input SCF Catalog file path (Excel)")
+    s.add_argument("out_control_catalog", help="Output CRML control catalog YAML file path")
+    s.add_argument("--sort-keys", action="store_true", help="Sort YAML keys")
+
+
     return p
 
 
@@ -93,6 +103,14 @@ def main(argv: Optional[list[str]] = None) -> int:
                 license_terms=args.license_terms,
                 sort_keys=bool(args.sort_keys),
             )
+
+        if args.cmd == "scf-import-catalog":
+            return import_scf_catalog_to_control_catalog_yaml(
+                args.in_scf_catalog,
+                args.out_control_catalog,
+                sort_keys=bool(args.sort_keys),
+            )
+
 
         raise AssertionError(f"Unhandled cmd: {args.cmd}")
     except KeyboardInterrupt:

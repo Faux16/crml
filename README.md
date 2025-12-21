@@ -1,7 +1,7 @@
 # CRML — Cyber Risk Modeling Language
 
-[![crml-lang](https://badge.fury.io/py/crml-lang.svg)](https://pypi.org/project/crml-lang/)
-[![crml-engine](https://badge.fury.io/py/crml-engine.svg)](https://pypi.org/project/crml-engine/)
+[![crml-lang](https://img.shields.io/pypi/v/crml-lang.svg)](https://pypi.org/project/crml-lang/)
+[![crml-engine](https://img.shields.io/pypi/v/crml-engine.svg)](https://pypi.org/project/crml-engine/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

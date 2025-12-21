@@ -49,15 +49,47 @@ async function commandExists(cmd: string): Promise<boolean> {
     });
 }
 
-async function pickPythonCommand(): Promise<string | undefined> {
+type PythonCandidate = { cmd: string; argsPrefix: string[] };
+
+function isNonEmptyString(value: unknown): value is string {
+    return typeof value === 'string' && value.trim().length > 0;
+}
+
+async function pickPythonCandidates(): Promise<PythonCandidate[]> {
+    const envPython = process.env.CRML_PYTHON;
+    const candidates: PythonCandidate[] = [];
+
+    if (isNonEmptyString(envPython)) {
+        candidates.push({ cmd: envPython, argsPrefix: [] });
+    }
+
     const venvPython = process.platform === 'win32'
         ? path.join(process.cwd(), '..', '.venv', 'Scripts', 'python.exe')
         : path.join(process.cwd(), '..', '.venv', 'bin', 'python3');
 
-    if (existsSync(venvPython)) return venvPython;
-    if (await commandExists('python3')) return 'python3';
-    if (await commandExists('python')) return 'python';
-    return undefined;
+    // Note: on Windows, the venv python.exe can exist but still fail to launch if
+    // its base interpreter was moved/removed. We'll detect that at runtime and
+    // fall back to the next candidates.
+    if (existsSync(venvPython)) {
+        candidates.push({ cmd: venvPython, argsPrefix: [] });
+    }
+
+    if (process.platform === 'win32') {
+        if (await commandExists('py')) candidates.push({ cmd: 'py', argsPrefix: ['-3'] });
+        if (await commandExists('python')) candidates.push({ cmd: 'python', argsPrefix: [] });
+    } else {
+        if (await commandExists('python3')) candidates.push({ cmd: 'python3', argsPrefix: [] });
+        if (await commandExists('python')) candidates.push({ cmd: 'python', argsPrefix: [] });
+    }
+
+    // Remove duplicates while preserving order.
+    const seen = new Set<string>();
+    return candidates.filter((c) => {
+        const key = `${c.cmd}::${c.argsPrefix.join(' ')}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
 }
 
 export async function POST(request: NextRequest) {
@@ -95,8 +127,8 @@ export async function POST(request: NextRequest) {
 }
 
 async function runSimulation(yamlContent: string, runs: number, seed: number | undefined, outputCurrency: string): Promise<unknown> {
-    const pythonCmd = await pickPythonCommand();
-    if (!pythonCmd) {
+    const candidates = await pickPythonCandidates();
+    if (candidates.length === 0) {
         return {
             crml_simulation_result: '1.0',
             result: {
@@ -136,94 +168,127 @@ payload = result.model_dump(mode='json')
 print(json.dumps(payload, ensure_ascii=True))
 `;
 
-    const { stdout, stderr, exitCode, timedOut } = await runPythonWithStdin(pythonCmd, pythonCode, yamlContent, 30000);
-    if (timedOut) {
-        return {
-            crml_simulation_result: '1.0',
-            result: {
-                success: false,
-                errors: ['Simulation timeout (30s exceeded)'],
-                warnings: [],
-                engine: { name: 'web', version: undefined },
-                run: { runs, seed },
-                inputs: {},
-                results: { measures: [], artifacts: [] },
-            },
-        };
+    const timeoutMs = 30000;
+
+    let lastStderr = '';
+    for (const candidate of candidates) {
+        const { stdout, stderr, exitCode, timedOut } = await runPythonWithStdin(
+            candidate,
+            pythonCode,
+            yamlContent,
+            timeoutMs,
+        );
+
+        if (timedOut) {
+            return {
+                crml_simulation_result: '1.0',
+                result: {
+                    success: false,
+                    errors: ['Simulation timeout (30s exceeded)'],
+                    warnings: [],
+                    engine: { name: 'web', version: undefined },
+                    run: { runs, seed },
+                    inputs: {},
+                    results: { measures: [], artifacts: [] },
+                },
+            };
+        }
+
+        if (exitCode !== 0) {
+            lastStderr = stderr;
+            const lower = (stderr || '').toLowerCase();
+            // Common symptom of a broken venv launcher on Windows (base interpreter moved).
+            if (lower.includes('did not find executable at') || lower.includes('the system cannot find the path specified')) {
+                continue;
+            }
+            console.error('Python stderr:', stderr);
+            return {
+                crml_simulation_result: '1.0',
+                result: {
+                    success: false,
+                    errors: [`Simulation failed: ${stderr || 'Unknown error'}`],
+                    warnings: [],
+                    engine: { name: 'web', version: undefined },
+                    run: { runs, seed },
+                    inputs: {},
+                    results: { measures: [], artifacts: [] },
+                },
+            };
+        }
+
+        try {
+            return JSON.parse(stdout.trim());
+        } catch {
+            console.error('Failed to parse Python output:', stdout);
+            return {
+                crml_simulation_result: '1.0',
+                result: {
+                    success: false,
+                    errors: ['Failed to parse simulation results'],
+                    warnings: [],
+                    engine: { name: 'web', version: undefined },
+                    run: { runs, seed },
+                    inputs: {},
+                    results: { measures: [], artifacts: [] },
+                },
+            };
+        }
     }
 
-    if (exitCode !== 0) {
-        console.error('Python stderr:', stderr);
-        return {
-            crml_simulation_result: '1.0',
-            result: {
-                success: false,
-                errors: [`Simulation failed: ${stderr || 'Unknown error'}`],
-                warnings: [],
-                engine: { name: 'web', version: undefined },
-                run: { runs, seed },
-                inputs: {},
-                results: { measures: [], artifacts: [] },
-            },
-        };
-    }
-
-    try {
-        return JSON.parse(stdout.trim());
-    } catch {
-        console.error('Failed to parse Python output:', stdout);
-        return {
-            crml_simulation_result: '1.0',
-            result: {
-                success: false,
-                errors: ['Failed to parse simulation results'],
-                warnings: [],
-                engine: { name: 'web', version: undefined },
-                run: { runs, seed },
-                inputs: {},
-                results: { measures: [], artifacts: [] },
-            },
-        };
-    }
+    return {
+        crml_simulation_result: '1.0',
+        result: {
+            success: false,
+            errors: [
+                "Python could not be started for simulation. If you're on Windows and your .venv was created with a different Python install, recreate it or set CRML_PYTHON.",
+                lastStderr || 'No Python candidates succeeded.',
+            ],
+            warnings: [],
+            engine: { name: 'web', version: undefined },
+            run: { runs, seed },
+            inputs: {},
+            results: { measures: [], artifacts: [] },
+        },
+    };
 }
 
 function runPythonWithStdin(
-    pythonCmd: string,
+    python: PythonCandidate,
     pythonCode: string,
     stdinContent: string,
     timeoutMs: number,
 ): Promise<{ stdout: string; stderr: string; exitCode: number | null; timedOut: boolean }> {
     return new Promise((resolve, reject) => {
-        const python = spawn(pythonCmd, ['-c', pythonCode], {
+        const child = spawn(python.cmd, [...python.argsPrefix, '-c', pythonCode], {
             stdio: ['pipe', 'pipe', 'pipe'],
         });
 
         let stdout = '';
         let stderr = '';
 
-        python.stdout.on('data', (data) => {
+        child.stdout.on('data', (data) => {
             stdout += data.toString();
         });
 
-        python.stderr.on('data', (data) => {
+        child.stderr.on('data', (data) => {
             stderr += data.toString();
         });
 
-        python.stdin.write(stdinContent);
-        python.stdin.end();
+        child.stdin.write(stdinContent);
+        child.stdin.end();
 
         let timedOut = false;
         const timeout = setTimeout(() => {
             timedOut = true;
-            python.kill();
+            child.kill();
         }, timeoutMs);
 
-        python.on('close', (code) => {
+        child.on('close', (code) => {
             clearTimeout(timeout);
             resolve({ stdout, stderr, exitCode: code, timedOut });
         });
 
-        python.on('error', (error) => {
+        child.on('error', (error) => {
             clearTimeout(timeout);
             reject(error);
         });

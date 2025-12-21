@@ -31,6 +31,7 @@ def valid_bundle_content(valid_crml_content: str) -> str:
     # Minimal bundle: portfolio + one inlined scenario.
     # Note: portfolio controls/assessments/relationships are intentionally omitted.
     # The engine can still run, and validators may emit warnings depending on scenario content.
+    indented_content = valid_crml_content.rstrip().replace('\n', '\n        ')
     return f"""
 crml_portfolio_bundle: "1.0"
 portfolio_bundle:
@@ -51,7 +52,7 @@ portfolio_bundle:
   scenarios:
     - id: s1
       scenario:
-{valid_crml_content.rstrip().replace('\n', '\n        ')}
+        {indented_content}
 """.lstrip()
 
 

@@ -3,6 +3,11 @@ meta:
   name: "SCF Demo Portfolio"
   description: "A portfolio demonstrating the use of SCF controls and CMM assessments."
   tags: ["example", "scf", "portfolio"]
+  industries: [technology]
+  company_sizes: [medium]
+  locale:
+    regions: [north-america]
+    countries: [US]
 
 portfolio:
   semantics:

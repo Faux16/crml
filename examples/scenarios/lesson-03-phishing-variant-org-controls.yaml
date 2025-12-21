@@ -21,6 +21,13 @@ meta:
     - org posture (portfolio assessment)
     - scenario threat assumptions (this file)
   tags: ["example", "lessons", "phishing", "controls", "org", "variant"]
+  industries:
+    - all
+  company_sizes:
+    - all
+  locale:
+    regions:
+      - all
   attck:
     - "attck:TA0001"
     - "attck:T1566"

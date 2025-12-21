@@ -37,6 +37,11 @@ portfolio_bundle:
         - control catalog
         - assessment
       tags: ["example", "lessons", "bundle", "org", "controls"]
+      industries: [professional-services]
+      company_sizes: [medium]
+      locale:
+        regions: [north-america]
+        countries: [US]
 
     portfolio:
       semantics:
@@ -76,6 +81,11 @@ portfolio_bundle:
             Note: `meta.attck` remains metadata; tools can still use it.
           tags: ["example", "lessons", "bundle", "phishing"]
           attck: ["attck:TA0001", "attck:T1566", "attck:T1566.001"]
+          industries: [professional-services]
+          company_sizes: [medium]
+          locale:
+            regions: [north-america]
+            countries: [US]
 
         scenario:
           frequency:

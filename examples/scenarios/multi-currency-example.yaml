@@ -24,6 +24,8 @@ meta:
     - pii
   industries:
     - all
+  company_sizes:
+    - all
 
 scenario:
   frequency:

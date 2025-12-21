@@ -12,6 +12,44 @@ from crml_lang.models.control_relationships_model import CRControlRelationships
 from crml_lang.models.portfolio_model import CRPortfolio
 from crml_lang.models.portfolio_bundle import CRPortfolioBundle
 from crml_lang.models.simulation_result import CRSimulationResult
+from crml_lang.models.meta_tokens import ISO3166_1_ALPHA2_SCHEMA
+
+
+def _rewrite_iso3166_alpha2_refs(node):
+    if isinstance(node, dict):
+        # Don't rewrite inside $defs; we want the concrete definition to remain.
+        for k, v in list(node.items()):
+            if k == "$defs":
+                continue
+
+            if isinstance(v, dict):
+                if (
+                    v.get("type") == "string"
+                    and v.get("pattern") == ISO3166_1_ALPHA2_SCHEMA.get("pattern")
+                    and v.get("title") == "iso3166_1_alpha2"
+                ):
+                    node[k] = {"$ref": "#/$defs/iso3166_1_alpha2"}
+                else:
+                    _rewrite_iso3166_alpha2_refs(v)
+            elif isinstance(v, list):
+                _rewrite_iso3166_alpha2_refs(v)
+    elif isinstance(node, list):
+        for item in node:
+            _rewrite_iso3166_alpha2_refs(item)
+
+
+def _inject_common_defs(schema: dict) -> dict:
+    defs = schema.get("$defs")
+    if not isinstance(defs, dict):
+        defs = {}
+        schema["$defs"] = defs
+
+    # Ensure stable, shared ISO country-code def key.
+    # This matches historical CRML schemas that used `#/$defs/iso3166_1_alpha2`.
+    defs.setdefault("iso3166_1_alpha2", ISO3166_1_ALPHA2_SCHEMA)
+
+    _rewrite_iso3166_alpha2_refs(schema)
+    return schema
 
 
 def main() -> None:
@@ -19,15 +57,17 @@ def main() -> None:
     schemas_dir = here.parents[1] / "src" / "crml_lang" / "schemas"
     schemas_dir.mkdir(parents=True, exist_ok=True)
 
-    scenario_schema = CRScenario.model_json_schema()
-    portfolio_schema = CRPortfolio.model_json_schema()
-    assessment_schema = CRAssessment.model_json_schema()
-    control_catalog_schema = CRControlCatalog.model_json_schema()
-    attack_catalog_schema = CRAttackCatalog.model_json_schema()
-    attack_control_relationships_schema = CRAttackControlRelationships.model_json_schema()
-    control_relationships_schema = CRControlRelationships.model_json_schema()
-    portfolio_bundle_schema = CRPortfolioBundle.model_json_schema()
-    simulation_result_schema = CRSimulationResult.model_json_schema()
+    scenario_schema = _inject_common_defs(CRScenario.model_json_schema())
+    portfolio_schema = _inject_common_defs(CRPortfolio.model_json_schema())
+    assessment_schema = _inject_common_defs(CRAssessment.model_json_schema())
+    control_catalog_schema = _inject_common_defs(CRControlCatalog.model_json_schema())
+    attack_catalog_schema = _inject_common_defs(CRAttackCatalog.model_json_schema())
+    attack_control_relationships_schema = _inject_common_defs(
+        CRAttackControlRelationships.model_json_schema()
+    )
+    control_relationships_schema = _inject_common_defs(CRControlRelationships.model_json_schema())
+    portfolio_bundle_schema = _inject_common_defs(CRPortfolioBundle.model_json_schema())
+    simulation_result_schema = _inject_common_defs(CRSimulationResult.model_json_schema())
 
     (schemas_dir / "crml-scenario-schema.json").write_text(
         json.dumps(scenario_schema, indent=2, ensure_ascii=False) + "\n",

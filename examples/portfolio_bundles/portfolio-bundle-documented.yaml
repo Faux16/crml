@@ -40,6 +40,11 @@ portfolio_bundle:
         - tooling workflows (validation, mapping, XLSX round-trips)
         - engine input without filesystem dependency
       tags: ["example", "bundle", "portfolio"]
+      industries: [professional-services]
+      company_sizes: [medium]
+      locale:
+        regions: [north-america]
+        countries: [US]
 
     portfolio:
       # ---------------------------------------------------------------------
@@ -137,6 +142,11 @@ portfolio_bundle:
             - "attck:TA0001"
             - "attck:T1566"
             - "attck:T1566.001"
+          industries: [professional-services]
+          company_sizes: [medium]
+          locale:
+            regions: [north-america]
+            countries: [US]
 
         scenario:
           # Frequency models the baseline threat landscape.

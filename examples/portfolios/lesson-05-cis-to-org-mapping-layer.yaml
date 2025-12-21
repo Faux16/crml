@@ -32,6 +32,11 @@ meta:
     - Portable inputs: CIS scenario + CIS→Org mapping pack
     - Executable today: the "translated" org scenario + org posture
   tags: ["example", "lessons", "portfolio", "cisv8", "org", "mapping"]
+  industries: [professional-services]
+  company_sizes: [medium]
+  locale:
+    regions: [north-america]
+    countries: [US]
 
 portfolio:
   semantics:

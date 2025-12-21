@@ -14,6 +14,7 @@ Consequences:
     defined in a separate portfolio schema/model.
 """
 
+import re
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -22,6 +23,13 @@ from pydantic.json_schema import WithJsonSchema
 from .numberish import parse_floatish, parse_float_list
 from .control_ref import ControlId
 from .coverage_model import Coverage
+from .meta_tokens import (
+    ALLOWED_REGION_TOKENS,
+    ISO3166_1_ALPHA2_PATTERN,
+    CompanySizeToken,
+    IndustryToken,
+    LocaleDict,
+)
 
 
 AttckId = Annotated[
@@ -45,17 +53,29 @@ class ISO3166Alpha2(str):
 
 # --- Meta ---
 class Meta(BaseModel):
+    model_config = ConfigDict(use_enum_values=True)
+
     name: str = Field(..., description="Human-friendly name for this document.")
     version: Optional[str] = Field(None, description="Optional version string for this document.")
     description: Optional[str] = Field(None, description="Optional free-form description.")
+    reference: Optional[str] = Field(
+        None,
+        description=(
+            "Optional reference URL for this document (provenance pointer). "
+            "Tools should set this only when the source is a URL (not a local path)."
+        ),
+    )
     author: Optional[str] = Field(None, description="Optional author/owner.")
     organization: Optional[str] = Field(None, description="Optional organization name.")
-    industries: Optional[List[str]] = Field(None, description="Optional list of industry tags.")
-    locale: Dict[str, Any] = Field(
+    industries: Optional[List[IndustryToken]] = Field(None, description="Optional list of industry tags.")
+    locale: LocaleDict = Field(
         default_factory=dict,
         description="Optional locale/region information and arbitrary locale metadata.",
     )
-    company_sizes: Optional[List[str]] = Field(None, description="Optional company size tags.")
+    company_sizes: Optional[List[CompanySizeToken]] = Field(
+        None,
+        description="Optional list of company size tags.",
+    )
     regulatory_frameworks: Optional[List[str]] = Field(
         None, description="Optional list of regulatory frameworks relevant to this document."
     )
@@ -68,6 +88,42 @@ class Meta(BaseModel):
             "expressed as namespaced ids (e.g. 'attck:T1059.003')."
         ),
     )
+
+    @field_validator("locale", mode="before")
+    @classmethod
+    def _validate_locale(cls, v: Any) -> Dict[str, Any]:
+        if v is None:
+            raise TypeError("meta.locale must be an object (not null)")
+        if not isinstance(v, dict):
+            raise TypeError("meta.locale must be an object")
+
+        regions = v.get("regions")
+        if regions is not None:
+            if not isinstance(regions, list):
+                raise TypeError("meta.locale.regions must be a list")
+            for item in regions:
+                if not isinstance(item, str):
+                    raise TypeError("meta.locale.regions entries must be strings")
+                if item not in ALLOWED_REGION_TOKENS:
+                    raise ValueError(
+                        "meta.locale.regions contains an invalid region token: "
+                        f"{item!r}. Allowed: {list(ALLOWED_REGION_TOKENS)!r}"
+                    )
+
+        countries = v.get("countries")
+        if countries is not None:
+            if not isinstance(countries, list):
+                raise TypeError("meta.locale.countries must be a list")
+            for item in countries:
+                if not isinstance(item, str):
+                    raise TypeError("meta.locale.countries entries must be strings")
+                if not re.match(ISO3166_1_ALPHA2_PATTERN, item):
+                    raise ValueError(
+                        "meta.locale.countries contains an invalid ISO 3166-1 alpha-2 code: "
+                        f"{item!r}. Expected uppercase two-letter code (e.g. 'DE')."
+                    )
+
+        return v
 
 
 # --- Data ---

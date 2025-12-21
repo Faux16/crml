@@ -19,6 +19,7 @@ nav:
     - Python API: Language/Python-API.md
     - Validation: Language/Validation.md
     - CRML Schema: Reference/CRML-Schema.md
+    - Schema Field Reference: Reference/CRML-Schema-Field-Reference.md
 
   - Engine (crml_engine):
     - Overview: Engine/Overview.md

@@ -1,6 +1,13 @@
 crml_scenario: "1.0"
 meta:
   name: "Phishing -> account takeover"
+  industries:
+    - all
+  company_sizes:
+    - all
+  locale:
+    regions:
+      - all
 scenario:
   controls:
     - id: "org:iam.mfa"

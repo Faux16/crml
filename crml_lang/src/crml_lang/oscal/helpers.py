@@ -38,6 +38,11 @@ def list_endpoints() -> list[dict[str, Any]]:
                 "source": e.source,
                 "kind": e.kind,
                 "catalog_id": e.catalog_id,
+                "regions": e.regions,
+                "countries": e.countries,
+                "locale": e.locale.model_dump(exclude_none=True) if e.locale is not None else None,
+                "industries": e.industries,
+                "meta": dict(e.meta_overrides) if e.meta_overrides is not None else None,
                 "framework": e.framework_override,
                 "namespace": e.namespace_override,
                 "meta_name": e.meta_name,
@@ -121,8 +126,19 @@ def control_catalog_from_endpoint_obj(
         framework=framework,
         catalog_id=endpoint.catalog_id or None,
         meta_name=endpoint.meta_name or None,
-        source_url=endpoint.source,
+        source_url=endpoint.url,
     )
+
+    meta = payload.get("meta")
+    if isinstance(meta, dict):
+        if endpoint.meta_overrides is not None:
+            meta.update(endpoint.meta_overrides)
+        else:
+            # Backwards-compatible injection path.
+            if endpoint.locale is not None:
+                meta["locale"] = endpoint.locale.model_dump(exclude_none=True)
+            if endpoint.industries is not None:
+                meta["industries"] = endpoint.industries
     return CRControlCatalog.model_validate(payload), prov
 
 
@@ -145,7 +161,7 @@ def assessment_template_from_endpoint(
         framework=framework,
         assessment_id=None,
         meta_name=None,
-        source_url=endpoint.source,
+        source_url=endpoint.url,
         default_scf_cmm_level=0,
     )
     return CRAssessment.model_validate(payload), prov

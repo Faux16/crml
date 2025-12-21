@@ -28,6 +28,13 @@ meta:
     2) As a reusable baseline that a tool can translate to internal controls
        using a CIS→Org mapping pack (Lesson 05).
   tags: ["example", "lessons", "phishing", "cisv8", "attck"]
+  industries:
+    - all
+  company_sizes:
+    - all
+  locale:
+    regions:
+      - all
   attck:
     - "attck:TA0001"
     - "attck:T1566"

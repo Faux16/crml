@@ -20,8 +20,10 @@ meta:
     - waf
   industries:
     - all
+  company_sizes:
+    - enterprise
   locale:
-    regions: [world]
+    regions: [north-america]
     countries: [US]
 
 data:

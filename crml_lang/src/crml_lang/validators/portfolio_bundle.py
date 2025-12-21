@@ -536,6 +536,8 @@ def validate_portfolio_bundle(
     if errors:
         return ValidationReport(ok=False, errors=errors, warnings=[])
 
+    warnings = _semantic_warnings(data)
+
     pb = data.get("portfolio_bundle")
     semantic_errors: list[ValidationMessage] = []
     if isinstance(pb, dict):
@@ -544,8 +546,6 @@ def validate_portfolio_bundle(
         except Exception:
             # Semantic checks are best-effort; if they crash, don't block schema validation.
             semantic_errors = []
-
-    warnings = _semantic_warnings(data)
 
     errors.extend(semantic_errors)
 

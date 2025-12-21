@@ -16,6 +16,11 @@ portfolio_bundle:
       name: "Lesson 01 — baseline bundle"
       description: "Executable bundle for Lesson 01 (single baseline scenario)."
       tags: ["example", "lessons", "bundle"]
+      industries: [professional-services]
+      company_sizes: [small]
+      locale:
+        regions: [north-america]
+        countries: [US]
 
     portfolio:
       semantics:
@@ -43,6 +48,11 @@ portfolio_bundle:
         meta:
           name: "fair-baseline (in Lesson 01 bundle)"
           tags: ["example", "lessons", "bundle", "fair"]
+          industries: [professional-services]
+          company_sizes: [small]
+          locale:
+            regions: [north-america]
+            countries: [US]
         scenario:
           frequency:
             basis: per_organization_per_year

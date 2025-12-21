@@ -799,7 +799,7 @@
           "type": "string"
         },
         "meta": {
-          "$ref": "#/$defs/Meta",
+          "$ref": "#/$defs/PortfolioMeta",
           "description": "Document metadata (name, description, tags, etc.)."
         },
         "portfolio": {
@@ -865,6 +865,19 @@
       "title": "CRScenario",
       "type": "object"
     },
+    "CompanySizeToken": {
+      "description": "Canonical CRML company size tokens.\n\nValues are strict and must match exactly.",
+      "enum": [
+        "all",
+        "micro",
+        "small",
+        "medium",
+        "large",
+        "enterprise"
+      ],
+      "title": "CompanySizeToken",
+      "type": "string"
+    },
     "ConditionalRelationship": {
       "properties": {
         "type": {
@@ -915,6 +928,19 @@
           "description": "Optional identifier for this catalog (organization-owned).",
           "title": "Id"
         },
+        "oscal_uuid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional OSCAL UUID for the source catalog (interoperability metadata). CRML tooling should continue to reference the catalog via 'catalog.id' and controls via canonical 'id'.",
+          "title": "Oscal Uuid"
+        },
         "framework": {
           "description": "Free-form framework label for humans/tools.",
           "title": "Framework",
@@ -927,6 +953,22 @@
           },
           "title": "Controls",
           "type": "array"
+        },
+        "groups": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ControlCatalogGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional hierarchical group structure (e.g., OSCAL groups). Groups reference controls by id via 'control_ids'.",
+          "title": "Groups"
         }
       },
       "required": [
@@ -988,6 +1030,19 @@
           "description": "Optional short human-readable title for the control.",
           "title": "Title"
         },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form description text for this control entry. Only include standard/control prose if you have rights to distribute it.",
+          "title": "Description"
+        },
         "url": {
           "anyOf": [
             {
@@ -1044,6 +1099,73 @@
         "id"
       ],
       "title": "ControlCatalogEntry",
+      "type": "object"
+    },
+    "ControlCatalogGroup": {
+      "description": "Optional hierarchical grouping for control catalogs.\n\nDesigned to represent OSCAL `groups[]` without duplicating control objects.",
+      "properties": {
+        "id": {
+          "description": "Group identifier (OSCAL group id).",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional human-readable group title.",
+          "title": "Title"
+        },
+        "control_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1",
+                "maxLength": 256,
+                "minLength": 1,
+                "not": {
+                  "pattern": "^attck:"
+                },
+                "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of control ids that belong to this group.",
+          "title": "Control Ids"
+        },
+        "groups": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ControlCatalogGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional nested sub-groups (recursive).",
+          "title": "Groups"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ControlCatalogGroup",
       "type": "object"
     },
     "ControlRelationship": {
@@ -1865,6 +1987,28 @@
       "title": "Grouping",
       "type": "object"
     },
+    "IndustryToken": {
+      "description": "Canonical CRML industry tokens.\n\nValues are strict and must match exactly.",
+      "enum": [
+        "all",
+        "financial-services",
+        "healthcare",
+        "manufacturing",
+        "retail-wholesale",
+        "technology",
+        "professional-services",
+        "education",
+        "government",
+        "energy-utilities",
+        "transportation-logistics",
+        "media-entertainment",
+        "construction-real-estate",
+        "hospitality-food-service",
+        "nonprofit-ngo"
+      ],
+      "title": "IndustryToken",
+      "type": "string"
+    },
     "Meta": {
       "properties": {
         "name": {
@@ -1898,6 +2042,19 @@
           "description": "Optional free-form description.",
           "title": "Description"
         },
+        "reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional reference URL for this document (provenance pointer). Tools should set this only when the source is a URL (not a local path).",
+          "title": "Reference"
+        },
         "author": {
           "anyOf": [
             {
@@ -1928,7 +2085,7 @@
           "anyOf": [
             {
               "items": {
-                "type": "string"
+                "$ref": "#/$defs/IndustryToken"
               },
               "type": "array"
             },
@@ -1943,6 +2100,53 @@
         "locale": {
           "additionalProperties": true,
           "description": "Optional locale/region information and arbitrary locale metadata.",
+          "properties": {
+            "regions": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "all",
+                      "world",
+                      "north-america",
+                      "latin-america",
+                      "europe",
+                      "middle-east-africa",
+                      "asia-pacific",
+                      "oceania"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional list of region tokens.",
+              "title": "Regions"
+            },
+            "countries": {
+              "anyOf": [
+                {
+                  "items": {
+                    "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+                    "pattern": "^[A-Z]{2}$",
+                    "title": "iso3166_1_alpha2",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional list of ISO 3166-1 alpha-2 country codes.",
+              "title": "Countries"
+            }
+          },
           "title": "Locale",
           "type": "object"
         },
@@ -1950,7 +2154,7 @@
           "anyOf": [
             {
               "items": {
-                "type": "string"
+                "$ref": "#/$defs/CompanySizeToken"
               },
               "type": "array"
             },
@@ -1959,7 +2163,7 @@
             }
           ],
           "default": null,
-          "description": "Optional company size tags.",
+          "description": "Optional list of company size tags.",
           "title": "Company Sizes"
         },
         "regulatory_frameworks": {
@@ -2443,6 +2647,223 @@
         }
       },
       "title": "PortfolioDependency",
+      "type": "object"
+    },
+    "PortfolioMeta": {
+      "properties": {
+        "name": {
+          "description": "Human-friendly name for this document.",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional version string for this document.",
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form description.",
+          "title": "Description"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional reference URL for this document (provenance pointer). Tools should set this only when the source is a URL (not a local path).",
+          "title": "Reference"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional author/owner.",
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional organization name.",
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/IndustryToken"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of industry tags.",
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "description": "Optional locale/region information and arbitrary locale metadata.",
+          "properties": {
+            "regions": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "all",
+                      "world",
+                      "north-america",
+                      "latin-america",
+                      "europe",
+                      "middle-east-africa",
+                      "asia-pacific",
+                      "oceania"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional list of region tokens.",
+              "title": "Regions"
+            },
+            "countries": {
+              "anyOf": [
+                {
+                  "items": {
+                    "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+                    "pattern": "^[A-Z]{2}$",
+                    "title": "iso3166_1_alpha2",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional list of ISO 3166-1 alpha-2 country codes.",
+              "title": "Countries"
+            }
+          },
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CompanySizeToken"
+              },
+              "maxItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of company size tags (at most one entry for portfolios).",
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of regulatory frameworks relevant to this document.",
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of user-defined tags.",
+          "title": "Tags"
+        },
+        "attck": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "ATT&CK identifier in canonical namespaced form 'namespace:key' (no whitespace). Recommended namespace is 'attck'. Examples: attck:TA0001, attck:T1059, attck:T1059.003",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of ATT&CK tactic/technique/sub-technique identifiers relevant to this document, expressed as namespaced ids (e.g. 'attck:T1059.003').",
+          "title": "Attck"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "PortfolioMeta",
       "type": "object"
     },
     "PortfolioSemantics": {
@@ -2968,6 +3389,12 @@
       },
       "title": "SeverityParameters",
       "type": "object"
+    },
+    "iso3166_1_alpha2": {
+      "type": "string",
+      "title": "iso3166_1_alpha2",
+      "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+      "pattern": "^[A-Z]{2}$"
     }
   },
   "description": "Engine-agnostic bundle produced by the language layer.\n\nA portfolio bundle is a single, self-contained artifact that contains:\n- the portfolio document\n- referenced scenario documents inlined\n- optionally, referenced control packs inlined\n\nThe bundle is intended as the contract between `crml_lang` and engines.",

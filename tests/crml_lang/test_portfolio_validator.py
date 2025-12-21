@@ -179,3 +179,70 @@ portfolio:
     report = validate_portfolio(str(portfolio), source_kind="path")
     assert report.ok is True
     assert any("per_asset_unit_per_year" in w.message and "E=0" in w.message for w in report.warnings)
+
+
+def test_validate_portfolio_warns_when_scenario_file_missing(tmp_path):
+    portfolio = tmp_path / "portfolio.yaml"
+    portfolio.write_text(
+        """
+crml_portfolio: "1.0"
+meta: {name: "p"}
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+  scenarios:
+    - id: missing
+      path: missing-scenario.yaml
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    report = validate_portfolio(str(portfolio), source_kind="path")
+    assert report.ok is True
+    assert any("Scenario file not found" in w.message for w in report.warnings)
+
+
+def test_validate_portfolio_warns_when_control_catalog_file_missing(tmp_path):
+    portfolio = tmp_path / "portfolio.yaml"
+    portfolio.write_text(
+        """
+crml_portfolio: "1.0"
+meta: {name: "p"}
+portfolio:
+  semantics:
+    method: sum
+  control_catalogs: [missing-catalog.yaml]
+  scenarios:
+    - id: s1
+      path: s1.yaml
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    report = validate_portfolio(str(portfolio), source_kind="path")
+    assert report.ok is True
+    assert any("Control catalog file not found" in w.message for w in report.warnings)
+
+
+def test_validate_portfolio_warns_when_assessment_file_missing(tmp_path):
+    portfolio = tmp_path / "portfolio.yaml"
+    portfolio.write_text(
+        """
+crml_portfolio: "1.0"
+meta: {name: "p"}
+portfolio:
+  semantics:
+    method: sum
+  assessments: [missing-assessment.yaml]
+  scenarios:
+    - id: s1
+      path: s1.yaml
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    report = validate_portfolio(str(portfolio), source_kind="path")
+    assert report.ok is True
+    assert any("Assessment file not found" in w.message for w in report.warnings)

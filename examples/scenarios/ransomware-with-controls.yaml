@@ -8,9 +8,9 @@ meta:
   tags: ["ransomware", "controls", "defense-in-depth"]
   industries: ["all"]
   locale:
-    regions: ["world"]
+    regions: ["all"]
     countries: []
-  company_size: ["enterprise"]
+  company_sizes: ["enterprise"]
 
 scenario:
   frequency:

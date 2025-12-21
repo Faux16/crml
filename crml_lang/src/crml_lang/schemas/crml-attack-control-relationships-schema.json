@@ -182,6 +182,41 @@
       "title": "AttackControlTarget",
       "type": "object"
     },
+    "CompanySizeToken": {
+      "description": "Canonical CRML company size tokens.\n\nValues are strict and must match exactly.",
+      "enum": [
+        "all",
+        "micro",
+        "small",
+        "medium",
+        "large",
+        "enterprise"
+      ],
+      "title": "CompanySizeToken",
+      "type": "string"
+    },
+    "IndustryToken": {
+      "description": "Canonical CRML industry tokens.\n\nValues are strict and must match exactly.",
+      "enum": [
+        "all",
+        "financial-services",
+        "healthcare",
+        "manufacturing",
+        "retail-wholesale",
+        "technology",
+        "professional-services",
+        "education",
+        "government",
+        "energy-utilities",
+        "transportation-logistics",
+        "media-entertainment",
+        "construction-real-estate",
+        "hospitality-food-service",
+        "nonprofit-ngo"
+      ],
+      "title": "IndustryToken",
+      "type": "string"
+    },
     "Meta": {
       "properties": {
         "name": {
@@ -215,6 +250,19 @@
           "description": "Optional free-form description.",
           "title": "Description"
         },
+        "reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional reference URL for this document (provenance pointer). Tools should set this only when the source is a URL (not a local path).",
+          "title": "Reference"
+        },
         "author": {
           "anyOf": [
             {
@@ -245,7 +293,7 @@
           "anyOf": [
             {
               "items": {
-                "type": "string"
+                "$ref": "#/$defs/IndustryToken"
               },
               "type": "array"
             },
@@ -260,6 +308,53 @@
         "locale": {
           "additionalProperties": true,
           "description": "Optional locale/region information and arbitrary locale metadata.",
+          "properties": {
+            "regions": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "all",
+                      "world",
+                      "north-america",
+                      "latin-america",
+                      "europe",
+                      "middle-east-africa",
+                      "asia-pacific",
+                      "oceania"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional list of region tokens.",
+              "title": "Regions"
+            },
+            "countries": {
+              "anyOf": [
+                {
+                  "items": {
+                    "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+                    "pattern": "^[A-Z]{2}$",
+                    "title": "iso3166_1_alpha2",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional list of ISO 3166-1 alpha-2 country codes.",
+              "title": "Countries"
+            }
+          },
           "title": "Locale",
           "type": "object"
         },
@@ -267,7 +362,7 @@
           "anyOf": [
             {
               "items": {
-                "type": "string"
+                "$ref": "#/$defs/CompanySizeToken"
               },
               "type": "array"
             },
@@ -276,7 +371,7 @@
             }
           ],
           "default": null,
-          "description": "Optional company size tags.",
+          "description": "Optional list of company size tags.",
           "title": "Company Sizes"
         },
         "regulatory_frameworks": {
@@ -391,6 +486,12 @@
       ],
       "title": "Reference",
       "type": "object"
+    },
+    "iso3166_1_alpha2": {
+      "type": "string",
+      "title": "iso3166_1_alpha2",
+      "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+      "pattern": "^[A-Z]{2}$"
     }
   },
   "properties": {

@@ -4,7 +4,8 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import AliasChoices, BaseModel, Field, ConfigDict, field_validator
 
-from .scenario_model import Meta
+from .scenario_model import Meta as ScenarioMeta
+from .meta_tokens import CompanySizeToken
 from .control_ref import ControlId
 from .coverage_model import Coverage
 from .numberish import parse_intish
@@ -259,9 +260,17 @@ class Portfolio(BaseModel):
     )
 
 
+class PortfolioMeta(ScenarioMeta):
+    company_sizes: Optional[List[CompanySizeToken]] = Field(
+        None,
+        max_length=1,
+        description="Optional list of company size tags (at most one entry for portfolios).",
+    )
+
+
 class CRPortfolio(BaseModel):
     crml_portfolio: Literal["1.0"] = Field(..., description="Portfolio document version identifier.")
-    meta: Meta = Field(..., description="Document metadata (name, description, tags, etc.).")
+    meta: PortfolioMeta = Field(..., description="Document metadata (name, description, tags, etc.).")
     portfolio: Portfolio = Field(..., description="The portfolio payload.")
 
     model_config = ConfigDict(populate_by_name=True)

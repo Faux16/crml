@@ -18,6 +18,11 @@ meta:
 
     This is the smallest "portfolio-shaped" executable example.
   tags: ["example", "lessons", "portfolio", "baseline"]
+  industries: [professional-services]
+  company_sizes: [small]
+  locale:
+    regions: [north-america]
+    countries: [US]
 
 portfolio:
   semantics:

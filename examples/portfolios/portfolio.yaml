@@ -1,6 +1,11 @@
 crml_portfolio: "1.0"
 meta:
   name: "Example portfolio"
+  industries: [professional-services]
+  company_sizes: [medium]
+  locale:
+    regions: [north-america]
+    countries: [US]
 portfolio:
   semantics:
     method: sum

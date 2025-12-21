@@ -8,6 +8,13 @@ meta:
   tags:
     - example
     - phishing
+  industries:
+    - all
+  company_sizes:
+    - all
+  locale:
+    regions:
+      - all
   # Optional: ATT&CK tactic/technique/sub-technique identifiers relevant to this scenario.
   # These are metadata for classification, reporting, and crosswalks.
   attck:

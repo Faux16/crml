@@ -63,6 +63,20 @@ catalog:
       source: catalog.controls[].links[0].href
       target: crml_control_catalog.catalog.controls[].url
 
+  meta:
+    description:
+      source:
+        - catalog.metadata.remarks
+        - "Imported from OSCAL and stripped to a redistributable skeleton (no standard text)."
+      target: crml_control_catalog.meta.description
+      notes:
+        - "If metadata.remarks exists, it is included as the primary description text."
+    reference:
+      source: endpoint.url
+      target: crml_control_catalog.meta.reference
+      notes:
+        - "Only set when the source is a URL; do not emit local filesystem paths."
+
 assets:
   intent: "Generate a CRML portfolio asset inventory from an OSCAL source."
   output:
@@ -95,3 +109,5 @@ mapping:
     - mapping_type
   notes:
     - "Exact OSCAL source structures for cross-framework mappings are not standardized in OSCAL core; this section is a placeholder until concrete inputs are chosen."
+
+# Edit-test: patched via VS Code agent `apply_patch` tool.

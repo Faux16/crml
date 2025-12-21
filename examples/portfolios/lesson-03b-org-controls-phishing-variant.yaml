@@ -12,6 +12,11 @@ meta:
     Compare the output of this portfolio to Lesson 03A to see how scenario-scoped
     threat assumptions change results.
   tags: ["example", "lessons", "portfolio", "controls", "compare"]
+  industries: [professional-services]
+  company_sizes: [medium]
+  locale:
+    regions: [north-america]
+    countries: [US]
 
 portfolio:
   semantics:

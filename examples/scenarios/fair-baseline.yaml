@@ -5,13 +5,14 @@ meta:
   description: Simple FAIR-like Poisson + Lognormal model
   author: CRML Team
   locale:
-    regions: ["world"]
+    regions: ["north-america"]
     countries: ["US"]
   tags:
     - fair
     - baseline
-  company_size:
-    - smb
+  company_sizes:
+    - small
+    - medium
   industries:
     - all
 scenario:

@@ -18,6 +18,11 @@ portfolio_bundle:
         Scenario uses internal org control ids.
         Assessment provides posture (SCF CMM levels).
       tags: ["example", "lessons", "bundle", "org", "controls"]
+      industries: [professional-services]
+      company_sizes: [medium]
+      locale:
+        regions: [north-america]
+        countries: [US]
 
     portfolio:
       semantics:
@@ -46,6 +51,11 @@ portfolio_bundle:
           name: "Lesson 02 — phishing (in bundle)"
           tags: ["example", "lessons", "bundle", "phishing"]
           attck: ["attck:TA0001", "attck:T1566", "attck:T1566.001"]
+          industries: [professional-services]
+          company_sizes: [medium]
+          locale:
+            regions: [north-america]
+            countries: [US]
         scenario:
           frequency:
             basis: per_organization_per_year

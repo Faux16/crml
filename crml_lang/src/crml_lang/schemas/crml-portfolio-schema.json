@@ -49,6 +49,19 @@
       "title": "Asset",
       "type": "object"
     },
+    "CompanySizeToken": {
+      "description": "Canonical CRML company size tokens.\n\nValues are strict and must match exactly.",
+      "enum": [
+        "all",
+        "micro",
+        "small",
+        "medium",
+        "large",
+        "enterprise"
+      ],
+      "title": "CompanySizeToken",
+      "type": "string"
+    },
     "ConditionalRelationship": {
       "properties": {
         "type": {
@@ -318,161 +331,27 @@
       "title": "DependencyCopula",
       "type": "object"
     },
-    "Meta": {
-      "properties": {
-        "name": {
-          "description": "Human-friendly name for this document.",
-          "title": "Name",
-          "type": "string"
-        },
-        "version": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional version string for this document.",
-          "title": "Version"
-        },
-        "description": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional free-form description.",
-          "title": "Description"
-        },
-        "author": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional author/owner.",
-          "title": "Author"
-        },
-        "organization": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional organization name.",
-          "title": "Organization"
-        },
-        "industries": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional list of industry tags.",
-          "title": "Industries"
-        },
-        "locale": {
-          "additionalProperties": true,
-          "description": "Optional locale/region information and arbitrary locale metadata.",
-          "title": "Locale",
-          "type": "object"
-        },
-        "company_sizes": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional company size tags.",
-          "title": "Company Sizes"
-        },
-        "regulatory_frameworks": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional list of regulatory frameworks relevant to this document.",
-          "title": "Regulatory Frameworks"
-        },
-        "tags": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional list of user-defined tags.",
-          "title": "Tags"
-        },
-        "attck": {
-          "anyOf": [
-            {
-              "items": {
-                "description": "ATT&CK identifier in canonical namespaced form 'namespace:key' (no whitespace). Recommended namespace is 'attck'. Examples: attck:TA0001, attck:T1059, attck:T1059.003",
-                "maxLength": 256,
-                "minLength": 1,
-                "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional list of ATT&CK tactic/technique/sub-technique identifiers relevant to this document, expressed as namespaced ids (e.g. 'attck:T1059.003').",
-          "title": "Attck"
-        }
-      },
-      "required": [
-        "name"
+    "IndustryToken": {
+      "description": "Canonical CRML industry tokens.\n\nValues are strict and must match exactly.",
+      "enum": [
+        "all",
+        "financial-services",
+        "healthcare",
+        "manufacturing",
+        "retail-wholesale",
+        "technology",
+        "professional-services",
+        "education",
+        "government",
+        "energy-utilities",
+        "transportation-logistics",
+        "media-entertainment",
+        "construction-real-estate",
+        "hospitality-food-service",
+        "nonprofit-ngo"
       ],
-      "title": "Meta",
-      "type": "object"
+      "title": "IndustryToken",
+      "type": "string"
     },
     "Portfolio": {
       "properties": {
@@ -776,6 +655,223 @@
       "title": "PortfolioDependency",
       "type": "object"
     },
+    "PortfolioMeta": {
+      "properties": {
+        "name": {
+          "description": "Human-friendly name for this document.",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional version string for this document.",
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form description.",
+          "title": "Description"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional reference URL for this document (provenance pointer). Tools should set this only when the source is a URL (not a local path).",
+          "title": "Reference"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional author/owner.",
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional organization name.",
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/IndustryToken"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of industry tags.",
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "description": "Optional locale/region information and arbitrary locale metadata.",
+          "properties": {
+            "regions": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "all",
+                      "world",
+                      "north-america",
+                      "latin-america",
+                      "europe",
+                      "middle-east-africa",
+                      "asia-pacific",
+                      "oceania"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional list of region tokens.",
+              "title": "Regions"
+            },
+            "countries": {
+              "anyOf": [
+                {
+                  "items": {
+                    "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+                    "pattern": "^[A-Z]{2}$",
+                    "title": "iso3166_1_alpha2",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional list of ISO 3166-1 alpha-2 country codes.",
+              "title": "Countries"
+            }
+          },
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CompanySizeToken"
+              },
+              "maxItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of company size tags (at most one entry for portfolios).",
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of regulatory frameworks relevant to this document.",
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of user-defined tags.",
+          "title": "Tags"
+        },
+        "attck": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "ATT&CK identifier in canonical namespaced form 'namespace:key' (no whitespace). Recommended namespace is 'attck'. Examples: attck:TA0001, attck:T1059, attck:T1059.003",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of ATT&CK tactic/technique/sub-technique identifiers relevant to this document, expressed as namespaced ids (e.g. 'attck:T1059.003').",
+          "title": "Attck"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "PortfolioMeta",
+      "type": "object"
+    },
     "PortfolioSemantics": {
       "properties": {
         "method": {
@@ -874,6 +970,12 @@
       ],
       "title": "ScenarioRef",
       "type": "object"
+    },
+    "iso3166_1_alpha2": {
+      "type": "string",
+      "title": "iso3166_1_alpha2",
+      "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+      "pattern": "^[A-Z]{2}$"
     }
   },
   "properties": {
@@ -884,7 +986,7 @@
       "type": "string"
     },
     "meta": {
-      "$ref": "#/$defs/Meta",
+      "$ref": "#/$defs/PortfolioMeta",
       "description": "Document metadata (name, description, tags, etc.)."
     },
     "portfolio": {

@@ -11,6 +11,11 @@ portfolio_bundle:
       name: "Lesson 03B — phishing variant (bundle)"
       description: "Executable bundle for Lesson 03B (variant threat-specific factors)."
       tags: ["example", "lessons", "bundle", "compare"]
+      industries: [professional-services]
+      company_sizes: [medium]
+      locale:
+        regions: [north-america]
+        countries: [US]
 
     portfolio:
       semantics:
@@ -38,6 +43,11 @@ portfolio_bundle:
         meta:
           name: "Lesson 03B — phishing variant (in bundle)"
           tags: ["example", "lessons", "bundle", "phishing", "variant"]
+          industries: [professional-services]
+          company_sizes: [medium]
+          locale:
+            regions: [north-america]
+            countries: [US]
         scenario:
           frequency:
             basis: per_organization_per_year

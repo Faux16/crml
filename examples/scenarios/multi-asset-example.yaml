@@ -3,6 +3,13 @@ meta:
   name: "Multi-Asset Demo (Scenario-Only)"
   version: "1.0"
   description: "Scenario-only example. Multi-asset / per-asset modeling belongs in a portfolio."
+  industries:
+    - all
+  company_sizes:
+    - all
+  locale:
+    regions:
+      - all
 scenario:
   frequency:
     basis: per_organization_per_year

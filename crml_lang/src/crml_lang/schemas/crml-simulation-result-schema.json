@@ -1003,6 +1003,12 @@
       ],
       "title": "Units",
       "type": "object"
+    },
+    "iso3166_1_alpha2": {
+      "type": "string",
+      "title": "iso3166_1_alpha2",
+      "description": "ISO 3166-1 alpha-2 country code (uppercase).",
+      "pattern": "^[A-Z]{2}$"
     }
   },
   "description": "Engine-agnostic, visualization-agnostic simulation result document.\n\nThis model lives in `crml_lang` so engines and UIs can share a stable contract.",

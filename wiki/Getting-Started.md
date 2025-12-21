@@ -129,6 +129,26 @@ See: [Multi-Currency Support](Multi-Currency-Support.md)
 
 ---
 
+## 4.5) Optional: generate control catalogs from OSCAL
+
+This repo includes an OSCAL endpoints config at `crml_lang/src/crml_lang/oscal/api-endpoints.yaml`.
+
+To generate CRML control catalogs for all catalog endpoints into the examples folder:
+
+```bash
+python -m crml_lang oscal export-catalogs \
+  --config crml_lang/src/crml_lang/oscal/api-endpoints.yaml \
+  --out-dir examples/control_catalogs \
+  --sort-keys
+```
+
+Validate the generated files:
+
+```bash
+python -m crml_lang validate examples/control_catalogs/cisv8_1-control-catalog.yaml
+python -m crml_lang validate examples/control_catalogs/bsi_gspp_2023-control-catalog.yaml
+```
+
 ## 5) Optional: CRML Studio
 
 If you want a visual interface, see: [CRML Studio Setup](Installation.md#crml-studio-setup)

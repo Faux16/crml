@@ -1,0 +1,47 @@
+name: Docs (generate schema field reference)
+
+on:
+  push:
+    branches:
+      - "**"
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: Generate schema field reference
+    runs-on: ubuntu-latest
+
+    # Avoid infinite loops when this workflow commits.
+    if: github.actor != 'github-actions[bot]'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate field reference
+        run: |
+          python scripts/generate_schema_field_reference.py
+
+      - name: Commit changes (if any)
+        run: |
+          git status --porcelain
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add wiki/Reference/CRML-Schema-Field-Reference.md
+          git commit -m "chore(docs): regenerate schema field reference"
+          git push

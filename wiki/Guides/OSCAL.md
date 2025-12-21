@@ -137,9 +137,10 @@ The generated catalog intentionally keeps only:
 - control identifiers (`id`),
 - optional `oscal_uuid` (the OSCAL control UUID),
 - short `title` (if present),
+- optional `description` (derived from OSCAL control `parts[].prose`, if present; only include prose you have rights to distribute),
 - a reference `url` (first OSCAL link, if present).
 
-It intentionally strips detailed statements/parts and any long copyrighted prose.
+It still intentionally strips the structured OSCAL statements/parts tree, but it may copy human prose text into `description` for convenience. Be mindful of copyright and redistribution constraints.
 
 Python API:
 
@@ -183,6 +184,22 @@ Each endpoint entry MUST specify **exactly one** of:
 
 If `path` is relative, it is resolved relative to the config file location.
 
+#### Optional locale metadata (regions/countries)
+
+Endpoints may optionally declare locale metadata that will be copied into generated CRML artifacts under `meta.locale`.
+
+The format matches CRML's existing convention used in scenarios/portfolios:
+
+- `regions`: a list of lowercase-ish region tokens like `world`, `europe`, `north-america`
+- `countries`: a list of ISO 3166-1 alpha-2 country codes like `DE`, `US`
+
+Rules:
+
+- You may set `regions` without `countries`.
+- You MUST NOT set `countries` unless `regions` is also provided.
+
+For backwards compatibility, endpoint files may also use singular `region`/`country` keys; they are normalized into `regions`/`countries`.
+
 Example:
 
 ```yaml
@@ -191,6 +208,8 @@ catalogs:
     description: My local OSCAL catalog
     path: ./oscal/catalog.json
     catalog_id: my_catalog_v1
+    regions: [europe]
+    countries: [DE]
 
 assets: []
 assessments: []
@@ -305,10 +324,7 @@ OSCAL catalogs do not include organization-specific posture values. The import t
 
 This repository currently does **not** implement exporting CRML results into OSCAL Assessment Results (`finding`/`risk`) objects.
 
-The earlier "CRML → OSCAL" mapping tables (findings/risks/characterizations/`urn:crml` props) describe a **proposed convention** only. If you want, we can:
-
-- keep that convention in a separate "Future / Draft" section, or
-- implement an exporter in code (and then make the guide normative again).
+The earlier "CRML → OSCAL" mapping tables (findings/risks/characterizations/`urn:crml` props) describe a **proposed convention** only.
 
 When an original framework author/publisher provides an OSCAL representation, exporters/importers **SHOULD** treat the framework’s published identifier as canonical:
 

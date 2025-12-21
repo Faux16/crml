@@ -3,6 +3,13 @@ meta:
   name: "Multi-Scenario Demo"
   version: "1.0"
   description: "A model demonstrating aggregation of distinct risk scenarios."
+  industries:
+    - all
+  company_sizes:
+    - all
+  locale:
+    regions:
+      - all
 scenario:
   frequency:
     basis: per_organization_per_year

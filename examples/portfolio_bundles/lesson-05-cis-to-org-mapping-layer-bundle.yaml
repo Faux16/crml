@@ -21,6 +21,11 @@ portfolio_bundle:
         - Runtime today: scenario uses org ids so the reference engine can apply posture.
         - Tooling artifact: CIS→Org mapping pack is embedded for crosswalk workflows.
       tags: ["example", "lessons", "bundle", "org", "mapping"]
+      industries: [professional-services]
+      company_sizes: [medium]
+      locale:
+        regions: [north-america]
+        countries: [US]
 
     portfolio:
       semantics:
@@ -48,6 +53,11 @@ portfolio_bundle:
         meta:
           name: "Lesson 05 — phishing (org translated, in bundle)"
           tags: ["example", "lessons", "bundle", "org"]
+          industries: [professional-services]
+          company_sizes: [medium]
+          locale:
+            regions: [north-america]
+            countries: [US]
         scenario:
           frequency:
             basis: per_organization_per_year

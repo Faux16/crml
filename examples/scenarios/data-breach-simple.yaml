@@ -8,12 +8,13 @@ meta:
     - data-breach
     - beginner
     - pii
-  company_size:
-    - smb
+  company_sizes:
+    - small
+    - medium
   industries:
     - all
   locale:
-    regions: ["world"]
+    regions: ["north-america"]
     countries: ["US"]
 scenario:
   frequency:

@@ -21,6 +21,39 @@ _CURRENT_VERSION = "1.0"
 _RECOMMENDED_META_KEYS = ("version", "description", "author", "industries")
 
 
+def _warn_missing_applicability_tags(*, meta: dict[str, Any], warnings: list[ValidationMessage]) -> None:
+    """Warn when scenario applicability metadata is completely missing.
+
+    Portfolios can only perform meaningful applicability/relevance checks if
+    scenarios provide at least one of: industries, company_sizes, locale.regions.
+    """
+    industries = meta.get("industries")
+    company_sizes = meta.get("company_sizes")
+    locale = meta.get("locale") if isinstance(meta.get("locale"), dict) else {}
+    regions = locale.get("regions") if isinstance(locale, dict) else None
+
+    has_industries = isinstance(industries, list) and any(isinstance(x, str) and x.strip() for x in industries)
+    has_company_sizes = isinstance(company_sizes, list) and any(
+        isinstance(x, str) and x.strip() for x in company_sizes
+    )
+    has_regions = isinstance(regions, list) and any(isinstance(x, str) and x.strip() for x in regions)
+
+    if has_industries or has_company_sizes or has_regions:
+        return
+
+    warnings.append(
+        ValidationMessage(
+            level="warning",
+            source="semantic",
+            path="meta",
+            message=(
+                "Scenario applicability metadata is missing: none of meta.industries, meta.company_sizes, or meta.locale.regions is set. "
+                "This makes it hard for portfolios to check whether the scenario is applicable to the organization context."
+            ),
+        )
+    )
+
+
 def _warn_non_current_version(*, data: dict[str, Any], warnings: list[ValidationMessage]) -> None:
     """Emit a warning if the scenario document version is not the current one."""
     # Warn if using non-current CRML version
@@ -203,6 +236,7 @@ def _semantic_warnings(data: dict[str, Any]) -> list[ValidationMessage]:
 
     meta = data.get("meta", {}) if isinstance(data.get("meta"), dict) else {}
     _warn_missing_meta_fields(meta=meta, warnings=warnings)
+    _warn_missing_applicability_tags(meta=meta, warnings=warnings)
 
     locale = meta.get("locale", {}) if isinstance(meta.get("locale"), dict) else {}
     _warn_missing_regions(locale=locale, warnings=warnings)

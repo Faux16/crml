@@ -241,6 +241,7 @@ class CRControlCatalog(_CRControlCatalog):
         meta_name: str | None = None,
         source_url: str | None = None,
         license_terms: str | None = None,
+        include_prose: bool = True,
     ) -> "CRControlCatalog":
         """Create a CRML Control Catalog from an OSCAL Catalog file (JSON/YAML).
 
@@ -270,6 +271,7 @@ class CRControlCatalog(_CRControlCatalog):
             meta_name=meta_name,
             source_url=source_url,
             license_terms=license_terms,
+            include_prose=bool(include_prose),
         )
         return cls.model_validate(payload)
 

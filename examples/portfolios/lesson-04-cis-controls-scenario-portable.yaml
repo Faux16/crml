@@ -21,6 +21,11 @@ meta:
     - It demonstrates CIS-as-canonical posture (so the scenario runs today).
     - It also includes ATT&CK catalogs and ATT&CK→CIS mapping packs for tooling.
   tags: ["example", "lessons", "portfolio", "cisv8", "attck"]
+  industries: [professional-services]
+  company_sizes: [medium]
+  locale:
+    regions: [north-america]
+    countries: [US]
 
 portfolio:
   semantics:

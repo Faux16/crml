@@ -7,6 +7,10 @@ The CRML language is validated via JSON Schema (as emitted by the `crml_lang` Py
 
 CRML is **not** a single schema: it is a set of document types, each with its own schema.
 
+Field-by-field reference (generated from the JSON Schemas):
+
+- [CRML-Schema-Field-Reference](CRML-Schema-Field-Reference.md)
+
 ---
 
 ## Language schemas (`crml_lang`)
@@ -65,6 +69,10 @@ if not report.ok:
 ```
 
 For exact field-by-field constraints, open the schema JSON files directly.
+
+For a generated, field-by-field index across all shipped schemas, see:
+
+- [CRML-Schema-Field-Reference](CRML-Schema-Field-Reference.md)
 
 ---
 

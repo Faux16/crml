@@ -11,6 +11,11 @@ portfolio_bundle:
       name: "Lesson 03A — baseline phishing (bundle)"
       description: "Executable bundle for Lesson 03A (baseline phishing)."
       tags: ["example", "lessons", "bundle", "compare"]
+      industries: [professional-services]
+      company_sizes: [medium]
+      locale:
+        regions: [north-america]
+        countries: [US]
 
     portfolio:
       semantics:
@@ -38,6 +43,11 @@ portfolio_bundle:
         meta:
           name: "Lesson 03A — phishing (in bundle)"
           tags: ["example", "lessons", "bundle", "phishing"]
+          industries: [professional-services]
+          company_sizes: [medium]
+          locale:
+            regions: [north-america]
+            countries: [US]
         scenario:
           frequency:
             basis: per_organization_per_year

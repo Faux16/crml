@@ -11,7 +11,7 @@ def test_validate_portfolio_relevance_industry_mismatch_is_error(tmp_path) -> No
 crml_scenario: "1.0"
 meta:
   name: "Scenario"
-  industries: ["finance"]
+  industries: ["financial-services"]
 scenario:
   frequency:
     basis: per_organization_per_year

@@ -352,10 +352,12 @@ def _inline_scenarios(
     """Inline scenario documents referenced by the portfolio.
 
     Returns:
-        A pair of (bundled_scenarios, errors). If any error occurs while loading
-        a referenced scenario, the errors list is returned non-empty.
+        A pair of (bundled_scenarios, messages).
+        - Missing scenario files on disk are reported as errors.
+        - Invalid scenario documents (e.g. schema errors) are reported as errors.
+        - In model mode with resolve_references=False, missing provided scenarios are errors.
     """
-    errors: list[BundleMessage] = []
+    messages: list[BundleMessage] = []
     bundled: list[BundledScenario] = []
 
     for idx, sref in enumerate(portfolio_doc.portfolio.scenarios):
@@ -368,17 +370,17 @@ def _inline_scenarios(
             try:
                 scenario_doc = CRScenario.model_validate(_load_yaml_file(scenario_path))
             except Exception as e:
-                errors.append(
+                messages.append(
                     BundleMessage(
                         level="error",
                         path=f"portfolio.scenarios[{idx}].path",
                         message=f"Failed to inline scenario '{sref.id}' from '{sref.path}': {e}",
                     )
                 )
-                return [], errors
+                return [], messages
 
         if scenario_doc is None:
-            errors.append(
+            messages.append(
                 BundleMessage(
                     level="error",
                     path=f"portfolio.scenarios[{idx}]",
@@ -388,7 +390,7 @@ def _inline_scenarios(
                     ),
                 )
             )
-            return [], errors
+            return [], messages
 
         bundled.append(
             BundledScenario(
@@ -399,7 +401,7 @@ def _inline_scenarios(
             )
         )
 
-    return bundled, errors
+    return bundled, messages
 
 
 def bundle_portfolio(
@@ -488,15 +490,18 @@ def bundle_portfolio(
     )
 
     # Inline scenarios referenced by the portfolio.
-    bundled_scenarios, scenario_errors = _inline_scenarios(
+    bundled_scenarios, scenario_messages = _inline_scenarios(
         portfolio_doc=portfolio_doc,
         base_dir=effective_base_dir,
         source_kind=source_kind,
         scenarios=scenarios,
         resolve_references=resolve_references,
     )
-    if scenario_errors:
-        return BundleReport(ok=False, errors=scenario_errors, warnings=warnings, bundle=None)
+    for m in scenario_messages:
+        if m.level == "warning":
+            warnings.append(m)
+        else:
+            return BundleReport(ok=False, errors=[m], warnings=warnings, bundle=None)
 
     payload = PortfolioBundlePayload(
         portfolio=portfolio_doc,

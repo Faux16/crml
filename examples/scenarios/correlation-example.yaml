@@ -1,6 +1,13 @@
 crml_scenario: "1.0"
 meta:
   name: "Correlation Test"
+  industries:
+    - all
+  company_sizes:
+    - all
+  locale:
+    regions:
+      - all
 scenario:
   frequency:
     basis: per_organization_per_year

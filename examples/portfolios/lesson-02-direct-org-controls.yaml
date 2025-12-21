@@ -23,6 +23,11 @@ meta:
 
     This is the most direct controls workflow: scenario ids match the org catalog.
   tags: ["example", "lessons", "portfolio", "controls", "org"]
+  industries: [professional-services]
+  company_sizes: [medium]
+  locale:
+    regions: [north-america]
+    countries: [US]
 
 portfolio:
   semantics:

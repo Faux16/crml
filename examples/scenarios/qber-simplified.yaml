@@ -7,13 +7,12 @@ meta:
   tags:
     - qber
     - bayesian
-  company_size:
+  company_sizes:
     - enterprise
-    - large-enterprise
   industries:
     - all
   locale:
-    regions: ["world"]
+    regions: ["north-america"]
     countries: ["US"]
 scenario:
   frequency:

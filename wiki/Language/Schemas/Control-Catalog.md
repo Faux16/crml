@@ -56,6 +56,7 @@ See also: `examples/control_catalogs/control-catalog.yaml`.
 ## Catalog fields
 
 - `catalog.id` (optional): organization/community identifier for the catalog
+- `catalog.oscal_uuid` (optional): OSCAL UUID for the source catalog (interoperability metadata)
 - `catalog.framework` (required): free-form label for humans/tools (e.g. `CIS v8`, `ISO27001:2022`, `Org`)
 - `catalog.controls` (required): list of `ControlCatalogEntry`
 
@@ -68,6 +69,7 @@ Each entry is intentionally minimal:
 - `id` (required): canonical id (`namespace:key`)
 - `oscal_uuid` (optional): OSCAL UUID for this control (interoperability metadata)
 - `title` (optional): short human-readable label
+- `description` (optional): free-form description text (only include standard/control prose if you have rights to distribute it)
 - `url` (optional): pointer to reference material
 - `tags` (optional): free-form tags
 - `ref` (optional): structured locator metadata for tools

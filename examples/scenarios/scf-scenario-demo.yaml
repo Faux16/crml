@@ -3,6 +3,13 @@ meta:
   name: "Unsanctioned Access (SCF Demo)"
   description: "A scenario where access control failures lead to unauthorized entry. Mitigated by SCF AC controls."
   tags: ["example", "scf", "scenario"]
+  industries:
+    - all
+  company_sizes:
+    - all
+  locale:
+    regions:
+      - all
 scenario:
   frequency:
     model: poisson

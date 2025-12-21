@@ -170,6 +170,110 @@ def _locale_countries(locale: Any) -> set[str]:
     return out
 
 
+def _locale_regions(locale: Any) -> set[str]:
+    """Extract a normalized set of regions from a locale object."""
+    if not isinstance(locale, dict):
+        return set()
+
+    values: list[str] = []
+    r = locale.get("region")
+    if isinstance(r, str) and r.strip():
+        values.append(r)
+    rs = locale.get("regions")
+    if isinstance(rs, list):
+        for x in rs:
+            if isinstance(x, str) and x.strip():
+                values.append(x)
+
+    out: set[str] = set()
+    for x in values:
+        token = _norm_token(x)
+        if token:
+            out.add(token)
+    return out
+
+
+def _warn_portfolio_applicability_meta(
+    *,
+    portfolio_meta: dict[str, Any],
+    portfolio_industries: set[str],
+    portfolio_company_sizes: set[str],
+    portfolio_regions: set[str],
+    messages: list[ValidationMessage],
+) -> None:
+    """Warn when portfolio context is missing or too broad for relevance checks."""
+
+    if not portfolio_industries:
+        messages.append(
+            ValidationMessage(
+                level="warning",
+                source="semantic",
+                path="meta -> industries",
+                message=(
+                    "meta.industries is missing/empty. Without it, portfolios cannot meaningfully check scenario applicability by industry."
+                ),
+            )
+        )
+    elif "all" in portfolio_industries:
+        messages.append(
+            ValidationMessage(
+                level="warning",
+                source="semantic",
+                path="meta -> industries",
+                message=(
+                    "meta.industries contains 'all'. This makes relevance/applicability checks less specific."
+                ),
+            )
+        )
+
+    if not portfolio_company_sizes:
+        messages.append(
+            ValidationMessage(
+                level="warning",
+                source="semantic",
+                path="meta -> company_sizes",
+                message=(
+                    "meta.company_sizes is missing/empty. Without it, portfolios cannot meaningfully check scenario applicability by company size."
+                ),
+            )
+        )
+    elif "all" in portfolio_company_sizes:
+        messages.append(
+            ValidationMessage(
+                level="warning",
+                source="semantic",
+                path="meta -> company_sizes",
+                message=(
+                    "meta.company_sizes contains 'all'. This makes relevance/applicability checks less specific."
+                ),
+            )
+        )
+
+    # Regions have canonical tokens 'all' and 'world' which effectively mean "all regions".
+    if not portfolio_regions:
+        messages.append(
+            ValidationMessage(
+                level="warning",
+                source="semantic",
+                path="meta -> locale -> regions",
+                message=(
+                    "meta.locale.regions is missing/empty. Without it, portfolios cannot meaningfully check scenario applicability by region."
+                ),
+            )
+        )
+    elif "all" in portfolio_regions or "world" in portfolio_regions:
+        messages.append(
+            ValidationMessage(
+                level="warning",
+                source="semantic",
+                path="meta -> locale -> regions",
+                message=(
+                    "meta.locale.regions contains 'all'/'world' (global). This makes relevance/applicability checks less specific."
+                ),
+            )
+        )
+
+
 def _controls_uniqueness_checks(portfolio: dict[str, Any]) -> list[ValidationMessage]:
     """Validate portfolio.controls entries have string ids and are unique."""
     messages: list[ValidationMessage] = []
@@ -262,13 +366,12 @@ def _validate_control_relationships_references(
         if not os.path.exists(resolved):
             messages.append(
                 ValidationMessage(
-                    level="error",
+                    level="warning",
                     source="semantic",
                     path=f"portfolio -> control_relationships -> {idx}",
                     message=f"Control relationships file not found at path: {resolved}",
                 )
             )
-            paths.append(resolved)
             continue
 
         rel_report = validate_control_relationships(resolved, source_kind="path")
@@ -346,13 +449,13 @@ def _validate_one_catalog_path(
     if not os.path.exists(resolved):
         messages.append(
             ValidationMessage(
-                level="error",
+                level="warning",
                 source="semantic",
                 path=f"portfolio -> control_catalogs -> {idx}",
                 message=f"Control catalog file not found at path: {resolved}",
             )
         )
-        return resolved, messages
+        return None, messages
 
     cat_report = validate_control_catalog(resolved, source_kind="path")
     if not cat_report.ok:
@@ -432,10 +535,10 @@ def _validate_one_assessment_path(
     resolved = _resolve_path(base_dir, p)
     if not os.path.exists(resolved):
         return (
-            resolved,
+            None,
             [
                 ValidationMessage(
-                    level="error",
+                    level="warning",
                     source="semantic",
                     path=f"portfolio -> assessments -> {idx}",
                     message=f"Assessment file not found at path: {resolved}",
@@ -563,7 +666,7 @@ def _scenario_path_existence_checks(
         if not os.path.exists(resolved_path):
             messages.append(
                 ValidationMessage(
-                    level="error",
+                    level="warning",
                     source="semantic",
                     path=f"portfolio -> scenarios -> {idx} -> path",
                     message=f"Scenario file not found at path: {resolved_path}",
@@ -1161,8 +1264,6 @@ def _scenario_cross_checks_one(
 
     resolved_path = _resolve_path(base_dir, spath)
     if not os.path.exists(resolved_path):
-        if require_paths_exist:
-            return [], False
         return (
             [
                 ValidationMessage(
@@ -1190,6 +1291,31 @@ def _scenario_cross_checks_one(
         )
 
     messages: list[ValidationMessage] = []
+
+    # Scenario applicability metadata guidance: if scenarios don't carry any of these,
+    # portfolio relevance checks can't meaningfully assess applicability.
+    try:
+        s_meta = scenario_doc.meta
+        s_locale = s_meta.locale if isinstance(getattr(s_meta, "locale", None), dict) else {}
+        s_regions = s_locale.get("regions") if isinstance(s_locale, dict) else None
+        has_industries = bool(getattr(s_meta, "industries", None))
+        has_company_sizes = bool(getattr(s_meta, "company_sizes", None))
+        has_regions = isinstance(s_regions, list) and len([x for x in s_regions if isinstance(x, str) and x.strip()]) > 0
+        if not (has_industries or has_company_sizes or has_regions):
+            messages.append(
+                ValidationMessage(
+                    level="warning",
+                    source="semantic",
+                    path=f"portfolio -> scenarios -> {idx} -> path",
+                    message=(
+                        "Scenario has no applicability metadata: none of meta.industries, meta.company_sizes, or meta.locale.regions is set. "
+                        "This limits the portfolio's ability to check whether the scenario is applicable to the organization context."
+                    ),
+                )
+            )
+    except Exception:
+        # Best-effort only; never fail validation due to a warning check.
+        pass
 
     messages.extend(
         _frequency_binding_warnings(
@@ -1248,6 +1374,15 @@ def _portfolio_semantic_checks(data: dict[str, Any], *, base_dir: Optional[str] 
     portfolio_company_sizes = _norm_list(portfolio_meta.get("company_sizes"))
     portfolio_frameworks_declared = _norm_list(portfolio_meta.get("regulatory_frameworks"))
     portfolio_countries = _locale_countries(portfolio_meta.get("locale"))
+    portfolio_regions = _locale_regions(portfolio_meta.get("locale"))
+
+    _warn_portfolio_applicability_meta(
+        portfolio_meta=portfolio_meta,
+        portfolio_industries=portfolio_industries,
+        portfolio_company_sizes=portfolio_company_sizes,
+        portfolio_regions=portfolio_regions,
+        messages=messages,
+    )
 
     scenarios = portfolio.get("scenarios")
     if not isinstance(scenarios, list):

@@ -60,12 +60,23 @@ def _build_parser() -> argparse.ArgumentParser:
     ia.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
 
     gc = osub.add_parser(
-        "generate-catalogs",
-        help="Generate CRML control catalogs for all catalog endpoints in a config file",
+        "export-catalogs",
+        help="Export CRML control catalogs for all catalog endpoints in a config file",
     )
     gc.add_argument("--config", required=True, help="Endpoints config YAML (catalogs/assets/assessments/mappings)")
     gc.add_argument("--out-dir", required=True, help="Output directory for generated CRML YAML files")
     gc.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
+
+    # Backwards-compatible alias.
+    gc_old = osub.add_parser(
+        "generate-catalogs",
+        help="(deprecated) Alias for: export-catalogs",
+    )
+    gc_old.add_argument(
+        "--config", required=True, help="Endpoints config YAML (catalogs/assets/assessments/mappings)"
+    )
+    gc_old.add_argument("--out-dir", required=True, help="Output directory for generated CRML YAML files")
+    gc_old.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
 
     return p
 
@@ -101,7 +112,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                     path=args.path,
                     sort_keys=bool(args.sort_keys),
                 )
-            if args.oscal_cmd == "generate-catalogs":
+            if args.oscal_cmd in {"export-catalogs", "generate-catalogs"}:
                 return oscal_generate_catalogs(
                     config=str(args.config),
                     out_dir=str(args.out_dir),

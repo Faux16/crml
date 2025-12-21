@@ -33,6 +33,123 @@ def _extract_title(catalog: dict[str, Any]) -> Optional[str]:
     return None
 
 
+_URL_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://")
+
+
+def _is_url(value: Optional[str]) -> bool:
+    if not value:
+        return False
+    return bool(_URL_RE.match(value.strip()))
+
+
+def _coerce_text(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        s = value.strip()
+        return s or None
+    # Some YAML loaders might parse scalars into non-str types.
+    s = str(value).strip()
+    return s or None
+
+
+def _extract_metadata_remarks(catalog: dict[str, Any]) -> Optional[str]:
+    metadata = catalog.get("metadata")
+    if not isinstance(metadata, dict):
+        return None
+
+    remarks = metadata.get("remarks")
+
+    # OSCAL schema: typically a string; be tolerant.
+    if isinstance(remarks, list):
+        parts: list[str] = []
+        for item in remarks:
+            s = _coerce_text(item)
+            if s:
+                parts.append(s)
+        return "\n".join(parts) if parts else None
+
+    return _coerce_text(remarks)
+
+
+def _coerce_prose(value: Any) -> Optional[str]:
+    """Coerce an OSCAL prose-like value to text.
+
+    OSCAL schemas typically use strings for prose, but some sources may emit
+    lists or non-string scalars.
+    """
+
+    if value is None:
+        return None
+    if isinstance(value, list):
+        parts: list[str] = []
+        for item in value:
+            s = _coerce_text(item)
+            if s:
+                parts.append(s)
+        return "\n".join(parts) if parts else None
+    return _coerce_text(value)
+
+
+def _iter_oscal_parts(node: Any) -> Iterable[dict[str, Any]]:
+    """Yield OSCAL part objects from a control/part subtree."""
+
+    if not isinstance(node, dict):
+        return
+
+    parts = node.get("parts")
+    if isinstance(parts, list):
+        for p in parts:
+            if isinstance(p, dict):
+                yield p
+                yield from _iter_oscal_parts(p)
+
+
+def _extract_control_prose(control: dict[str, Any]) -> Optional[str]:
+    """Extract human prose text from an OSCAL control.
+
+    Prefer `parts[].prose` (and nested parts). Be tolerant to variants.
+    """
+
+    prose_parts: list[str] = []
+
+    direct = _coerce_prose(control.get("prose"))
+    if direct:
+        prose_parts.append(direct)
+
+    for part in _iter_oscal_parts(control):
+        s = _coerce_prose(part.get("prose"))
+        if s:
+            prose_parts.append(s)
+
+    return _join_paragraphs(prose_parts)
+
+
+def _extract_group_prose(group: dict[str, Any]) -> Optional[str]:
+    """Extract human prose text from an OSCAL group.
+
+    OSCAL groups may carry prose directly and/or via parts.
+    """
+
+    prose_parts: list[str] = []
+
+    direct = _coerce_prose(group.get("prose"))
+    if direct:
+        prose_parts.append(direct)
+
+    for part in _iter_oscal_parts(group):
+        s = _coerce_prose(part.get("prose"))
+        if s:
+            prose_parts.append(s)
+
+    return _join_paragraphs(prose_parts)
+
+
+def _join_paragraphs(parts: list[str]) -> Optional[str]:
+    cleaned = [p.strip() for p in parts if isinstance(p, str) and p.strip()]
+    return "\n\n".join(cleaned) if cleaned else None
+
+
 _NS_RE = re.compile(r"^[a-z][a-z0-9_-]{0,31}$")
 
 
@@ -87,6 +204,22 @@ def _first_link_href(control: dict[str, Any]) -> Optional[str]:
     return hrefs[0] if hrefs else None
 
 
+def _first_prop_value(node: dict[str, Any], *, name: str) -> Optional[str]:
+    props = node.get("props")
+    if not isinstance(props, list):
+        return None
+
+    for p in props:
+        if not isinstance(p, dict):
+            continue
+        if str(p.get("name", "")).strip() != name:
+            continue
+        value = _coerce_text(p.get("value"))
+        if value:
+            return value
+    return None
+
+
 def _iter_oscal_controls(node: Any) -> Iterable[dict[str, Any]]:
     """Yield OSCAL control objects from a catalog-like subtree.
 
@@ -113,6 +246,102 @@ def _iter_oscal_controls(node: Any) -> Iterable[dict[str, Any]]:
                 yield from _iter_oscal_controls(g)
 
 
+def _control_id_from_oscal_id(*, namespace: str, oscal_id: Any) -> Optional[str]:
+    if not oscal_id:
+        return None
+    key = _normalize_key(str(oscal_id))
+    return f"{namespace}:{key}"
+
+
+def _slug_group_id(text: str) -> str:
+    """Generate a stable-ish group id if OSCAL group.id is missing.
+
+    This is intentionally simple and conservative; group ids are not used as
+    canonical identifiers outside the document.
+    """
+
+    s = str(text).strip().lower()
+    s = re.sub(r"[^a-z0-9_-]+", "-", s)
+    s = re.sub(r"-+", "-", s).strip("-_ ")
+
+    if not s or not s[:1].isalpha():
+        s = "group"
+
+    return s[:64].strip("-_ ") or "group"
+
+
+def _oscal_groups_to_crml_groups(
+    node: Any, *, namespace: str, include_prose: bool
+) -> list[dict[str, Any]]:
+    if not isinstance(node, dict):
+        return []
+
+    groups = node.get("groups")
+    if not isinstance(groups, list):
+        return []
+
+    out: list[dict[str, Any]] = []
+
+    for g in groups:
+        if not isinstance(g, dict):
+            continue
+
+        gid = _coerce_text(g.get("id"))
+        oscal_uuid = _coerce_text(g.get("uuid"))
+        title = _coerce_text(g.get("title"))
+        prose = _extract_group_prose(g) if include_prose else None
+
+        if not gid and title:
+            gid = _slug_group_id(title)
+
+        # Direct controls in this group (do not include nested sub-controls).
+        control_ids: list[str] = []
+        controls = g.get("controls")
+        if isinstance(controls, list):
+            for c in controls:
+                if not isinstance(c, dict):
+                    continue
+                cid = _control_id_from_oscal_id(namespace=namespace, oscal_id=c.get("id"))
+                if cid and cid not in control_ids:
+                    control_ids.append(cid)
+
+        # Ensure stable output ordering independent of OSCAL input ordering.
+        control_ids.sort()
+
+        nested = _oscal_groups_to_crml_groups(g, namespace=namespace, include_prose=include_prose)
+
+        if not gid:
+            # No id and no title to derive one; skip.
+            if not nested and not control_ids:
+                continue
+            gid = "group"
+
+        item: dict[str, Any] = {"id": gid}
+        if oscal_uuid:
+            item["oscal_uuid"] = oscal_uuid
+        if title:
+            item["title"] = title
+        if prose:
+            item["description"] = prose
+        if control_ids:
+            item["control_ids"] = control_ids
+        if nested:
+            item["groups"] = nested
+
+        out.append(item)
+
+    # Ensure stable ordering of groups at each level.
+    out.sort(
+        key=lambda d: (
+            str(d.get("id") or ""),
+            str(d.get("title") or ""),
+            str(d.get("oscal_uuid") or ""),
+        )
+    )
+
+    return out
+
+
 def _get_catalog_root(oscal_doc: dict[str, Any]) -> dict[str, Any]:
     if "catalog" in oscal_doc and isinstance(oscal_doc["catalog"], dict):
         return oscal_doc["catalog"]
@@ -128,6 +357,7 @@ def oscal_catalog_to_crml_control_catalog(
     meta_name: Optional[str] = None,
     source_url: Optional[str] = None,
     license_terms: Optional[str] = None,
+    include_prose: bool = True,
 ) -> dict[str, Any]:
     """Convert an OSCAL Catalog document into a CRML skeleton control catalog.
 
@@ -135,6 +365,7 @@ def oscal_catalog_to_crml_control_catalog(
     """
 
     catalog = _get_catalog_root(oscal_doc)
+    catalog_oscal_uuid = _coerce_text(catalog.get("uuid"))
 
     controls_out: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -150,11 +381,14 @@ def oscal_catalog_to_crml_control_catalog(
             continue
         seen.add(control_id)
 
-        oscal_uuid = c.get("uuid")
-        oscal_uuid_str = str(oscal_uuid) if oscal_uuid is not None else None
+        # Some OSCAL sources (including certain catalog publishers) store the stable UUID
+        # in a prop like {name: "alt-identifier", value: "..."} instead of control.uuid.
+        oscal_uuid_str = _coerce_text(c.get("uuid")) or _first_prop_value(c, name="alt-identifier")
 
         title = c.get("title")
         title_str = str(title).strip() if isinstance(title, str) and title.strip() else None
+
+        prose = _extract_control_prose(c) if include_prose else None
 
         url = _first_link_href(c)
 
@@ -162,28 +396,54 @@ def oscal_catalog_to_crml_control_catalog(
             id=control_id,
             oscal_uuid=oscal_uuid_str,
             title=title_str,
+            description=prose,
             url=url,
         )
         controls_out.append(entry.model_dump(by_alias=True, exclude_none=True))
 
-    description_lines: list[str] = [
-        "Imported from OSCAL and stripped to a redistributable skeleton (no standard text)."
-    ]
-    if source_url:
-        description_lines.append(f"Source: {source_url}")
+    # Ensure stable ordering of controls (and therefore stable YAML diffs) regardless
+    # of OSCAL group nesting or input file ordering.
+    controls_out.sort(key=lambda d: str(d.get("id") or ""))
+
+    groups_out = _oscal_groups_to_crml_groups(catalog, namespace=namespace, include_prose=include_prose)
+
+    description_parts: list[str] = []
+
+    # Prefer OSCAL-provided human remarks as the primary description.
+    remarks = _extract_metadata_remarks(catalog)
+    if remarks:
+        description_parts.append(remarks)
+
+    if include_prose:
+        description_parts.append("Imported from OSCAL.")
+    else:
+        # Redistribution/skeleton note for safety and clarity.
+        description_parts.append(
+            "Imported from OSCAL and stripped to a redistributable skeleton (no standard text)."
+        )
     if license_terms:
-        description_lines.append(f"Terms: {license_terms}")
+        description_parts.append(f"Terms: {license_terms}")
+
+    description = _join_paragraphs(description_parts)
+
+    meta: dict[str, Any] = {
+        "name": meta_name or f"{framework} (imported from OSCAL)",
+        "description": description,
+    }
+
+    # Preserve provenance when we have a URL, but do not emit local paths.
+    if _is_url(source_url):
+        meta["reference"] = str(source_url).strip()
 
     return {
         "crml_control_catalog": "1.0",
-        "meta": {
-            "name": meta_name or f"{framework} (imported from OSCAL)",
-            "description": "\n".join(description_lines),
-        },
+        "meta": meta,
         "catalog": {
             "id": catalog_id,
+            "oscal_uuid": catalog_oscal_uuid,
             "framework": framework,
             "controls": controls_out,
+            **({"groups": groups_out} if groups_out else {}),
         },
     }
 
@@ -235,20 +495,28 @@ def oscal_catalog_to_crml_assessment(
             }
         )
 
-    description_lines: list[str] = [
+    description_parts: list[str] = []
+    remarks = _extract_metadata_remarks(catalog)
+    if remarks:
+        description_parts.append(remarks)
+    description_parts.append(
         "Generated from an OSCAL catalog as an assessment template (no posture values in OSCAL catalog)."
-    ]
-    if source_url:
-        description_lines.append(f"Source: {source_url}")
+    )
     if license_terms:
-        description_lines.append(f"Terms: {license_terms}")
+        description_parts.append(f"Terms: {license_terms}")
+
+    description = _join_paragraphs(description_parts)
+
+    meta: dict[str, Any] = {
+        "name": meta_name or f"{framework} assessment (imported from OSCAL)",
+        "description": description,
+    }
+    if _is_url(source_url):
+        meta["reference"] = str(source_url).strip()
 
     return {
         "crml_assessment": "1.0",
-        "meta": {
-            "name": meta_name or f"{framework} assessment (imported from OSCAL)",
-            "description": "\n".join(description_lines),
-        },
+        "meta": meta,
         "assessment": {
             "id": assessment_id,
             "framework": framework,

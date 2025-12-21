@@ -9,6 +9,10 @@ import importlib.resources
 
 from crml_lang.yamlio import load_yaml_mapping_from_str
 
+from crml_lang.models.meta_tokens import ALLOWED_COMPANY_SIZE_TOKENS, ALLOWED_INDUSTRY_TOKENS
+
+from .locale import OscalLocale
+
 
 OscalKind = Literal["catalog", "assets", "assessment", "mapping"]
 OscalMappingType = Literal["control_relationships", "attack_control_relationships"]
@@ -35,6 +39,24 @@ class OscalEndpoint:
 
     # --- common ---
     timeout_seconds: float = 30.0
+
+    # --- common locale metadata (optional) ---
+    # These mirror CRML's `meta.locale` conventions: `regions` and `countries`.
+    # Backwards-compatible YAML keys `region`/`country` are also accepted.
+    regions: Optional[list[str]] = None
+    countries: Optional[list[str]] = None
+    locale: Optional[OscalLocale] = None
+
+    # --- common metadata copied into generated CRML artifacts (optional) ---
+    # `meta_overrides` is a CRML-shaped `meta` mapping which will be merged into
+    # generated CRML artifacts (control catalogs, etc.).
+    #
+    # Supported via:
+    # - `meta: { industries: [...], company_sizes: [...], locale: {regions: [...], countries: [...]}, ... }`
+    # - Backwards-compatible top-level keys: `industries`, `company_sizes`, `regions`/`countries`.
+    industries: Optional[list[str]] = None
+    company_sizes: Optional[list[str]] = None
+    meta_overrides: Optional[dict[str, Any]] = None
 
     # --- kind: catalog (optional overrides) ---
     namespace_override: Optional[str] = None
@@ -124,6 +146,56 @@ def _optional_str(item: dict[str, Any], key: str) -> Optional[str]:
     return text or None
 
 
+def _parse_string_list(*, endpoint_id: str, key: str, raw: Any) -> list[str]:
+    if isinstance(raw, str):
+        s = raw.strip()
+        return [s] if s else []
+
+    if not isinstance(raw, list):
+        raise ValueError(
+            f"OSCAL endpoint {endpoint_id!r} field {key!r} must be a string or a list of strings"
+        )
+
+    out: list[str] = []
+    for x in raw:
+        if x is None:
+            continue
+        if not isinstance(x, str):
+            raise ValueError(
+                f"OSCAL endpoint {endpoint_id!r} field {key!r} must contain only strings"
+            )
+        s = x.strip()
+        if s:
+            out.append(s)
+    return out
+
+
+def _validate_industries(*, endpoint_id: str, values: list[str]) -> None:
+    for v in values:
+        if v not in ALLOWED_INDUSTRY_TOKENS:
+            raise ValueError(
+                f"OSCAL endpoint {endpoint_id!r} field 'industries' contains invalid token {v!r}. "
+                f"Allowed: {list(ALLOWED_INDUSTRY_TOKENS)!r}"
+            )
+
+
+def _validate_company_sizes(*, endpoint_id: str, values: list[str]) -> None:
+    for v in values:
+        if v not in ALLOWED_COMPANY_SIZE_TOKENS:
+            raise ValueError(
+                f"OSCAL endpoint {endpoint_id!r} field 'company_sizes' contains invalid token {v!r}. "
+                f"Allowed: {list(ALLOWED_COMPANY_SIZE_TOKENS)!r}"
+            )
+
+
+def _optional_str_list(item: dict[str, Any], *, endpoint_id: str, key: str) -> Optional[list[str]]:
+    raw = item.get(key)
+    if raw is None:
+        return None
+    values = _parse_string_list(endpoint_id=endpoint_id, key=key, raw=raw)
+    return values or None
+
+
 def _parse_kind(item: dict[str, Any], *, default_kind: Optional[OscalKind]) -> OscalKind:
     kind_raw = _optional_str(item, "kind") or (default_kind or "catalog")
     if kind_raw not in ("catalog", "assets", "assessment", "mapping"):
@@ -184,6 +256,96 @@ def _parse_endpoint_item(
     catalog_id = _optional_str(typed, "catalog_id")
     meta_name = _optional_str(typed, "meta_name")
 
+    regions = _optional_str_list(typed, endpoint_id=endpoint_id, key="regions")
+    countries = _optional_str_list(typed, endpoint_id=endpoint_id, key="countries")
+    industries = _optional_str_list(typed, endpoint_id=endpoint_id, key="industries")
+    if industries is not None:
+        _validate_industries(endpoint_id=endpoint_id, values=industries)
+
+    company_sizes = _optional_str_list(typed, endpoint_id=endpoint_id, key="company_sizes")
+    if company_sizes is not None:
+        _validate_company_sizes(endpoint_id=endpoint_id, values=company_sizes)
+
+    meta_overrides_raw = typed.get("meta")
+    if meta_overrides_raw is None:
+        meta_overrides: dict[str, Any] = {}
+    elif not isinstance(meta_overrides_raw, dict):
+        raise ValueError(f"OSCAL endpoint {endpoint_id!r} field 'meta' must be a mapping")
+    else:
+        meta_overrides = dict(meta_overrides_raw)
+
+    meta_industries_raw = meta_overrides.get("industries")
+    if meta_industries_raw is not None:
+        meta_industries = _parse_string_list(
+            endpoint_id=endpoint_id, key="meta.industries", raw=meta_industries_raw
+        )
+        _validate_industries(endpoint_id=endpoint_id, values=meta_industries)
+        meta_overrides["industries"] = meta_industries
+
+    meta_company_sizes_raw = meta_overrides.get("company_sizes")
+    if meta_company_sizes_raw is not None:
+        meta_company_sizes = _parse_string_list(
+            endpoint_id=endpoint_id, key="meta.company_sizes", raw=meta_company_sizes_raw
+        )
+        _validate_company_sizes(endpoint_id=endpoint_id, values=meta_company_sizes)
+        meta_overrides["company_sizes"] = meta_company_sizes
+
+    # Backwards-compatible singular fields.
+    region_single = _optional_str(typed, "region")
+    country_single = _optional_str(typed, "country")
+    if region_single and not regions:
+        regions = [region_single]
+    if country_single and not countries:
+        countries = [country_single]
+
+    # If the endpoint provides a CRML-shaped meta.locale, normalize its regions/countries
+    # while preserving any extra locale keys.
+    locale_from_meta: Optional[OscalLocale] = None
+    meta_locale_raw = meta_overrides.get("locale")
+    if meta_locale_raw is not None:
+        if not isinstance(meta_locale_raw, dict):
+            raise ValueError(
+                f"OSCAL endpoint {endpoint_id!r} field 'meta.locale' must be a mapping"
+            )
+
+        meta_locale = dict(meta_locale_raw)
+        meta_regions = meta_locale.get("regions")
+        meta_countries = meta_locale.get("countries")
+        # Only normalize if either is provided.
+        if meta_regions is not None or meta_countries is not None:
+            locale_from_meta = OscalLocale(
+                regions=_parse_string_list(endpoint_id=endpoint_id, key="meta.locale.regions", raw=meta_regions)
+                if meta_regions is not None
+                else [],
+                countries=_parse_string_list(endpoint_id=endpoint_id, key="meta.locale.countries", raw=meta_countries)
+                if meta_countries is not None
+                else [],
+            )
+            meta_locale["regions"] = locale_from_meta.regions
+            meta_locale["countries"] = locale_from_meta.countries
+            meta_overrides["locale"] = meta_locale
+
+    # Prefer explicit meta.locale for the endpoint locale object; otherwise derive it from
+    # top-level regions/countries.
+    locale = locale_from_meta
+    if locale is None and (regions or countries):
+        locale = OscalLocale(regions=regions or [], countries=countries or [])
+
+    # If top-level industries is set but meta.industries is not, populate it.
+    if industries is not None and "industries" not in meta_overrides:
+        meta_overrides["industries"] = industries
+
+    # If top-level company_sizes is set but meta.company_sizes is not, populate it.
+    if company_sizes is not None and "company_sizes" not in meta_overrides:
+        meta_overrides["company_sizes"] = company_sizes
+
+    # If locale is derived from top-level regions/countries and meta.locale is not set,
+    # populate meta.locale in CRML shape.
+    if locale is not None and "locale" not in meta_overrides:
+        meta_overrides["locale"] = locale.model_dump(exclude_none=True)
+
+    meta_overrides_or_none: Optional[dict[str, Any]] = meta_overrides or None
+
     if kind == "catalog" and not catalog_id:
         raise ValueError(
             f"OSCAL catalog endpoint {endpoint_id!r} is missing required field 'catalog_id'"
@@ -204,6 +366,12 @@ def _parse_endpoint_item(
         default_cardinality=default_cardinality,
         mapping_type=mapping_type,
         timeout_seconds=timeout_seconds,
+        regions=regions,
+        countries=countries,
+        locale=locale,
+        industries=industries,
+        company_sizes=company_sizes,
+        meta_overrides=meta_overrides_or_none,
         namespace_override=namespace_override,
         framework_override=framework_override,
         catalog_id=catalog_id,

@@ -1,5 +1,9 @@
 # Language installation (`crml_lang`)
 
+Canonical installation instructions live here:
+
+- [Installation](../Installation.md)
+
 Install the language package:
 
 ```bash

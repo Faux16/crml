@@ -38,7 +38,7 @@ bundle = report.bundle
 assert bundle is not None
 ```
 
-Bundle from in-memory models (no filesystem access required):
+Bundle from in-memory models:
 
 ```python
 from crml_lang import CRPortfolio, CRScenario, bundle_portfolio
@@ -46,10 +46,20 @@ from crml_lang import CRPortfolio, CRScenario, bundle_portfolio
 portfolio = CRPortfolio.load_from_yaml("examples/portfolios/portfolio.yaml")
 scenario = CRScenario.load_from_yaml("examples/scenarios/data-breach-simple.yaml")
 
+# Manual composition (no filesystem access):
 report = bundle_portfolio(
 	portfolio,
 	source_kind="model",
+	resolve_references=False,
 	scenarios={"s1": scenario},
+)
+print(report.ok)
+
+# Convenience mode (auto-load referenced paths from disk):
+report = bundle_portfolio(
+	portfolio,
+	source_kind="model",
+	base_dir="examples/portfolios",
 )
 print(report.ok)
 ```

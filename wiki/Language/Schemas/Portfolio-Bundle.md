@@ -18,6 +18,12 @@ Key properties:
 
 Most users should not hand-author bundles; they are produced by tooling (e.g., `crml_lang.bundle_portfolio(...)` or `crml-lang bundle-portfolio ...`).
 
+Notes on bundling behavior:
+
+- If you bundle from a portfolio *file path*, referenced documents are loaded from disk and inlined.
+- If you bundle from an in-memory `CRPortfolio` (`source_kind="model"`), the default is to also resolve referenced paths from disk when you provide a `base_dir`.
+- For strict/manual composition (no filesystem access), pass `resolve_references=False` and provide referenced documents explicitly (e.g., `scenarios=...`, `control_catalogs=...`).
+
 ---
 
 ## Top-level structure

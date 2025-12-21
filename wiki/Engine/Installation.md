@@ -1,6 +1,10 @@
 # Engine installation (`crml_engine`)
 
-To run simulations, install the engine package:
+Installation instructions live here:
+
+- [Installation](../Installation.md)
+
+If you only need the engine package:
 
 ```bash
 pip install crml-engine

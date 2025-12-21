@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from crml_lang.api import CRAssessment, CRControlCatalog
 
@@ -11,9 +11,7 @@ from .io import load_oscal_document
 from .provenance import OscalProvenance
 
 
-def get_endpoint(endpoint_id: str, *, extra_paths: Optional[list[str]] = None) -> OscalEndpoint:
-    # NOTE: kept for backwards compatibility; load_endpoints() no longer accepts extra_paths.
-    del extra_paths
+def get_endpoint(endpoint_id: str) -> OscalEndpoint:
     endpoints = load_endpoints()
     for e in endpoints:
         if e.id == endpoint_id:
@@ -21,11 +19,8 @@ def get_endpoint(endpoint_id: str, *, extra_paths: Optional[list[str]] = None) -
     raise OscalEndpointNotFoundError(endpoint_id)
 
 
-def list_endpoints(*, extra_paths: Optional[list[str]] = None) -> list[dict[str, Any]]:
+def list_endpoints() -> list[dict[str, Any]]:
     """Return endpoints as JSON/YAML-friendly dicts (for UIs/CLIs)."""
-
-    # NOTE: kept for backwards compatibility; load_endpoints() no longer accepts extra_paths.
-    del extra_paths
     out: list[dict[str, Any]] = []
     for e in load_endpoints():
         out.append(
@@ -46,10 +41,9 @@ def list_endpoints(*, extra_paths: Optional[list[str]] = None) -> list[dict[str,
 def load_oscal_from_endpoint(
     endpoint_id: str,
     *,
-    extra_paths: Optional[list[str]] = None,
     user_agent: Optional[str] = None,
 ) -> tuple[OscalEndpoint, dict[str, Any], OscalProvenance]:
-    endpoint = get_endpoint(endpoint_id, extra_paths=extra_paths)
+    endpoint = get_endpoint(endpoint_id)
 
     doc = load_oscal_document(
         url=endpoint.url,
@@ -70,12 +64,10 @@ def load_oscal_from_endpoint(
 def control_catalog_from_endpoint(
     endpoint_id: str,
     *,
-    extra_paths: Optional[list[str]] = None,
     user_agent: Optional[str] = None,
 ) -> tuple[CRControlCatalog, OscalProvenance]:
     endpoint, doc, prov = load_oscal_from_endpoint(
         endpoint_id,
-        extra_paths=extra_paths,
         user_agent=user_agent,
     )
 
@@ -99,12 +91,10 @@ def control_catalog_from_endpoint(
 def assessment_template_from_endpoint(
     endpoint_id: str,
     *,
-    extra_paths: Optional[list[str]] = None,
     user_agent: Optional[str] = None,
 ) -> tuple[CRAssessment, OscalProvenance]:
     endpoint, doc, prov = load_oscal_from_endpoint(
         endpoint_id,
-        extra_paths=extra_paths,
         user_agent=user_agent,
     )
 

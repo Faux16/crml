@@ -57,6 +57,43 @@ from .validators import validate_attack_catalog
 from .validators import validate_attack_control_relationships
 
 
+def _model_load_from_yaml(cls, path: str):
+    data = load_yaml_mapping_from_path(path)
+    return cls.model_validate(data)
+
+
+def _model_load_from_yaml_str(cls, yaml_text: str):
+    data = load_yaml_mapping_from_str(yaml_text)
+    return cls.model_validate(data)
+
+
+def _model_dump_to_yaml(
+    model: Any,
+    path: str,
+    *,
+    sort_keys: bool,
+    exclude_none: bool,
+    postprocess: Any = None,
+) -> None:
+    data = model.model_dump(by_alias=True, exclude_none=exclude_none)
+    if postprocess is not None:
+        postprocess(data)
+    dump_yaml_to_path(data, path, sort_keys=sort_keys)
+
+
+def _model_dump_to_yaml_str(
+    model: Any,
+    *,
+    sort_keys: bool,
+    exclude_none: bool,
+    postprocess: Any = None,
+) -> str:
+    data = model.model_dump(by_alias=True, exclude_none=exclude_none)
+    if postprocess is not None:
+        postprocess(data)
+    return dump_yaml_to_str(data, sort_keys=sort_keys)
+
+
 def _drop_empty_portfolio_bundle_warnings(data: dict[str, Any]) -> None:
     """Remove `portfolio_bundle.warnings` if it is an empty list.
 
@@ -82,23 +119,19 @@ class CRScenario(_CRScenario):
 
     @classmethod
     def load_from_yaml(cls, path: str) -> "CRScenario":
-        data = load_yaml_mapping_from_path(path)
-        return cls.model_validate(data)
+        return _model_load_from_yaml(cls, path)
 
     @classmethod
     def load_from_yaml_str(cls, yaml_text: str) -> "CRScenario":
-        data = load_yaml_mapping_from_str(yaml_text)
-        return cls.model_validate(data)
+        return _model_load_from_yaml_str(cls, yaml_text)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
         """Serialize this model to a YAML file at `path`."""
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+        _model_dump_to_yaml(self, path, sort_keys=sort_keys, exclude_none=exclude_none)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
         """Serialize this model to a YAML string."""
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        return dump_yaml_to_str(data, sort_keys=sort_keys)
+        return _model_dump_to_yaml_str(self, sort_keys=sort_keys, exclude_none=exclude_none)
 
 class CRPortfolioBundle(_CRPortfolioBundle):
     """Engine-agnostic portfolio bundle.
@@ -111,25 +144,30 @@ class CRPortfolioBundle(_CRPortfolioBundle):
 
     @classmethod
     def load_from_yaml(cls, path: str) -> "CRPortfolioBundle":
-        data = load_yaml_mapping_from_path(path)
-        return cls.model_validate(data)
+        return _model_load_from_yaml(cls, path)
 
     @classmethod
     def load_from_yaml_str(cls, yaml_text: str) -> "CRPortfolioBundle":
-        data = load_yaml_mapping_from_str(yaml_text)
-        return cls.model_validate(data)
+        return _model_load_from_yaml_str(cls, yaml_text)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
         """Serialize this model to a YAML file at `path`."""
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        _drop_empty_portfolio_bundle_warnings(data)
-        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+        _model_dump_to_yaml(
+            self,
+            path,
+            sort_keys=sort_keys,
+            exclude_none=exclude_none,
+            postprocess=_drop_empty_portfolio_bundle_warnings,
+        )
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
         """Serialize this model to a YAML string."""
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        _drop_empty_portfolio_bundle_warnings(data)
-        return dump_yaml_to_str(data, sort_keys=sort_keys)
+        return _model_dump_to_yaml_str(
+            self,
+            sort_keys=sort_keys,
+            exclude_none=exclude_none,
+            postprocess=_drop_empty_portfolio_bundle_warnings,
+        )
 
 def load_from_yaml(path: str) -> CRScenario:
     """Load a CRML scenario from a YAML file path."""
@@ -163,21 +201,17 @@ class CRPortfolio(_CRPortfolio):
 
     @classmethod
     def load_from_yaml(cls, path: str) -> "CRPortfolio":
-        data = load_yaml_mapping_from_path(path)
-        return cls.model_validate(data)
+        return _model_load_from_yaml(cls, path)
 
     @classmethod
     def load_from_yaml_str(cls, yaml_text: str) -> "CRPortfolio":
-        data = load_yaml_mapping_from_str(yaml_text)
-        return cls.model_validate(data)
+        return _model_load_from_yaml_str(cls, yaml_text)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+        _model_dump_to_yaml(self, path, sort_keys=sort_keys, exclude_none=exclude_none)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        return dump_yaml_to_str(data, sort_keys=sort_keys)
+        return _model_dump_to_yaml_str(self, sort_keys=sort_keys, exclude_none=exclude_none)
 
 
 class CRControlCatalog(_CRControlCatalog):
@@ -185,23 +219,19 @@ class CRControlCatalog(_CRControlCatalog):
 
     @classmethod
     def load_from_yaml(cls, path: str) -> "CRControlCatalog":
-        data = load_yaml_mapping_from_path(path)
-        return cls.model_validate(data)
+        return _model_load_from_yaml(cls, path)
 
     @classmethod
     def load_from_yaml_str(cls, yaml_text: str) -> "CRControlCatalog":
-        data = load_yaml_mapping_from_str(yaml_text)
-        return cls.model_validate(data)
+        return _model_load_from_yaml_str(cls, yaml_text)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
         """Serialize this CRML model to a CRML YAML file at `path`."""
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+        _model_dump_to_yaml(self, path, sort_keys=sort_keys, exclude_none=exclude_none)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
         """Serialize this CRML model to a CRML YAML string."""
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        return dump_yaml_to_str(data, sort_keys=sort_keys)
+        return _model_dump_to_yaml_str(self, sort_keys=sort_keys, exclude_none=exclude_none)
 
     @classmethod
     def fromOscal(
@@ -249,21 +279,17 @@ class CRAttackCatalog(_CRAttackCatalog):
 
     @classmethod
     def load_from_yaml(cls, path: str) -> "CRAttackCatalog":
-        data = load_yaml_mapping_from_path(path)
-        return cls.model_validate(data)
+        return _model_load_from_yaml(cls, path)
 
     @classmethod
     def load_from_yaml_str(cls, yaml_text: str) -> "CRAttackCatalog":
-        data = load_yaml_mapping_from_str(yaml_text)
-        return cls.model_validate(data)
+        return _model_load_from_yaml_str(cls, yaml_text)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+        _model_dump_to_yaml(self, path, sort_keys=sort_keys, exclude_none=exclude_none)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        return dump_yaml_to_str(data, sort_keys=sort_keys)
+        return _model_dump_to_yaml_str(self, sort_keys=sort_keys, exclude_none=exclude_none)
 
 
 class CRAssessment(_CRAssessment):
@@ -271,23 +297,19 @@ class CRAssessment(_CRAssessment):
 
     @classmethod
     def load_from_yaml(cls, path: str) -> "CRAssessment":
-        data = load_yaml_mapping_from_path(path)
-        return cls.model_validate(data)
+        return _model_load_from_yaml(cls, path)
 
     @classmethod
     def load_from_yaml_str(cls, yaml_text: str) -> "CRAssessment":
-        data = load_yaml_mapping_from_str(yaml_text)
-        return cls.model_validate(data)
+        return _model_load_from_yaml_str(cls, yaml_text)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
         """Serialize this CRML model to a CRML YAML file at `path`."""
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+        _model_dump_to_yaml(self, path, sort_keys=sort_keys, exclude_none=exclude_none)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
         """Serialize this CRML model to a CRML YAML string."""
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        return dump_yaml_to_str(data, sort_keys=sort_keys)
+        return _model_dump_to_yaml_str(self, sort_keys=sort_keys, exclude_none=exclude_none)
 
     @classmethod
     def fromOscal(
@@ -334,21 +356,17 @@ class CRControlRelationships(_CRControlRelationships):
 
     @classmethod
     def load_from_yaml(cls, path: str) -> "CRControlRelationships":
-        data = load_yaml_mapping_from_path(path)
-        return cls.model_validate(data)
+        return _model_load_from_yaml(cls, path)
 
     @classmethod
     def load_from_yaml_str(cls, yaml_text: str) -> "CRControlRelationships":
-        data = load_yaml_mapping_from_str(yaml_text)
-        return cls.model_validate(data)
+        return _model_load_from_yaml_str(cls, yaml_text)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+        _model_dump_to_yaml(self, path, sort_keys=sort_keys, exclude_none=exclude_none)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        return dump_yaml_to_str(data, sort_keys=sort_keys)
+        return _model_dump_to_yaml_str(self, sort_keys=sort_keys, exclude_none=exclude_none)
 
 
 class CRAttackControlRelationships(_CRAttackControlRelationships):
@@ -356,21 +374,17 @@ class CRAttackControlRelationships(_CRAttackControlRelationships):
 
     @classmethod
     def load_from_yaml(cls, path: str) -> "CRAttackControlRelationships":
-        data = load_yaml_mapping_from_path(path)
-        return cls.model_validate(data)
+        return _model_load_from_yaml(cls, path)
 
     @classmethod
     def load_from_yaml_str(cls, yaml_text: str) -> "CRAttackControlRelationships":
-        data = load_yaml_mapping_from_str(yaml_text)
-        return cls.model_validate(data)
+        return _model_load_from_yaml_str(cls, yaml_text)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        dump_yaml_to_path(data, path, sort_keys=sort_keys)
+        _model_dump_to_yaml(self, path, sort_keys=sort_keys, exclude_none=exclude_none)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
-        data = self.model_dump(by_alias=True, exclude_none=exclude_none)
-        return dump_yaml_to_str(data, sort_keys=sort_keys)
+        return _model_dump_to_yaml_str(self, sort_keys=sort_keys, exclude_none=exclude_none)
 
 __all__ = [
     "CRScenario",

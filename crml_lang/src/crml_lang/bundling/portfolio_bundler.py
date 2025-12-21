@@ -101,16 +101,18 @@ def _inline_pack_paths(
     paths: list[str],
     base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
+    resolve_references: bool,
     warnings: list[BundleMessage],
     model_mode_warning_path_prefix: str,
     model_mode_warning_message: str,
 ) -> list[str]:
     """Resolve pack reference paths.
 
-    In model-mode (`source_kind == "model"`), file paths cannot be inlined and
-    are returned as an empty list while emitting warnings.
+    When `source_kind == "model"` and `resolve_references` is False, referenced
+    file paths are not inlined and are returned as an empty list while emitting
+    warnings.
     """
-    if source_kind == "model":
+    if source_kind == "model" and not resolve_references:
         for idx, _ in enumerate(paths):
             warnings.append(
                 BundleMessage(
@@ -134,6 +136,7 @@ def _inline_control_catalogs(
     portfolio_doc: CRPortfolio,
     base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
+    resolve_references: bool,
     warnings: list[BundleMessage],
     initial: list[CRControlCatalog],
 ) -> list[CRControlCatalog]:
@@ -145,11 +148,12 @@ def _inline_control_catalogs(
         paths=list(paths),
         base_dir=base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         model_mode_warning_path_prefix="portfolio.control_catalogs",
         model_mode_warning_message=(
-            "Portfolio references a control catalog path, but bundling is in model-mode; "
-            "provide `control_catalogs` to inline catalog content."
+            "Portfolio references a control catalog path, but bundling is in model-mode with resolve_references=False; "
+            "provide `control_catalogs` to inline catalog content (manual composition)."
         ),
     )
 
@@ -174,6 +178,7 @@ def _inline_assessments(
     portfolio_doc: CRPortfolio,
     base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
+    resolve_references: bool,
     warnings: list[BundleMessage],
     initial: list[CRAssessment],
 ) -> list[CRAssessment]:
@@ -185,11 +190,12 @@ def _inline_assessments(
         paths=list(paths),
         base_dir=base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         model_mode_warning_path_prefix="portfolio.assessments",
         model_mode_warning_message=(
-            "Portfolio references an assessment path, but bundling is in model-mode; "
-            "provide `assessments` to inline catalog content."
+            "Portfolio references an assessment path, but bundling is in model-mode with resolve_references=False; "
+            "provide `assessments` to inline catalog content (manual composition)."
         ),
     )
 
@@ -214,6 +220,7 @@ def _inline_control_relationships(
     portfolio_doc: CRPortfolio,
     base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
+    resolve_references: bool,
     warnings: list[BundleMessage],
     initial: list[CRControlRelationships],
 ) -> list[CRControlRelationships]:
@@ -225,11 +232,12 @@ def _inline_control_relationships(
         paths=list(paths),
         base_dir=base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         model_mode_warning_path_prefix="portfolio.control_relationships",
         model_mode_warning_message=(
-            "Portfolio references a control relationships path, but bundling is in model-mode; "
-            "provide `control_relationships` to inline pack content."
+            "Portfolio references a control relationships path, but bundling is in model-mode with resolve_references=False; "
+            "provide `control_relationships` to inline pack content (manual composition)."
         ),
     )
 
@@ -254,6 +262,7 @@ def _inline_attack_catalogs(
     portfolio_doc: CRPortfolio,
     base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
+    resolve_references: bool,
     warnings: list[BundleMessage],
     initial: list[CRAttackCatalog],
 ) -> list[CRAttackCatalog]:
@@ -265,11 +274,12 @@ def _inline_attack_catalogs(
         paths=list(paths),
         base_dir=base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         model_mode_warning_path_prefix="portfolio.attack_catalogs",
         model_mode_warning_message=(
-            "Portfolio references an attack catalog path, but bundling is in model-mode; "
-            "provide `attack_catalogs` to inline catalog content."
+            "Portfolio references an attack catalog path, but bundling is in model-mode with resolve_references=False; "
+            "provide `attack_catalogs` to inline catalog content (manual composition)."
         ),
     )
 
@@ -294,6 +304,7 @@ def _inline_attack_control_relationships(
     portfolio_doc: CRPortfolio,
     base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
+    resolve_references: bool,
     warnings: list[BundleMessage],
     initial: list[CRAttackControlRelationships],
 ) -> list[CRAttackControlRelationships]:
@@ -305,11 +316,12 @@ def _inline_attack_control_relationships(
         paths=list(paths),
         base_dir=base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         model_mode_warning_path_prefix="portfolio.attack_control_relationships",
         model_mode_warning_message=(
-            "Portfolio references an attack-to-control relationships path, but bundling is in model-mode; "
-            "provide `attack_control_relationships` to inline mapping content."
+            "Portfolio references an attack-to-control relationships path, but bundling is in model-mode with resolve_references=False; "
+            "provide `attack_control_relationships` to inline mapping content (manual composition)."
         ),
     )
 
@@ -335,6 +347,7 @@ def _inline_scenarios(
     base_dir: Optional[str],
     source_kind: Literal["path", "yaml", "data", "model"],
     scenarios: Optional[Mapping[str, CRScenario]],
+    resolve_references: bool,
 ) -> tuple[list[BundledScenario], list[BundleMessage]]:
     """Inline scenario documents referenced by the portfolio.
 
@@ -346,31 +359,11 @@ def _inline_scenarios(
     bundled: list[BundledScenario] = []
 
     for idx, sref in enumerate(portfolio_doc.portfolio.scenarios):
-        if source_kind == "model":
-            if not scenarios:
-                errors.append(
-                    BundleMessage(
-                        level="error",
-                        path="(input)",
-                        message="source_kind='model' requires `scenarios` to be provided",
-                    )
-                )
-                return [], errors
-
+        scenario_doc: Optional[CRScenario] = None
+        if scenarios:
             scenario_doc = scenarios.get(sref.id) or scenarios.get(sref.path)
-            if scenario_doc is None:
-                errors.append(
-                    BundleMessage(
-                        level="error",
-                        path=f"portfolio.scenarios[{idx}]",
-                        message=(
-                            f"Missing inlined scenario for reference id='{sref.id}', path='{sref.path}'. "
-                            "Provide it via the `scenarios` mapping (key by id or path)."
-                        ),
-                    )
-                )
-                return [], errors
-        else:
+
+        if scenario_doc is None and (source_kind != "model" or resolve_references):
             scenario_path = _resolve_path(base_dir, sref.path)
             try:
                 scenario_doc = CRScenario.model_validate(_load_yaml_file(scenario_path))
@@ -383,6 +376,19 @@ def _inline_scenarios(
                     )
                 )
                 return [], errors
+
+        if scenario_doc is None:
+            errors.append(
+                BundleMessage(
+                    level="error",
+                    path=f"portfolio.scenarios[{idx}]",
+                    message=(
+                        "source_kind='model' with resolve_references=False requires `scenarios` to be provided; "
+                        f"missing scenario for reference id='{sref.id}', path='{sref.path}'."
+                    ),
+                )
+            )
+            return [], errors
 
         bundled.append(
             BundledScenario(
@@ -400,6 +406,8 @@ def bundle_portfolio(
     source: Union[str, dict[str, Any], CRPortfolio],
     *,
     source_kind: Literal["path", "yaml", "data", "model"] = "path",
+    resolve_references: bool = True,
+    base_dir: Optional[str] = None,
     scenarios: Optional[Mapping[str, CRScenario]] = None,
     control_catalogs: Optional[list[CRControlCatalog]] = None,
     attack_catalogs: Optional[list[CRAttackCatalog]] = None,
@@ -419,52 +427,62 @@ def bundle_portfolio(
         -----
         - The first argument (`source`) is the *portfolio input*.
         - When `source_kind="path"|"yaml"|"data"`, referenced scenarios/packs are loaded from disk.
-        - When `source_kind="model"`, you must provide referenced scenario documents via `scenarios`
-            (keyed by scenario id or path), and optionally provide `control_catalogs` / `assessments`.
+        - When `source_kind="model"`, the default is to resolve referenced paths from disk when possible.
+            Provide `base_dir` to resolve relative paths.
+        - To disable filesystem lookup (manual composition), pass `resolve_references=False` and provide
+            referenced documents via `scenarios` (keyed by scenario id or path), and optionally provide
+            `control_catalogs` / `assessments` / relationship packs.
     """
 
     warnings: list[BundleMessage] = []
 
-    portfolio_doc, _, base_dir, load_errors = _load_portfolio_doc(source, source_kind=source_kind)
+    portfolio_doc, _, portfolio_base_dir, load_errors = _load_portfolio_doc(source, source_kind=source_kind)
     if load_errors or portfolio_doc is None:
         return BundleReport(ok=False, errors=load_errors, warnings=warnings, bundle=None)
 
+    effective_base_dir = portfolio_base_dir if portfolio_base_dir is not None else base_dir
+
     control_catalogs_out = _inline_control_catalogs(
         portfolio_doc=portfolio_doc,
-        base_dir=base_dir,
+        base_dir=effective_base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         initial=list(control_catalogs or []),
     )
 
     assessments_out = _inline_assessments(
         portfolio_doc=portfolio_doc,
-        base_dir=base_dir,
+        base_dir=effective_base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         initial=list(assessments or []),
     )
 
     control_relationships_out = _inline_control_relationships(
         portfolio_doc=portfolio_doc,
-        base_dir=base_dir,
+        base_dir=effective_base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         initial=list(control_relationships or []),
     )
 
     attack_catalogs_out = _inline_attack_catalogs(
         portfolio_doc=portfolio_doc,
-        base_dir=base_dir,
+        base_dir=effective_base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         initial=list(attack_catalogs or []),
     )
 
     attack_control_relationships_out = _inline_attack_control_relationships(
         portfolio_doc=portfolio_doc,
-        base_dir=base_dir,
+        base_dir=effective_base_dir,
         source_kind=source_kind,
+        resolve_references=resolve_references,
         warnings=warnings,
         initial=list(attack_control_relationships or []),
     )
@@ -472,9 +490,10 @@ def bundle_portfolio(
     # Inline scenarios referenced by the portfolio.
     bundled_scenarios, scenario_errors = _inline_scenarios(
         portfolio_doc=portfolio_doc,
-        base_dir=base_dir,
+        base_dir=effective_base_dir,
         source_kind=source_kind,
         scenarios=scenarios,
+        resolve_references=resolve_references,
     )
     if scenario_errors:
         return BundleReport(ok=False, errors=scenario_errors, warnings=warnings, bundle=None)

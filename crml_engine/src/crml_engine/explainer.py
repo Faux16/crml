@@ -1,5 +1,4 @@
-import yaml
-import sys
+from crml_lang.yamlio import load_yaml_mapping_from_path
 
 def explain_crml(file_path):
     """Parse a CRML scenario file and print a human-readable summary.
@@ -17,8 +16,7 @@ def explain_crml(file_path):
         Writes a formatted summary to stdout.
     """
     try:
-        with open(file_path, 'r') as f:
-            data = yaml.safe_load(f)
+        data = load_yaml_mapping_from_path(file_path)
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
         return False

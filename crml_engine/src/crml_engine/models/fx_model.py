@@ -11,7 +11,7 @@ import json
 import os
 from typing import Any, Dict, Mapping, Optional, Union
 
-import yaml
+from crml_lang.yamlio import load_yaml_mapping_from_path
 from jsonschema import Draft202012Validator
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -66,11 +66,7 @@ def load_fx_config(fx_config_path: Optional[str] = None) -> 'FXConfig':
     if fx_config_path is None:
         return default_config
     try:
-        with open(fx_config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-
-        if not isinstance(config, dict):
-            raise ValueError("FX config must be a YAML mapping/object")
+        config = load_yaml_mapping_from_path(fx_config_path)
 
         # Validate schema/version (reject unknown/absent identifier).
         with open(FX_SCHEMA_PATH, 'r', encoding='utf-8') as f:

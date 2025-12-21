@@ -2,13 +2,11 @@
 
 The reference CLI is provided by the `crml-engine` package.
 
-Install:
+Install / setup:
 
-```bash
-pip install crml-engine
-```
+- [Installation](../Installation.md)
 
-Help:
+Quick check:
 
 ```bash
 crml --help

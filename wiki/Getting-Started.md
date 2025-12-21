@@ -42,22 +42,22 @@ Option B: create your own `my-first-scenario.yaml`:
 ```yaml
 crml_scenario: "1.0"
 meta:
-	name: "my-first-risk-model"
-	description: "A simple phishing risk model"
+  name: "my-first-risk-model"
+  description: "A simple phishing risk model"
 
 scenario:
-	frequency:
-		basis: per_organization_per_year
-		model: poisson
-		parameters:
-			lambda: 0.10
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.10
 
-	severity:
-		model: lognormal
-		parameters:
-			median: 22000
-			currency: USD
-			sigma: 1.0
+  severity:
+    model: lognormal
+    parameters:
+      median: 22000
+      currency: USD
+      sigma: 1.0
 ```
 
 Validate it:
@@ -80,22 +80,22 @@ Create `my-first-portfolio.yaml`:
 ```yaml
 crml_portfolio: "1.0"
 meta:
-	name: "my-first-portfolio"
+  name: "my-first-portfolio"
 
 portfolio:
-	semantics:
-		method: sum
-		constraints:
-			require_paths_exist: true
-			validate_scenarios: true
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+      validate_scenarios: true
 
-	assets:
-		- name: "org"
-			cardinality: 1
+  assets:
+    - name: "org"
+      cardinality: 1
 
-	scenarios:
-		- id: "s1"
-			path: ./my-first-scenario.yaml
+  scenarios:
+    - id: "s1"
+      path: ./my-first-scenario.yaml
 ```
 
 Bundle + simulate:

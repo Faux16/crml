@@ -16,7 +16,7 @@ from typing import Union, Optional, Tuple, Any
 
 import hashlib
 import os
-import crml_lang
+import yaml
 
 from crml_engine.pipeline import plan_bundle
 import numpy as np
@@ -389,16 +389,11 @@ def _load_yaml_root_for_routing(source: Union[str, dict]) -> Optional[dict]:
         return None
 
     try:
-        import yaml as _yaml  # type: ignore
-    except Exception:
-        return None
-
-    try:
         if os.path.isfile(source):
             with open(source, "r", encoding="utf-8") as f:
-                loaded = _yaml.safe_load(f)
+                loaded = yaml.safe_load(f)
         else:
-            loaded = _yaml.safe_load(source)
+            loaded = yaml.safe_load(source)
     except Exception:
         return None
 
@@ -1208,44 +1203,20 @@ def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str =
     """
     # Load FX config
     fx_config = load_fx_config(fx_config_path)
-    # Detect portfolio vs scenario
-    try:
-        import yaml
-        with open(file_path, "r", encoding="utf-8") as f:
-            root = yaml.safe_load(f)
-    except Exception:
-        root = None
 
-    if isinstance(root, dict) and "crml_portfolio_bundle" in root:
-        result = run_portfolio_bundle_simulation(
-            file_path, source_kind="path", n_runs=n_runs, seed=None, fx_config=fx_config
+    root = _load_yaml_root_for_routing(file_path)
+    result: Optional[EngineSimulationResult] = None
+    if isinstance(root, dict):
+        result = _route_simulation_document(
+            root=root,
+            source=file_path,
+            n_runs=n_runs,
+            seed=None,
+            fx_config=fx_config,
         )
-    else:
+
+    if result is None:
         import sys
-
-        if isinstance(root, dict) and "crml_portfolio" in root:
-            print(
-                "Refusing to simulate a raw 'crml_portfolio' input. "
-                "Portfolios are non-executable; create a 'crml_portfolio_bundle' first.",
-                file=sys.stderr,
-            )
-            print(
-                "Bundle via the language-layer API: from crml_lang import bundle_portfolio",
-                file=sys.stderr,
-            )
-            return False
-
-        if isinstance(root, dict) and "crml_scenario" in root:
-            print(
-                "Refusing to simulate a raw 'crml_scenario' input. "
-                "Scenarios are not executable in a vacuum; execute a 'crml_portfolio_bundle' that provides context.",
-                file=sys.stderr,
-            )
-            print(
-                "Bundle via the language-layer API: from crml_lang import bundle_portfolio",
-                file=sys.stderr,
-            )
-            return False
 
         print(
             "Unsupported input for simulation. Expected a 'crml_portfolio_bundle' document.",

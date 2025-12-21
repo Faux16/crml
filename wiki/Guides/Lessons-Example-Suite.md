@@ -25,9 +25,7 @@ There are two supported ways to run these lessons.
 
 Install the reference engine (CLI):
 
-```bash
-pip install crml-engine
-```
+- [Installation](../Installation.md)
 
 Useful commands:
 

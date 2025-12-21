@@ -6,7 +6,6 @@ This page documents the behavior of the **reference engine** (`crml_engine`) as 
 
 - Overview and examples: [Getting Started](Getting-Started.md)
 - Full reference: [CRML Specification](Reference/CRML-Specification.md)
-- CLI usage: [Getting Started](Getting-Started.md)
 
 ## What you can express in CRML
 

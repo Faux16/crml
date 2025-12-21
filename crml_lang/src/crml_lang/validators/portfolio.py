@@ -804,10 +804,9 @@ def _load_scenario_doc(resolved_path: str) -> Tuple[Optional[Any], Optional[str]
         (scenario_doc, error_message). If loading/validation fails, scenario_doc is None.
     """
     try:
-        import yaml
+        from ..yamlio import load_yaml_mapping_from_path
 
-        with open(resolved_path, "r", encoding="utf-8") as f:
-            scenario_data = yaml.safe_load(f)
+        scenario_data = load_yaml_mapping_from_path(resolved_path)
 
         from ..models.scenario_model import CRScenario
 

@@ -10,6 +10,7 @@ from crml_lang.models.portfolio_model import CRPortfolio, Portfolio, ScenarioRef
 from crml_lang.models.scenario_model import CRScenario, ScenarioControl as ScenarioControlModel
 from crml_lang.models.assessment_model import CRAssessment, Assessment
 from crml_lang.models.control_catalog_model import CRControlCatalog
+from crml_lang.yamlio import load_yaml_mapping_from_path, load_yaml_mapping_from_str
 
 
 CONTROL_STATE_PREFIX = "control:"
@@ -268,33 +269,6 @@ class PlanReport(BaseModel):
         None, description="Resolved execution plan (present only when ok is true)."
     )
 
-
-def _load_yaml_file(path: str) -> dict[str, Any]:
-    """Load a YAML file and ensure the top-level is a mapping/object.
-
-    Args:
-        path: YAML file path.
-
-    Returns:
-        Parsed YAML mapping.
-
-    Raises:
-        ImportError: If PyYAML is not installed.
-        ValueError: If the YAML document's top-level is not a mapping.
-    """
-    try:
-        import yaml
-    except Exception as e:
-        raise ImportError("PyYAML is required: pip install pyyaml") from e
-
-    with open(path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-
-    if not isinstance(data, dict):
-        raise ValueError("YAML document must be a mapping/object at top-level")
-    return data
-
-
 def _resolve_path(base_dir: Optional[str], p: str) -> str:
     """Resolve `p` relative to `base_dir` if needed."""
     if base_dir and not os.path.isabs(p):
@@ -394,7 +368,7 @@ def plan_portfolio(  # NOSONAR
         assert isinstance(source, str)
         base_dir = os.path.dirname(os.path.abspath(source))
         try:
-            data = _load_yaml_file(source)
+            data = load_yaml_mapping_from_path(source)
         except Exception as e:
             return PlanReport(
                 ok=False,
@@ -405,18 +379,14 @@ def plan_portfolio(  # NOSONAR
     elif source_kind == "yaml":
         assert isinstance(source, str)
         try:
-            import yaml
+            data = load_yaml_mapping_from_str(source)
         except Exception as e:
-            raise ImportError("PyYAML is required: pip install pyyaml") from e
-        loaded = yaml.safe_load(source)
-        if not isinstance(loaded, dict):
             return PlanReport(
                 ok=False,
-                errors=[PlanMessage(level="error", path="(root)", message="YAML must be a mapping")],
+                errors=[PlanMessage(level="error", path="(root)", message=str(e))],
                 warnings=[],
                 plan=None,
             )
-        data = loaded
     else:
         assert isinstance(source, dict)
         data = source
@@ -455,7 +425,7 @@ def plan_portfolio(  # NOSONAR
             errors.append(PlanMessage(level="error", path=f"portfolio.control_catalogs[{idx}]", message=f"File not found: {p}"))
             continue
         try:
-            cat_doc = CRControlCatalog.model_validate(_load_yaml_file(p))
+            cat_doc = CRControlCatalog.model_validate(load_yaml_mapping_from_path(p))
             for entry in cat_doc.catalog.controls:
                 catalog_ids.add(entry.id)
         except Exception as e:
@@ -466,7 +436,7 @@ def plan_portfolio(  # NOSONAR
             errors.append(PlanMessage(level="error", path=f"portfolio.assessments[{idx}]", message=f"File not found: {p}"))
             continue
         try:
-            assess_doc = CRAssessment.model_validate(_load_yaml_file(p))
+            assess_doc = CRAssessment.model_validate(load_yaml_mapping_from_path(p))
             for a in assess_doc.assessment.assessments:
                 if a.id in assessment_by_id:
                     warnings.append(
@@ -580,7 +550,7 @@ def plan_portfolio(  # NOSONAR
             continue
 
         try:
-            scenario_doc = CRScenario.model_validate(_load_yaml_file(scenario_path))
+            scenario_doc = CRScenario.model_validate(load_yaml_mapping_from_path(scenario_path))
         except Exception as e:
             errors.append(
                 PlanMessage(

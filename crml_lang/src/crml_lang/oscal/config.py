@@ -48,7 +48,7 @@ def _read_endpoints_yaml_text() -> str:
     )
 
 
-def _iter_external_endpoint_paths(extra_paths: Optional[list[str]]) -> list[str]:
+def _iter_external_endpoint_paths() -> list[str]:
     paths: list[str] = []
 
     env = os.environ.get("CRML_OSCAL_ENDPOINTS_PATH")
@@ -57,11 +57,6 @@ def _iter_external_endpoint_paths(extra_paths: Optional[list[str]]) -> list[str]
             p = part.strip()
             if p:
                 paths.append(p)
-
-    if extra_paths:
-        for p in extra_paths:
-            if str(p).strip():
-                paths.append(str(p).strip())
 
     return paths
 
@@ -162,14 +157,13 @@ def _parse_endpoint_item(item: Any) -> OscalEndpoint:
     )
 
 
-def load_endpoints(*, extra_paths: Optional[list[str]] = None) -> list[OscalEndpoint]:
+def load_endpoints() -> list[OscalEndpoint]:
     """Load OSCAL endpoints.
 
     Sources (later sources override earlier by endpoint id):
     - built-in package data file `api-endpoints.yaml`
     - optional external endpoint files provided via `CRML_OSCAL_ENDPOINTS_PATH`
       (pathsep-separated)
-    - optional external endpoint files provided via `extra_paths`
     """
 
     merged: dict[str, OscalEndpoint] = {}
@@ -187,7 +181,7 @@ def load_endpoints(*, extra_paths: Optional[list[str]] = None) -> list[OscalEndp
 
     merge_text(_read_endpoints_yaml_text())
 
-    for p in _iter_external_endpoint_paths(extra_paths):
+    for p in _iter_external_endpoint_paths():
         merge_text(Path(p).read_text(encoding="utf-8"))
 
     return list(merged.values())

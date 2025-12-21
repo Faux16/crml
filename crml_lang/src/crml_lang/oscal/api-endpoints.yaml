@@ -1,0 +1,5 @@
+endpoints:
+  - id: bsi-kompendium-grundschutz-plusplus
+    description: BSI Kompendium Grundschutz++
+    url: https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/refs/heads/main/Kompendien/Grundschutz%2B%2B-Kompendium/Grundschutz%2B%2B-Kompendium.json
+    kind: catalog

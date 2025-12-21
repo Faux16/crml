@@ -8,7 +8,7 @@
 > **Status:** Draft. This project is under heavy development and may change without notice.
 > We welcome input, issues, and contributions.
 
-**Version:** 1.3
+**Draft version:** 1.3.0
 
 **Maintained by:** Zeron Research Labs and CyberSec Consulting LLC
 
@@ -137,8 +137,10 @@ pip install crml-lang
 crml-lang validate examples/scenarios/qber-enterprise.yaml
 crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
 
-# Import a control catalog via OSCAL
-crml-lang oscal-import-catalog path/to/catalog.json out-control-catalog.yaml --namespace cisv8 --framework "CIS v8"
+# OSCAL helpers
+crml-lang oscal list-endpoints
+crml-lang oscal import-catalog --endpoint bsi-grundschutz --out out-crml-control-catalog.yaml
+crml-lang oscal import-assessment-template --endpoint bsi-grundschutz --out out-crml-assessment.yaml
 ```
 
 ## Quick start (Python)
@@ -151,6 +153,17 @@ from crml_lang import CRScenario, validate
 scenario = CRScenario.load_from_yaml("examples/scenarios/data-breach-simple.yaml")
 report = validate("examples/scenarios/data-breach-simple.yaml", source_kind="path")
 print(report.ok)
+```
+
+Import a control catalog via OSCAL (Python):
+
+```python
+from crml_lang import CRControlCatalog
+
+catalog = CRControlCatalog.fromOscal("path/to/catalog.json")
+
+# Writes CRML YAML (not OSCAL YAML)
+catalog.dump_to_yaml("out-crml-control-catalog.yaml")
 ```
 
 Run a simulation:

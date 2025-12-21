@@ -21,6 +21,7 @@ dependencies = [
   "pyyaml",
   "jsonschema",
   "pydantic",
+  "oscal-pydantic",
 ]
 
 [project.urls]
@@ -31,7 +32,6 @@ Documentation = "https://faux16.github.io/crml/"
 [project.optional-dependencies]
 dev = ["pytest"]
 xlsx = ["openpyxl>=3.1"]
-oscal = ["compliance-trestle>=3,<4"]
 
 [project.scripts]
 crml-xlsx = "crml_lang.mapping.__main__:main"
@@ -41,4 +41,4 @@ crml-lang = "crml_lang.__main__:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-crml_lang = ["schemas/*.json"]
+crml_lang = ["schemas/*.json", "oscal/*.yaml"]

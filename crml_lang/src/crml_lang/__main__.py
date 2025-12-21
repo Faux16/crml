@@ -6,9 +6,13 @@ from typing import Optional
 
 from .cli import (
     bundle_portfolio_to_yaml,
-    import_oscal_catalog_to_control_catalog_yaml,
+    oscal_import_assessment_template,
+    oscal_import_catalog,
+    oscal_list_endpoints,
     validate_to_text,
 )
+
+_SORT_KEYS_HELP = "Sort YAML keys"
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -24,45 +28,35 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     b.add_argument("in_portfolio", help="Path to CRML portfolio YAML file")
     b.add_argument("out_bundle", help="Output portfolio bundle YAML file path")
-    b.add_argument("--sort-keys", action="store_true", help="Sort YAML keys")
+    b.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
 
-    o = sub.add_parser(
-        "oscal-import-catalog",
-        help="Convert an OSCAL Catalog (JSON/YAML) into a CRML skeleton control catalog YAML",
+    o = sub.add_parser("oscal", help="OSCAL helpers (endpoints + conversions)")
+    osub = o.add_subparsers(dest="oscal_cmd", required=True)
+
+    le = osub.add_parser("list-endpoints", help="List configured OSCAL endpoints")
+    le.add_argument(
+        "--format",
+        default="text",
+        choices=["text", "json"],
+        help="Output format",
     )
-    o.add_argument("in_oscal_catalog", help="Input OSCAL Catalog file path (JSON or YAML)")
-    o.add_argument("out_control_catalog", help="Output CRML control catalog YAML file path")
-    o.add_argument(
-        "--namespace",
-        required=True,
-        help="CRML namespace to use for generated control ids (e.g. cisv8, nist80053r5)",
+
+    ic = osub.add_parser("import-catalog", help="Convert OSCAL catalog into CRML control catalog YAML")
+    src = ic.add_mutually_exclusive_group(required=True)
+    src.add_argument("--endpoint", default=None, help="Endpoint id (see: crml-lang oscal list-endpoints)")
+    src.add_argument("--path", default=None, help="Local OSCAL file path (JSON or YAML)")
+    ic.add_argument("--out", required=True, help="Output CRML YAML path")
+    ic.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
+
+    ia = osub.add_parser(
+        "import-assessment-template",
+        help="Convert OSCAL catalog into CRML assessment template YAML",
     )
-    o.add_argument(
-        "--framework",
-        required=True,
-        help="Human framework label to store in the CRML catalog (e.g. 'CIS v8')",
-    )
-    o.add_argument(
-        "--catalog-id",
-        default=None,
-        help="Optional catalog id (organization-owned). Example: cisv8",
-    )
-    o.add_argument(
-        "--meta-name",
-        default=None,
-        help="Optional CRML meta.name override for the output document",
-    )
-    o.add_argument(
-        "--source-url",
-        default=None,
-        help="Optional provenance URL recorded in meta.description",
-    )
-    o.add_argument(
-        "--license-terms",
-        default=None,
-        help="Optional license/terms note recorded in meta.description",
-    )
-    o.add_argument("--sort-keys", action="store_true", help="Sort YAML keys")
+    src2 = ia.add_mutually_exclusive_group(required=True)
+    src2.add_argument("--endpoint", default=None, help="Endpoint id (see: crml-lang oscal list-endpoints)")
+    src2.add_argument("--path", default=None, help="Local OSCAL file path (JSON or YAML)")
+    ia.add_argument("--out", required=True, help="Output CRML YAML path")
+    ia.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
 
     return p
 
@@ -81,18 +75,24 @@ def main(argv: Optional[list[str]] = None) -> int:
                 sort_keys=bool(args.sort_keys),
             )
 
-        if args.cmd == "oscal-import-catalog":
-            return import_oscal_catalog_to_control_catalog_yaml(
-                args.in_oscal_catalog,
-                args.out_control_catalog,
-                namespace=args.namespace,
-                framework=args.framework,
-                catalog_id=args.catalog_id,
-                meta_name=args.meta_name,
-                source_url=args.source_url,
-                license_terms=args.license_terms,
-                sort_keys=bool(args.sort_keys),
-            )
+        if args.cmd == "oscal":
+            if args.oscal_cmd == "list-endpoints":
+                return oscal_list_endpoints(fmt=str(args.format))
+            if args.oscal_cmd == "import-catalog":
+                return oscal_import_catalog(
+                    out=str(args.out),
+                    endpoint=args.endpoint,
+                    path=args.path,
+                    sort_keys=bool(args.sort_keys),
+                )
+            if args.oscal_cmd == "import-assessment-template":
+                return oscal_import_assessment_template(
+                    out=str(args.out),
+                    endpoint=args.endpoint,
+                    path=args.path,
+                    sort_keys=bool(args.sort_keys),
+                )
+            raise AssertionError(f"Unhandled oscal_cmd: {args.oscal_cmd}")
 
         raise AssertionError(f"Unhandled cmd: {args.cmd}")
     except KeyboardInterrupt:

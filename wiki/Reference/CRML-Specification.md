@@ -5,7 +5,7 @@ This page is the entry point for the CRML language contracts (schemas + minimal 
 - Language overview: [Architecture-Language](../Concepts/Architecture-Language)
 - Engine overview: [Architecture-Engine](../Concepts/Architecture-Engine)
 - JSON Schemas: [CRML-Schema](CRML-Schema)
-- Practical workflow: [Quickstart](../Quickstart)
+- Practical workflow: [Getting Started](../Getting-Started.md)
 
 CRML is designed so that:
 

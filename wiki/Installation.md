@@ -128,4 +128,4 @@ Visit http://localhost:3000
 
 ## Troubleshooting
 
-See [Troubleshooting Guide](Reference/Troubleshooting) for common issues.
+See [Troubleshooting Guide](Reference/Troubleshooting.md) for common issues.

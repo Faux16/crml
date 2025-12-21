@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Optional, TextIO
 
+import json
 import sys
 
 
@@ -71,55 +72,110 @@ def validate_to_text(
         return 1
 
 
-def import_oscal_catalog_to_control_catalog_yaml(
-    in_oscal_catalog: str,
-    out_control_catalog: str,
+def oscal_list_endpoints(
     *,
-    namespace: str,
-    framework: str,
-    catalog_id: Optional[str] = None,
-    meta_name: Optional[str] = None,
-    source_url: Optional[str] = None,
-    license_terms: Optional[str] = None,
-    sort_keys: bool = False,
+    fmt: str = "text",
     stdout: Optional[TextIO] = None,
     stderr: Optional[TextIO] = None,
 ) -> int:
-    """Convert an OSCAL catalog to a CRML skeleton control catalog YAML.
+    """List configured OSCAL endpoints.
 
-    This requires optional dependencies: `pip install "crml-lang[oscal]"`.
+    `fmt` can be: text|json.
     """
 
     stdout = stdout or sys.stdout
     stderr = stderr or sys.stderr
 
     try:
-        from crml_lang.integrations.oscal import (
-            OscalCatalogProvenance,
-            oscal_catalog_to_crml_control_catalog,
-            read_oscal_catalog,
-        )
+        from crml_lang.oscal import list_endpoints
 
-        oscal_catalog = read_oscal_catalog(in_oscal_catalog)
-        crml_catalog = oscal_catalog_to_crml_control_catalog(
-            oscal_catalog,
-            namespace=namespace,
-            framework=framework,
-            catalog_id=catalog_id,
-            meta_name=meta_name,
-            provenance=OscalCatalogProvenance(
-                source_path=in_oscal_catalog,
-                source_url=source_url,
-                license=license_terms,
-            ),
-        )
+        items = list_endpoints()
+        if fmt == "json":
+            print(json.dumps({"endpoints": items}, indent=2, sort_keys=True), file=stdout)
+            return 0
 
-        crml_catalog.dump_to_yaml(out_control_catalog, sort_keys=bool(sort_keys))
-        print(f"Wrote {out_control_catalog}", file=stdout)
+        # text
+        for e in sorted(items, key=lambda x: str(x.get("id", ""))):
+            print(f"{e.get('id')}\t{e.get('kind')}\t{e.get('description')}\t{e.get('url')}", file=stdout)
         return 0
-    except ImportError as e:
+    except Exception as e:
         print(str(e), file=stderr)
-        return 2
+        return 1
+
+
+def oscal_import_catalog(
+    *,
+    out: str,
+    endpoint: Optional[str] = None,
+    path: Optional[str] = None,
+    sort_keys: bool = False,
+    stdout: Optional[TextIO] = None,
+    stderr: Optional[TextIO] = None,
+) -> int:
+    """Import an OSCAL catalog into a CRML control catalog YAML."""
+
+    stdout = stdout or sys.stdout
+    stderr = stderr or sys.stderr
+
+    try:
+        from crml_lang import CRControlCatalog
+        from crml_lang.oscal import control_catalog_from_endpoint
+
+        if (endpoint is None) == (path is None):
+            raise ValueError("Provide exactly one of: endpoint, path")
+
+        if endpoint is not None:
+            catalog, prov = control_catalog_from_endpoint(endpoint)
+            catalog.dump_to_yaml(out, sort_keys=bool(sort_keys))
+            print(f"Wrote CRML YAML {out}", file=stdout)
+            print(f"Source: {prov.source}", file=stdout)
+            return 0
+
+        assert path is not None
+        catalog = CRControlCatalog.fromOscal(path)
+        catalog.dump_to_yaml(out, sort_keys=bool(sort_keys))
+        print(f"Wrote CRML YAML {out}", file=stdout)
+        print(f"Source: {path}", file=stdout)
+        return 0
+    except Exception as e:
+        print(str(e), file=stderr)
+        return 1
+
+
+def oscal_import_assessment_template(
+    *,
+    out: str,
+    endpoint: Optional[str] = None,
+    path: Optional[str] = None,
+    sort_keys: bool = False,
+    stdout: Optional[TextIO] = None,
+    stderr: Optional[TextIO] = None,
+) -> int:
+    """Import an OSCAL catalog into a CRML assessment template YAML."""
+
+    stdout = stdout or sys.stdout
+    stderr = stderr or sys.stderr
+
+    try:
+        from crml_lang import CRAssessment
+        from crml_lang.oscal import assessment_template_from_endpoint
+
+        if (endpoint is None) == (path is None):
+            raise ValueError("Provide exactly one of: endpoint, path")
+
+        if endpoint is not None:
+            assessment, prov = assessment_template_from_endpoint(endpoint)
+            assessment.dump_to_yaml(out, sort_keys=bool(sort_keys))
+            print(f"Wrote CRML YAML {out}", file=stdout)
+            print(f"Source: {prov.source}", file=stdout)
+            return 0
+
+        assert path is not None
+        assessment = CRAssessment.fromOscal(path)
+        assessment.dump_to_yaml(out, sort_keys=bool(sort_keys))
+        print(f"Wrote CRML YAML {out}", file=stdout)
+        print(f"Source: {path}", file=stdout)
+        return 0
     except Exception as e:
         print(str(e), file=stderr)
         return 1

@@ -11,7 +11,7 @@ This repository is split into two Python packages:
 
 - Language overview: [Language/Overview](Language/Overview)
 - Engine overview: [Engine/Overview](Engine/Overview)
-- Quickstart (CLI): [Quickstart](Quickstart)
+- Getting Started (CLI): [Getting Started](Getting-Started)
 - Examples: [Examples](Examples)
 - Scenario schema + docs: [Language/Overview](Language/Overview)
 

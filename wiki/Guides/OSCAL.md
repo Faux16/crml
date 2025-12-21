@@ -89,17 +89,15 @@ The skeleton intentionally keeps only:
 
 It intentionally strips detailed statements/parts and any long copyrighted prose.
 
-CLI (requires optional dependency):
+Python API:
 
-```bash
-pip install "crml-lang[oscal]"
+```python
+from crml_lang import CRControlCatalog
 
-crml-lang oscal-import-catalog \
-  <in-oscal-catalog.json-or.yaml> \
-  <out-crml-control-catalog.yaml> \
-  --namespace cisv8 \
-  --framework "CIS v8" \
-  --catalog-id cisv8
+catalog = CRControlCatalog.fromOscal("in-oscal-catalog.json", catalog_id="cisv8")
+
+# Writes CRML YAML (not OSCAL YAML)
+catalog.dump_to_yaml("out-crml-control-catalog.yaml")
 ```
 
 Notes:

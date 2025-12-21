@@ -4,7 +4,7 @@ This guide describes how to author CRML inputs in this repo’s **document-orien
 
 Start here if you are new:
 
-- [Quickstart](../Quickstart.md)
+- [Getting Started](../Getting-Started.md)
 - [CRML Specification (Overview)](../Reference/CRML-Specification.md)
 
 ---

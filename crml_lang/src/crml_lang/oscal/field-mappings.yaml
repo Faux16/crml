@@ -1,0 +1,78 @@
+# This file defines the intended field-level mapping between OSCAL structures
+# and CRML document structures.
+#
+# Purpose:
+# - Central review point for “which OSCAL field maps to which CRML field”.
+# - Keep converter code readable by referencing these rules.
+#
+# Notes:
+# - Path syntax is informal “dot + []” notation for humans.
+# - These mappings describe defaults; endpoint config may override some values.
+#
+# Kinds:
+# - catalog: OSCAL Catalog -> CRML Control Catalog
+# - assets: OSCAL SSP/Component/etc -> CRML Portfolio assets
+# - mapping: OSCAL-adjacent mapping definitions -> CRML relationships packs
+
+catalog:
+  inputs:
+    accepted_roots:
+      - catalog
+      - (document root)
+  infer:
+    framework:
+      source: catalog.metadata.title
+      fallback:
+        - catalog.title
+        - "OSCAL"
+      target: crml_control_catalog.catalog.framework
+    namespace:
+      source: slug(framework)
+      fallback: "oscal"
+      target: crml_control_catalog.catalog.controls[].id (namespace portion)
+  controls:
+    id:
+      source: catalog.controls[].id
+      target: crml_control_catalog.catalog.controls[].id (key portion)
+      transform: id = "{namespace}:{oscal_id}"
+    oscal_uuid:
+      source: catalog.controls[].uuid
+      target: crml_control_catalog.catalog.controls[].oscal_uuid
+    title:
+      source: catalog.controls[].title
+      target: crml_control_catalog.catalog.controls[].title
+    url:
+      source: catalog.controls[].links[0].href
+      target: crml_control_catalog.catalog.controls[].url
+
+assets:
+  intent: "Generate a CRML portfolio asset inventory from an OSCAL source."
+  output:
+    document: CRPortfolio
+    target_path: crml_portfolio.portfolio.assets[]
+  defaults:
+    asset.cardinality:
+      source: endpoint.default_cardinality
+      target: crml_portfolio.portfolio.assets[].cardinality
+  suggested_sources:
+    ssp:
+      asset.name:
+        source:
+          - system-security-plan.system-characteristics.system-name
+          - system-security-plan.system-characteristics.system-id.id
+        target: crml_portfolio.portfolio.assets[].name
+      asset.tags:
+        source:
+          - system-security-plan.metadata.remarks
+        target: crml_portfolio.portfolio.assets[].tags
+
+mapping:
+  intent: "Generate CRML relationships packs from OSCAL-adjacent mapping definitions."
+  output:
+    document:
+      - CRControlRelationships (mapping_type=control_relationships)
+      - CRAttackControlRelationships (mapping_type=attack_control_relationships)
+  required_endpoint_fields:
+    - mapping_type
+  notes:
+    - "Exact OSCAL source structures for cross-framework mappings are not standardized in OSCAL core; this section is a placeholder until concrete inputs are chosen."

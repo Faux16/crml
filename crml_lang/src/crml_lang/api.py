@@ -32,6 +32,8 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Union
 
+import importlib
+
 from .yamlio import (
     dump_yaml_to_path,
     dump_yaml_to_str,
@@ -192,12 +194,54 @@ class CRControlCatalog(_CRControlCatalog):
         return cls.model_validate(data)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
+        """Serialize this CRML model to a CRML YAML file at `path`."""
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         dump_yaml_to_path(data, path, sort_keys=sort_keys)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
+        """Serialize this CRML model to a CRML YAML string."""
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return dump_yaml_to_str(data, sort_keys=sort_keys)
+
+    @classmethod
+    def fromOscal(
+        cls,
+        path: str,
+        catalog_id: str | None = None,
+        meta_name: str | None = None,
+        source_url: str | None = None,
+        license_terms: str | None = None,
+    ) -> "CRControlCatalog":
+        """Create a CRML Control Catalog from an OSCAL Catalog file (JSON/YAML).
+
+        Notes:
+        - This method returns a CRML model.
+        - Use `dump_to_yaml()` to write CRML YAML.
+        """
+
+        # Dependency is declared by crml-lang, but we intentionally only import the
+        # package root here because older oscal-pydantic releases are not fully
+        # Pydantic-v2 compatible.
+        importlib.import_module("oscal_pydantic")
+
+        from crml_lang.oscal.convert import (
+            infer_namespace_and_framework,
+            oscal_catalog_to_crml_control_catalog,
+        )
+        from crml_lang.oscal.io import load_oscal_document
+
+        oscal_doc = load_oscal_document(path=path)
+        namespace, framework = infer_namespace_and_framework(oscal_doc)
+        payload = oscal_catalog_to_crml_control_catalog(
+            oscal_doc,
+            namespace=namespace,
+            framework=framework,
+            catalog_id=catalog_id,
+            meta_name=meta_name,
+            source_url=source_url,
+            license_terms=license_terms,
+        )
+        return cls.model_validate(payload)
 
 
 class CRAttackCatalog(_CRAttackCatalog):
@@ -236,12 +280,53 @@ class CRAssessment(_CRAssessment):
         return cls.model_validate(data)
 
     def dump_to_yaml(self, path: str, *, sort_keys: bool = False, exclude_none: bool = True) -> None:
+        """Serialize this CRML model to a CRML YAML file at `path`."""
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         dump_yaml_to_path(data, path, sort_keys=sort_keys)
 
     def dump_to_yaml_str(self, *, sort_keys: bool = False, exclude_none: bool = True) -> str:
+        """Serialize this CRML model to a CRML YAML string."""
         data = self.model_dump(by_alias=True, exclude_none=exclude_none)
         return dump_yaml_to_str(data, sort_keys=sort_keys)
+
+    @classmethod
+    def fromOscal(
+        cls,
+        path: str,
+        assessment_id: str | None = None,
+        meta_name: str | None = None,
+        source_url: str | None = None,
+        license_terms: str | None = None,
+        default_scf_cmm_level: int = 0,
+    ) -> "CRAssessment":
+        """Create a CRML Assessment template from an OSCAL Catalog file (JSON/YAML).
+
+        Notes:
+        - This method returns a CRML model.
+        - Use `dump_to_yaml()` to write CRML YAML.
+        """
+
+        importlib.import_module("oscal_pydantic")
+
+        from crml_lang.oscal.convert import (
+            infer_namespace_and_framework,
+            oscal_catalog_to_crml_assessment,
+        )
+        from crml_lang.oscal.io import load_oscal_document
+
+        oscal_doc = load_oscal_document(path=path)
+        namespace, framework = infer_namespace_and_framework(oscal_doc)
+        payload = oscal_catalog_to_crml_assessment(
+            oscal_doc,
+            namespace=namespace,
+            framework=framework,
+            assessment_id=assessment_id,
+            meta_name=meta_name,
+            source_url=source_url,
+            license_terms=license_terms,
+            default_scf_cmm_level=default_scf_cmm_level,
+        )
+        return cls.model_validate(payload)
 
 
 class CRControlRelationships(_CRControlRelationships):

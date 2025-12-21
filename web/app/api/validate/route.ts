@@ -189,24 +189,24 @@ function parseErrorsFromOutput(output: string): string[] {
  */
 function sanitizeErrorMessage(error: string): string {
     // Remove temporary file paths (e.g., /var/folders/.../crml-validator/crml-123456.yaml)
-    let sanitized = error.replace(/\/(?:var|tmp)\/[^\s]+\/crml-validator\/[^\s]+\.yaml/g, "your bundle");
-    sanitized = sanitized.replace(/\/(?:var|tmp)\/[^\s]+\.yaml/g, "your bundle");
+    let sanitized = error.replaceAll(/\/(?:var|tmp)\/[^\s]+\/crml-validator\/[^\s]+\.yaml/g, "your bundle");
+    sanitized = sanitized.replaceAll(/\/(?:var|tmp)\/[^\s]+\.yaml/g, "your bundle");
 
     // Remove Windows temp paths
-    sanitized = sanitized.replace(/[A-Z]:\\\\(?:Users|Windows|Temp)\\\\[^\s]+\\\\crml-validator\\\\[^\s]+\.yaml/g, "your bundle");
+    sanitized = sanitized.replaceAll(/[A-Z]:\\\\(?:Users|Windows|Temp)\\\\[^\s]+\\\\crml-validator\\\\[^\s]+\.yaml/g, "your bundle");
 
     // Improve common error messages
     if (sanitized.includes("failed CRML") && sanitized.includes("validation")) {
         // Extract version if present
-        const versionMatch = sanitized.match(/CRML\s+([\d.]+)/);
-        const version = versionMatch ? versionMatch[1] : "1.0";
+        const versionMatch = /CRML\s+([\d.]+)/.exec(sanitized);
+        const version = versionMatch?.[1] ?? "1.0";
 
         sanitized = `The bundle failed CRML ${version} validation. This usually means there are schema errors or incompatible configurations in your selected scenarios.`;
     }
 
     // Make "Additional property" errors more friendly
     if (sanitized.includes("Additional property") || sanitized.includes("additional property")) {
-        sanitized = sanitized.replace(/Additional property/gi, "Unexpected field");
+        sanitized = sanitized.replaceAll(/Additional property/gi, "Unexpected field");
     }
 
     // Clean up "is not allowed" messages

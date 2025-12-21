@@ -177,7 +177,44 @@ function parseErrorsFromOutput(output: string): string[] {
         .filter((line) => line.trim())
         .filter((line) => line.includes("[ERROR]") || NUMBERED_ERROR_RE.exec(line) !== null || line.includes("failed CRML"))
         .filter((line) => FAILED_SUMMARY_RE.exec(line) === null)
-        .map((line) => line.replace("[ERROR]", "").trim());
+        .map((line) => line.replace("[ERROR]", "").trim())
+        .map(sanitizeErrorMessage);
+}
+
+/**
+ * Sanitize error messages to make them user-friendly
+ * - Remove temporary file paths
+ * - Simplify technical jargon
+ * - Provide actionable context
+ */
+function sanitizeErrorMessage(error: string): string {
+    // Remove temporary file paths (e.g., /var/folders/.../crml-validator/crml-123456.yaml)
+    let sanitized = error.replace(/\/(?:var|tmp)\/[^\s]+\/crml-validator\/[^\s]+\.yaml/g, "your bundle");
+    sanitized = sanitized.replace(/\/(?:var|tmp)\/[^\s]+\.yaml/g, "your bundle");
+
+    // Remove Windows temp paths
+    sanitized = sanitized.replace(/[A-Z]:\\\\(?:Users|Windows|Temp)\\\\[^\s]+\\\\crml-validator\\\\[^\s]+\.yaml/g, "your bundle");
+
+    // Improve common error messages
+    if (sanitized.includes("failed CRML") && sanitized.includes("validation")) {
+        // Extract version if present
+        const versionMatch = sanitized.match(/CRML\s+([\d.]+)/);
+        const version = versionMatch ? versionMatch[1] : "1.0";
+
+        sanitized = `The bundle failed CRML ${version} validation. This usually means there are schema errors or incompatible configurations in your selected scenarios.`;
+    }
+
+    // Make "Additional property" errors more friendly
+    if (sanitized.includes("Additional property") || sanitized.includes("additional property")) {
+        sanitized = sanitized.replace(/Additional property/gi, "Unexpected field");
+    }
+
+    // Clean up "is not allowed" messages
+    if (sanitized.includes("is not allowed")) {
+        sanitized += " Check the CRML schema documentation for valid fields.";
+    }
+
+    return sanitized;
 }
 
 type ExecResult = { stdout: string; stderr: string; ok: boolean; message?: string };

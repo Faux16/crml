@@ -17,6 +17,7 @@ import ValidationResults, { ValidationResult } from "@/components/ValidationResu
 import SimulationResults, { CRSimulationResult } from "@/components/SimulationResults";
 import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
 import { applyInclusionTogglesToYaml, tryDetectCrmlDocKindFromYaml, tryExtractInclusionsFromYaml } from "@/lib/crmlInclusions";
+import { checkScenarioCompatibility, detectMissingCatalogs } from "@/lib/crmlValidationHelpers";
 import yaml from "js-yaml";
 import {
     ChevronDown,
@@ -38,16 +39,16 @@ interface Example {
     name: string;
     description: string;
     docKind?:
-        | "portfolio_bundle"
-        | "scenario"
-        | "portfolio"
-        | "attack_catalog"
-        | "control_catalog"
-        | "control_relationships"
-        | "attack_control_relationships"
-        | "assessment"
-        | "fx_config"
-        | "unknown";
+    | "portfolio_bundle"
+    | "scenario"
+    | "portfolio"
+    | "attack_catalog"
+    | "control_catalog"
+    | "control_relationships"
+    | "attack_control_relationships"
+    | "assessment"
+    | "fx_config"
+    | "unknown";
     content: string;
 }
 
@@ -94,8 +95,9 @@ function buildPortfolioBundleYaml(params: {
     selectedPortfolio: Example | undefined;
     selectedScenarios: Example[];
     selectedPacks: Example[];
-}): { yaml: string; errors: string[] } {
+}): { yaml: string; errors: string[]; warnings: string[] } {
     const errors: string[] = [];
+    const warnings: string[] = [];
     const { selectedPortfolio, selectedScenarios, selectedPacks } = params;
 
     const packFilenames = (packDocs: Array<{ example: Example; doc: Record<string, unknown> }>, kind: Example["docKind"]) =>
@@ -178,10 +180,19 @@ function buildPortfolioBundleYaml(params: {
     };
 
     if (!selectedPortfolio) {
-        errors.push("Select a portfolio.");
+        errors.push("Please select a portfolio to compose a bundle.");
     }
     if (selectedScenarios.length === 0) {
-        errors.push("Select at least one scenario.");
+        errors.push("Please select at least one scenario to include in the bundle.");
+    }
+
+    // Check scenario compatibility and add warnings
+    if (selectedScenarios.length > 0) {
+        const compatibilityWarnings = checkScenarioCompatibility(selectedScenarios);
+        warnings.push(...compatibilityWarnings);
+
+        const catalogWarnings = detectMissingCatalogs(selectedScenarios, selectedPacks);
+        warnings.push(...catalogWarnings);
     }
 
     const portfolioDoc = selectedPortfolio ? parseYamlRootRecord(selectedPortfolio.content, "portfolio", errors) : null;
@@ -195,14 +206,14 @@ function buildPortfolioBundleYaml(params: {
         .filter((x): x is { example: Example; doc: Record<string, unknown> } => !!x.doc);
 
     if (!portfolioDoc || scenarioDocs.length === 0) {
-        return { yaml: "", errors };
+        return { yaml: "", errors, warnings };
     }
 
     rewritePortfolioForBundle(portfolioDoc, scenarioDocs, packDocs);
 
     const bundle = buildBundleObject(portfolioDoc, scenarioDocs, packDocs);
     const yamlOut = yaml.dump(bundle, { noRefs: true, lineWidth: 120 });
-    return { yaml: yamlOut, errors };
+    return { yaml: yamlOut, errors, warnings };
 }
 
 function ComposeTab(props: {
@@ -217,7 +228,7 @@ function ComposeTab(props: {
     readonly setComposeScenarioIds: (updater: (prev: Set<string>) => Set<string>) => void;
     readonly composePackIds: Set<string>;
     readonly setComposePackIds: (updater: (prev: Set<string>) => Set<string>) => void;
-    readonly composeBundle: { yaml: string; errors: string[] };
+    readonly composeBundle: { yaml: string; errors: string[]; warnings: string[] };
     readonly composeValidationResult: ValidationResult | null;
     readonly isComposeValidating: boolean;
     readonly toggleIdInSet: (prev: Set<string>, id: string) => Set<string>;
@@ -318,26 +329,26 @@ function ComposeTab(props: {
 
                     <div className="flex min-h-0 flex-1 flex-col gap-6">
                         <div className="space-y-2">
-                        <Label>Portfolio</Label>
-                        <Select
-                            value={composePortfolioId}
-                            onValueChange={(v) => setComposePortfolioId(v)}
-                            disabled={examplesLoading || portfolioExamples.length === 0}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder={examplesLoading ? "Loading..." : "Select a portfolio"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {sortedPortfolioExamples.map((p) => (
-                                    <SelectItem key={p.id} value={p.id}>
-                                        {p.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {sortedPortfolioExamples.length === 0 && !examplesLoading ? (
-                            <p className="text-sm text-muted-foreground">No portfolio examples found.</p>
-                        ) : null}
+                            <Label>Portfolio</Label>
+                            <Select
+                                value={composePortfolioId}
+                                onValueChange={(v) => setComposePortfolioId(v)}
+                                disabled={examplesLoading || portfolioExamples.length === 0}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={examplesLoading ? "Loading..." : "Select a portfolio"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sortedPortfolioExamples.map((p) => (
+                                        <SelectItem key={p.id} value={p.id}>
+                                            {p.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {sortedPortfolioExamples.length === 0 && !examplesLoading ? (
+                                <p className="text-sm text-muted-foreground">No portfolio examples found.</p>
+                            ) : null}
                         </div>
 
                         <div className="flex min-h-0 flex-1 flex-col gap-2">
@@ -346,33 +357,33 @@ function ComposeTab(props: {
                                 <p className="text-xs text-muted-foreground">{composeScenarioIds.size} selected</p>
                             </div>
                             <ScrollArea className="min-h-0 flex-1 rounded-md border p-2">
-                            <div className="space-y-2">
-                                {sortedScenarioExamples.length === 0 && !examplesLoading ? (
-                                    <p className="text-sm text-muted-foreground">No scenario examples found.</p>
-                                ) : (
-                                    sortedScenarioExamples.map((s) => {
-                                        const selected = composeScenarioIds.has(s.id);
-                                        return (
-                                            <button
-                                                key={s.id}
-                                                type="button"
-                                                onClick={() => setComposeScenarioIds((prev) => toggleIdInSet(prev, s.id))}
-                                                className={cn(
-                                                    "w-full rounded-md border px-3 py-2 text-left text-sm transition-colors",
-                                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                                                    selected ? "bg-background" : "bg-muted text-muted-foreground",
-                                                )}
-                                            >
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <span className="truncate font-medium">{s.name}</span>
-                                                    <span className="shrink-0 text-xs">{selected ? "Selected" : ""}</span>
-                                                </div>
-                                                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{s.description}</p>
-                                            </button>
-                                        );
-                                    })
-                                )}
-                            </div>
+                                <div className="space-y-2">
+                                    {sortedScenarioExamples.length === 0 && !examplesLoading ? (
+                                        <p className="text-sm text-muted-foreground">No scenario examples found.</p>
+                                    ) : (
+                                        sortedScenarioExamples.map((s) => {
+                                            const selected = composeScenarioIds.has(s.id);
+                                            return (
+                                                <button
+                                                    key={s.id}
+                                                    type="button"
+                                                    onClick={() => setComposeScenarioIds((prev) => toggleIdInSet(prev, s.id))}
+                                                    className={cn(
+                                                        "w-full rounded-md border px-3 py-2 text-left text-sm transition-colors",
+                                                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                                        selected ? "bg-background" : "bg-muted text-muted-foreground",
+                                                    )}
+                                                >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className="truncate font-medium">{s.name}</span>
+                                                        <span className="shrink-0 text-xs">{selected ? "Selected" : ""}</span>
+                                                    </div>
+                                                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{s.description}</p>
+                                                </button>
+                                            );
+                                        })
+                                    )}
+                                </div>
                             </ScrollArea>
                         </div>
 
@@ -382,32 +393,32 @@ function ComposeTab(props: {
                                 <p className="text-xs text-muted-foreground">{composePackIds.size} selected</p>
                             </div>
                             <ScrollArea className="min-h-0 flex-1 rounded-md border p-2">
-                            <div className="space-y-2">
-                                {!hasAnyPacks && !examplesLoading ? (
-                                    <p className="text-sm text-muted-foreground">No catalogs or mappings found.</p>
-                                ) : (
-                                    <>
-                                        {catalogPacks.length > 0 ? (
-                                            <div className="space-y-2">
-                                                <p className="text-xs font-medium text-muted-foreground">Catalogs</p>
-                                                {catalogPacks.map(renderPackButton)}
-                                            </div>
-                                        ) : null}
-                                        {assessmentPacks.length > 0 ? (
-                                            <div className="space-y-2 pt-2">
-                                                <p className="text-xs font-medium text-muted-foreground">Assessments</p>
-                                                {assessmentPacks.map(renderPackButton)}
-                                            </div>
-                                        ) : null}
-                                        {mappingPacks.length > 0 ? (
-                                            <div className="space-y-2 pt-2">
-                                                <p className="text-xs font-medium text-muted-foreground">Mappings</p>
-                                                {mappingPacks.map(renderPackButton)}
-                                            </div>
-                                        ) : null}
-                                    </>
-                                )}
-                            </div>
+                                <div className="space-y-2">
+                                    {!hasAnyPacks && !examplesLoading ? (
+                                        <p className="text-sm text-muted-foreground">No catalogs or mappings found.</p>
+                                    ) : (
+                                        <>
+                                            {catalogPacks.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    <p className="text-xs font-medium text-muted-foreground">Catalogs</p>
+                                                    {catalogPacks.map(renderPackButton)}
+                                                </div>
+                                            ) : null}
+                                            {assessmentPacks.length > 0 ? (
+                                                <div className="space-y-2 pt-2">
+                                                    <p className="text-xs font-medium text-muted-foreground">Assessments</p>
+                                                    {assessmentPacks.map(renderPackButton)}
+                                                </div>
+                                            ) : null}
+                                            {mappingPacks.length > 0 ? (
+                                                <div className="space-y-2 pt-2">
+                                                    <p className="text-xs font-medium text-muted-foreground">Mappings</p>
+                                                    {mappingPacks.map(renderPackButton)}
+                                                </div>
+                                            ) : null}
+                                        </>
+                                    )}
+                                </div>
                             </ScrollArea>
                         </div>
                     </div>
@@ -424,16 +435,36 @@ function ComposeTab(props: {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {composeBundle.errors.length > 0 ? (
+                        <Alert variant="destructive">
+                            <Info className="h-4 w-4" />
+                            <AlertDescription>
+                                <div className="space-y-1">
+                                    {composeBundle.errors.map((error, i) => (
+                                        <div key={i}>• {error}</div>
+                                    ))}
+                                </div>
+                            </AlertDescription>
+                        </Alert>
+                    ) : null}
+
+                    {composeBundle.warnings.length > 0 ? (
                         <Alert>
                             <Info className="h-4 w-4" />
-                            <AlertDescription>{composeBundle.errors.join(" ")}</AlertDescription>
+                            <AlertDescription>
+                                <div className="font-medium mb-1">Warnings:</div>
+                                <div className="space-y-1 text-sm">
+                                    {composeBundle.warnings.map((warning, i) => (
+                                        <div key={i}>• {warning}</div>
+                                    ))}
+                                </div>
+                            </AlertDescription>
                         </Alert>
                     ) : null}
 
                     <div className="h-[420px]">
                         <CodeEditor
                             value={composeBundle.yaml || "# Select a portfolio + scenario(s) to generate a bundle."}
-                            onChange={() => {}}
+                            onChange={() => { }}
                             readOnly
                         />
                     </div>
@@ -794,7 +825,7 @@ export default function PlaygroundClient() {
             }
         };
 
-        // Reset while selection errors exist.
+        // Reset while selection errors exist (but warnings are ok).
         if (composeBundle.errors.length > 0) {
             setComposeValidationResult(null);
             setIsComposeValidating(false);
@@ -1034,95 +1065,95 @@ export default function PlaygroundClient() {
 
                     {canSimulate ? (
                         <TabsContent value="simulate" className="m-0">
-                        <Card className="mb-6">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Settings2 className="h-5 w-5" />
-                                    Simulation Settings
-                                </CardTitle>
-                                <CardDescription>Configure your Monte Carlo simulation parameters</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid gap-4 md:grid-cols-4">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <Label htmlFor="runs">Iterations</Label>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="max-w-xs">
-                                                    <p className="font-semibold mb-1">How many times to run the simulation</p>
-                                                    <ul className="text-xs space-y-1">
-                                                        <li>• 1,000: Quick testing</li>
-                                                        <li>• 10,000: Standard analysis</li>
-                                                        <li>• 50,000+: Higher accuracy</li>
-                                                    </ul>
-                                                </TooltipContent>
-                                            </Tooltip>
+                            <Card className="mb-6">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Settings2 className="h-5 w-5" />
+                                        Simulation Settings
+                                    </CardTitle>
+                                    <CardDescription>Configure your Monte Carlo simulation parameters</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid gap-4 md:grid-cols-4">
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Label htmlFor="runs">Iterations</Label>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="max-w-xs">
+                                                        <p className="font-semibold mb-1">How many times to run the simulation</p>
+                                                        <ul className="text-xs space-y-1">
+                                                            <li>• 1,000: Quick testing</li>
+                                                            <li>• 10,000: Standard analysis</li>
+                                                            <li>• 50,000+: Higher accuracy</li>
+                                                        </ul>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </div>
+                                            <Input
+                                                id="runs"
+                                                type="number"
+                                                value={runs}
+                                                onChange={(e) => setRuns(e.target.value)}
+                                                min="100"
+                                                max="100000"
+                                            />
                                         </div>
-                                        <Input
-                                            id="runs"
-                                            type="number"
-                                            value={runs}
-                                            onChange={(e) => setRuns(e.target.value)}
-                                            min="100"
-                                            max="100000"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <Label htmlFor="seed">Random Seed</Label>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="max-w-xs">
-                                                    <p className="font-semibold mb-1">Makes results reproducible</p>
-                                                    <p className="text-xs">Use the same seed to get identical results</p>
-                                                </TooltipContent>
-                                            </Tooltip>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Label htmlFor="seed">Random Seed</Label>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="max-w-xs">
+                                                        <p className="font-semibold mb-1">Makes results reproducible</p>
+                                                        <p className="text-xs">Use the same seed to get identical results</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </div>
+                                            <Input
+                                                id="seed"
+                                                type="number"
+                                                value={seed}
+                                                onChange={(e) => setSeed(e.target.value)}
+                                                placeholder="Optional"
+                                            />
                                         </div>
-                                        <Input
-                                            id="seed"
-                                            type="number"
-                                            value={seed}
-                                            onChange={(e) => setSeed(e.target.value)}
-                                            placeholder="Optional"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <Label htmlFor="currency">Output Currency</Label>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Label htmlFor="currency">Output Currency</Label>
+                                            </div>
+                                            <Select
+                                                value={outputCurrency}
+                                                onValueChange={(v) => setOutputCurrency(v as keyof typeof OUTPUT_CURRENCIES)}
+                                            >
+                                                <SelectTrigger id="currency">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {Object.entries(OUTPUT_CURRENCIES).map(([code, info]) => (
+                                                        <SelectItem key={code} value={code}>
+                                                            {info.symbol} {code} - {info.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                        <Select
-                                            value={outputCurrency}
-                                            onValueChange={(v) => setOutputCurrency(v as keyof typeof OUTPUT_CURRENCIES)}
-                                        >
-                                            <SelectTrigger id="currency">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.entries(OUTPUT_CURRENCIES).map(([code, info]) => (
-                                                    <SelectItem key={code} value={code}>
-                                                        {info.symbol} {code} - {info.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="flex items-end gap-2">
+                                            <Button onClick={handleSimulate} disabled={isSimulating} className="flex-1 gap-2">
+                                                <Play className="h-4 w-4" />
+                                                {isSimulating ? "Running..." : "Simulate"}
+                                            </Button>
+                                            <Button onClick={handleReset} variant="outline" size="icon" aria-label="Reset YAML">
+                                                <RotateCcw className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="flex items-end gap-2">
-                                        <Button onClick={handleSimulate} disabled={isSimulating} className="flex-1 gap-2">
-                                            <Play className="h-4 w-4" />
-                                            {isSimulating ? "Running..." : "Simulate"}
-                                        </Button>
-                                        <Button onClick={handleReset} variant="outline" size="icon" aria-label="Reset YAML">
-                                            <RotateCcw className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
                         </TabsContent>
                     ) : null}
                 </Tabs>

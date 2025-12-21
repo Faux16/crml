@@ -101,37 +101,28 @@ export default function DocsPage() {
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Model Structure</CardTitle>
+                            <CardTitle>What CRML Is</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <h3 className="mb-2 font-semibold">Meta Section</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    Contains model metadata including name, version, description, author, and tags.
+                                    CRML (Cyber Risk Modeling Language) is a declarative YAML/JSON format for describing cyber
+                                    risk models in a way that tools can validate, simulate, and visualize.
                                 </p>
                             </div>
                             <div>
-                                <h3 className="mb-2 font-semibold">Data Section</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Defines data sources, schemas, and feature mappings for telemetry integration.
-                                </p>
+                                <h3 className="mb-2 font-semibold">Think of it as…</h3>
+                                <ul className="space-y-1 text-sm text-muted-foreground">
+                                    <li>• A portable input contract (your models) that can be checked in CI</li>
+                                    <li>• A shared vocabulary for scenarios, portfolios, controls, and relationships</li>
+                                    <li>• A stable output envelope so dashboards and UIs can consume results consistently</li>
+                                </ul>
                             </div>
                             <div>
-                                <h3 className="mb-2 font-semibold">Model Section</h3>
+                                <h3 className="mb-2 font-semibold">Where you’ll use it</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    Specifies assets, frequency models, severity models, dependencies, and temporal aspects.
-                                </p>
-                            </div>
-                            <div>
-                                <h3 className="mb-2 font-semibold">Pipeline Section</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Configures simulation parameters including Monte Carlo and MCMC settings.
-                                </p>
-                            </div>
-                            <div>
-                                <h3 className="mb-2 font-semibold">Output Section</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Defines metrics, distributions, diagnostics, and export formats.
+                                    Write models as files, validate them with the CLI or the <Link href="/validator" className="text-primary hover:underline">Validator</Link>,
+                                    and run simulations in the <Link href="/playground?tab=simulate" className="text-primary hover:underline">Simulation</Link> UI.
                                 </p>
                             </div>
                         </CardContent>
@@ -139,27 +130,80 @@ export default function DocsPage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Supported Models</CardTitle>
+                            <CardTitle>Architecture (Language → Engine → UI)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="mb-4 text-sm text-muted-foreground">
+                                CRML is split on purpose so different tools can interoperate without being tightly coupled.
+                            </p>
+                            <div className="grid gap-4 md:grid-cols-3">
+                                <div>
+                                    <h3 className="mb-2 font-semibold">Language / Spec</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        <span className="font-mono">crml_lang</span> defines document shapes, schemas, and validation.
+                                    </p>
+                                </div>
+                                <div>
+                                    <h3 className="mb-2 font-semibold">Engine / Runtime</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        <span className="font-mono">crml_engine</span> executes simulations (CLI + runtime) using validated inputs.
+                                    </p>
+                                </div>
+                                <div>
+                                    <h3 className="mb-2 font-semibold">Web UI</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        <span className="font-mono">web/</span> (CRML Studio) calls the same validator/runtime and presents results.
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Core Artifacts (Files You’ll See)</CardTitle>
+                            <CardDescription>
+                                Most CRML work is just authoring and moving a few well-defined document types around.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div>
-                                    <h3 className="mb-2 font-semibold">Frequency Models</h3>
+                                    <h3 className="mb-2 font-semibold">Inputs</h3>
                                     <ul className="space-y-1 text-sm text-muted-foreground">
-                                        <li>• Poisson</li>
-                                        <li>• Negative Binomial</li>
-                                        <li>• Hierarchical Gamma-Poisson</li>
+                                        <li>• Scenario: frequency + severity assumptions for one risk</li>
+                                        <li>• Portfolio: assets/exposure + scenario bindings</li>
+                                        <li>• Catalogs: controls and attacks (stable identifiers + metadata)</li>
+                                        <li>• Assessments & relationships: “what’s implemented” and how things map</li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <h3 className="mb-2 font-semibold">Severity Models</h3>
+                                    <h3 className="mb-2 font-semibold">Contracts between tools</h3>
                                     <ul className="space-y-1 text-sm text-muted-foreground">
-                                        <li>• Lognormal</li>
-                                        <li>• Gamma</li>
-                                        <li>• Mixture models</li>
+                                        <li>• Bundle: a self-contained, inlined input artifact for engines</li>
+                                        <li>• Result envelope: a stable output format for UIs and reporting</li>
                                     </ul>
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Typical End-to-End Workflow</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <ol className="space-y-2 text-sm text-muted-foreground">
+                                <li>1) Start from an example scenario (or write a tiny one) and validate it.</li>
+                                <li>2) Run Monte Carlo simulation to get metrics like expected loss and tail risk.</li>
+                                <li>3) When you need exposure (many assets) or multiple scenarios, create a portfolio.</li>
+                                <li>4) Optionally add catalogs, assessments, and mappings to connect controls ↔ threats.</li>
+                                <li>5) Export results (JSON) for dashboards, or explore them here in CRML Studio.</li>
+                            </ol>
+                            <p className="text-sm text-muted-foreground">
+                                Want something concrete? Open <Link href="/examples" className="text-primary hover:underline">Examples</Link> and load a scenario into the
+                                simulation UI.
+                            </p>
                         </CardContent>
                     </Card>
                 </div>

@@ -1,0 +1,60 @@
+# Lesson 05 — CIS → Org control relationships pack
+#
+# What this lesson teaches
+# ------------------------
+# - How to represent control-to-control mappings as a `crml_control_relationships` pack.
+# - This enables tooling to translate portable CIS-authored scenarios into an
+#   organization's internal control ids.
+#
+# IMPORTANT
+# ---------
+# This pack is a modeling + tooling artifact.
+# The reference engine does not automatically apply control-to-control mapping
+# packs during simulation; scenario control ids must match the portfolio posture ids.
+
+crml_control_relationships: "1.0"
+
+meta:
+  name: "Lesson 05 — CIS v8 → Org mappings"
+  description: |
+    Minimal CIS→Org mapping pack used in the lesson series.
+
+    Each relationship maps one CIS control id to one (or more) internal org controls.
+    The `overlap.weight` can be used by tools to translate effectiveness/coverage.
+  tags: ["example", "lessons", "cisv8", "org", "control-relationships"]
+
+relationships:
+  id: "lesson-05-cisv8-to-org"
+  relationships:
+    - source: "cisv8:6.3"  # Require MFA for externally exposed applications
+      targets:
+        - target: "org:iam.mfa"
+          relationship_type: overlaps_with
+          overlap:
+            weight: 1.0
+          confidence: 0.8
+
+    - source: "cisv8:9.5"  # Implement DMARC
+      targets:
+        - target: "org:mail.dmarc"
+          relationship_type: overlaps_with
+          overlap:
+            weight: 1.0
+          confidence: 0.7
+
+    - source: "cisv8:14.2"  # Train workforce to recognize social engineering attacks
+      targets:
+        - target: "org:awareness.security"
+          relationship_type: overlaps_with
+          overlap:
+            weight: 0.9
+          confidence: 0.6
+
+    - source: "cisv8:10.1"  # Deploy and maintain anti-malware software
+      targets:
+        - target: "org:endpoint.edr"
+          relationship_type: overlaps_with
+          overlap:
+            weight: 0.6
+          confidence: 0.5
+          notes: "EDR is not the same as anti-malware, but tools might treat it as partial overlap for risk modeling."

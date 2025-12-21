@@ -1,0 +1,34 @@
+name: "Studio: Improvement"
+description: "Suggest an improvement to CRML Studio (UI, workflow, performance)."
+title: "[studio][enhancement]: "
+labels: ["enhancement", "studio"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Propose an improvement for **CRML Studio**.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+
+  - type: textarea
+    id: ux
+    attributes:
+      label: UX notes (optional)
+      description: What should the user experience look like?
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context

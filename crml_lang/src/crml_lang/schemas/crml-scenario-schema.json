@@ -1,0 +1,926 @@
+{
+  "$defs": {
+    "Data": {
+      "properties": {
+        "sources": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/DataSource"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional named data sources referenced by the scenario.",
+          "title": "Sources"
+        },
+        "feature_mapping": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional mapping from engine-required feature names to source columns/fields.",
+          "title": "Feature Mapping"
+        }
+      },
+      "title": "Data",
+      "type": "object"
+    },
+    "DataSource": {
+      "properties": {
+        "type": {
+          "description": "Identifier for the data source type (engine/UI defined).",
+          "title": "Type",
+          "type": "string"
+        },
+        "data_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional schema mapping for source fields (feature name -> type/meaning).",
+          "title": "Data Schema"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "DataSource",
+      "type": "object"
+    },
+    "Evidence": {
+      "properties": {
+        "sources": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/EvidenceSource"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of citations that informed this scenario (threat reports, news, internal docs). This is designed to support low-friction authoring from external reporting.",
+          "title": "Sources"
+        },
+        "observed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceObserved"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional lightweight observed metrics used to inform or calibrate the scenario. Tools may translate these into model parameters (e.g., lambda, median/sigma)."
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional evidence/provenance notes.",
+          "title": "Notes"
+        }
+      },
+      "title": "Evidence",
+      "type": "object"
+    },
+    "EvidenceObserved": {
+      "properties": {
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceWindow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional time window for the observations used to inform this scenario."
+        },
+        "incident_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed incident count for this scenario within the window. Useful for calibrating frequency.",
+          "title": "Incident Count"
+        },
+        "org_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional number of organizations covered by the observations (if known). Useful for translating report-level counts into per-organization rates.",
+          "title": "Org Count"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional currency code/symbol for observed loss values.",
+          "title": "Currency"
+        },
+        "loss_median": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed median loss per incident.",
+          "title": "Loss Median"
+        },
+        "loss_mean": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed mean loss per incident.",
+          "title": "Loss Mean"
+        },
+        "loss_p90": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed 90th percentile loss per incident.",
+          "title": "Loss P90"
+        },
+        "loss_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed minimum loss per incident.",
+          "title": "Loss Min"
+        },
+        "loss_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional observed maximum loss per incident.",
+          "title": "Loss Max"
+        }
+      },
+      "title": "EvidenceObserved",
+      "type": "object"
+    },
+    "EvidenceSource": {
+      "properties": {
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional title of the source (report/article).",
+          "title": "Title"
+        },
+        "publisher": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional publisher/vendor name.",
+          "title": "Publisher"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL for the source.",
+          "title": "Url"
+        },
+        "published_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional publish timestamp/date for the source (ISO 8601 string). Examples: '2025-12-01' or '2025-12-01T10:15:30Z'.",
+          "title": "Published At"
+        },
+        "retrieved_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional retrieval timestamp/date (ISO 8601 string). Useful for threat intel that changes over time.",
+          "title": "Retrieved At"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional notes about how this source was used.",
+          "title": "Notes"
+        }
+      },
+      "title": "EvidenceSource",
+      "type": "object"
+    },
+    "EvidenceWindow": {
+      "properties": {
+        "start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional start of the observation window (ISO 8601 string). Example: '2023-01-01'.",
+          "title": "Start"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional end of the observation window (ISO 8601 string). Example: '2025-12-31'.",
+          "title": "End"
+        }
+      },
+      "title": "EvidenceWindow",
+      "type": "object"
+    },
+    "Frequency": {
+      "properties": {
+        "basis": {
+          "default": "per_organization_per_year",
+          "description": "Frequency basis/denominator (e.g. per-organization-year, per-asset-unit-year).",
+          "enum": [
+            "per_organization_per_year",
+            "per_asset_unit_per_year"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "model": {
+          "default": "poisson",
+          "description": "Frequency distribution/model identifier (engine-defined). If omitted, defaults to 'poisson'.",
+          "title": "Model",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/FrequencyParameters",
+          "description": "Model parameters for the selected frequency model."
+        }
+      },
+      "required": [
+        "parameters"
+      ],
+      "title": "Frequency",
+      "type": "object"
+    },
+    "FrequencyParameters": {
+      "properties": {
+        "lambda": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Threat-event frequency parameter (e.g. Poisson rate). Interpreted as baseline threat likelihood (threat landscape) before organization-specific vulnerability/control posture is applied. Serialized as 'lambda' in YAML/JSON.",
+          "title": "Lambda"
+        },
+        "alpha_base": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Frequency model parameter (model-specific).",
+          "title": "Alpha Base"
+        },
+        "beta_base": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Frequency model parameter (model-specific).",
+          "title": "Beta Base"
+        },
+        "r": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Frequency model parameter (model-specific).",
+          "title": "R"
+        },
+        "p": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Probability parameter for frequency model (0..1).",
+          "title": "P"
+        }
+      },
+      "title": "FrequencyParameters",
+      "type": "object"
+    },
+    "Meta": {
+      "properties": {
+        "name": {
+          "description": "Human-friendly name for this document.",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional version string for this document.",
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form description.",
+          "title": "Description"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional author/owner.",
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional organization name.",
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of industry tags.",
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "description": "Optional locale/region information and arbitrary locale metadata.",
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional company size tags.",
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of regulatory frameworks relevant to this document.",
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of user-defined tags.",
+          "title": "Tags"
+        },
+        "attck": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "ATT&CK identifier in canonical namespaced form 'namespace:key' (no whitespace). Recommended namespace is 'attck'. Examples: attck:TA0001, attck:T1059, attck:T1059.003",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of ATT&CK tactic/technique/sub-technique identifiers relevant to this document, expressed as namespaced ids (e.g. 'attck:T1059.003').",
+          "title": "Attck"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Meta",
+      "type": "object"
+    },
+    "Scenario": {
+      "properties": {
+        "frequency": {
+          "$ref": "#/$defs/Frequency",
+          "description": "Frequency model definition."
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "description": "Severity model definition."
+        },
+        "controls": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "description": "Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1",
+                    "maxLength": 256,
+                    "minLength": 1,
+                    "not": {
+                      "pattern": "^attck:"
+                    },
+                    "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/ScenarioControl"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional threat-centric declaration of relevant controls. Semantics: the threat can be mitigated by these controls if present in the portfolio.",
+          "title": "Controls"
+        }
+      },
+      "required": [
+        "frequency",
+        "severity"
+      ],
+      "title": "Scenario",
+      "type": "object"
+    },
+    "ScenarioControl": {
+      "description": "Scenario-specific control reference.\n\nThis allows a scenario to specify scenario-scoped assumptions for a control\n(e.g. partial applicability) without requiring portfolio-wide changes.",
+      "properties": {
+        "id": {
+          "description": "Canonical unique control id referenced by this scenario.",
+          "maxLength": 256,
+          "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
+          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "effectiveness_against_threat": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Threat-specific effectiveness factor for this control against this scenario (0..1). Recommended semantics: engines combine this with organization-specific inventory/assessment posture (e.g. inventory implementation effectiveness and coverage) when planning.",
+          "title": "Effectiveness Against Threat"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Free-form notes about this scenario control reference.",
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ScenarioControl",
+      "type": "object"
+    },
+    "Severity": {
+      "properties": {
+        "model": {
+          "description": "Severity distribution/model identifier (engine-defined).",
+          "title": "Model",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/SeverityParameters",
+          "description": "Model parameters for the selected severity model."
+        },
+        "components": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional component breakdown (engine/tool-defined structure).",
+          "title": "Components"
+        }
+      },
+      "required": [
+        "model",
+        "parameters"
+      ],
+      "title": "Severity",
+      "type": "object"
+    },
+    "SeverityParameters": {
+      "properties": {
+        "median": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "description": "A numeric string. Readability separators (spaces, thin spaces, underscores, commas) are allowed.",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Median loss value (distribution-dependent). Interpreted as threat impact (monetary loss per event). The reference approach models vulnerability primarily via likelihood (controls); vulnerability impact is not modeled.",
+          "title": "Median"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional currency code/symbol for severity inputs.",
+          "title": "Currency"
+        },
+        "mu": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Distribution parameter (e.g. lognormal mu). Used to parameterize threat impact. Prefer 'median' for human-readable inputs.",
+          "title": "Mu"
+        },
+        "sigma": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Distribution parameter (e.g. lognormal sigma). Controls variability of threat impact (loss per event).",
+          "title": "Sigma"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Distribution parameter (model-specific).",
+          "title": "Shape"
+        },
+        "scale": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Distribution parameter (model-specific).",
+          "title": "Scale"
+        },
+        "alpha": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Distribution parameter (model-specific).",
+          "title": "Alpha"
+        },
+        "x_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Minimum loss / truncation parameter (model-specific).",
+          "title": "X Min"
+        },
+        "single_losses": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of explicit sample losses (used by some empirical severity models).",
+          "title": "Single Losses"
+        }
+      },
+      "title": "SeverityParameters",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "crml_scenario": {
+      "const": "1.0",
+      "description": "Scenario document version identifier.",
+      "title": "Crml Scenario",
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta",
+      "description": "Document metadata (name, description, tags, etc.)."
+    },
+    "evidence": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Evidence"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional evidence/provenance section designed for scenarios authored from threat reports/news and for lightweight calibration metadata."
+    },
+    "data": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Data"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional data source and feature mapping section."
+    },
+    "scenario": {
+      "$ref": "#/$defs/Scenario",
+      "description": "The scenario payload."
+    }
+  },
+  "required": [
+    "crml_scenario",
+    "meta",
+    "scenario"
+  ],
+  "title": "CRScenario",
+  "type": "object"
+}

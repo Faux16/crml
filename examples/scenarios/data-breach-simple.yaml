@@ -1,0 +1,29 @@
+crml_scenario: "1.0"
+meta:
+  name: "data-breach-simple"
+  version: "1.0"
+  description: "Simple data breach risk model for beginners"
+  author: CRML Team
+  tags:
+    - data-breach
+    - beginner
+    - pii
+  company_size:
+    - smb
+  industries:
+    - all
+  locale:
+    regions: ["world"]
+    countries: ["US"]
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.05  # 5% annual probability per database
+  severity:
+    model: lognormal
+    parameters:
+      median: "100 000"  # $100K median breach cost (ISO 80000-1 format)
+      currency: USD
+      sigma: 1.2  # Moderate variability

@@ -5,8 +5,8 @@ import { CheckCircle, XCircle, Info } from "lucide-react";
 import { ValidationResult } from "../ValidationResults";
 
 interface ValidationSummaryProps {
-    result: ValidationResult | null;
-    isValidating: boolean;
+    readonly result: ValidationResult | null;
+    readonly isValidating: boolean;
 }
 
 /**
@@ -41,7 +41,7 @@ export function ValidationSummary({ result, isValidating }: ValidationSummaryPro
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                         <Info className="mb-4 h-12 w-12 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">
-                            Paste your CRML model in the editor and click "Validate" to see results
+                            Paste your CRML model in the editor and click &quot;Validate&quot; to see results
                         </p>
                     </div>
                 </CardContent>

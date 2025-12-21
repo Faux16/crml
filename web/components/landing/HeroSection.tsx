@@ -14,10 +14,10 @@ export function HeroSection() {
             <div className="container mx-auto px-4">
                 <div className="mx-auto max-w-4xl text-center">
                     <Badge className="mb-4" variant="secondary">
-                        Version 1.1 • Open Source
+                        Version 1.2 • Open Source
                     </Badge>
                     <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-                        Cyber Risk Modeling
+                        <span className="block">Cyber Risk Modeling</span>
                         <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                             Made Simple
                         </span>
@@ -27,7 +27,7 @@ export function HeroSection() {
                     </p>
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                         <Button asChild size="lg" className="gap-2">
-                            <Link href="/simulation">
+                            <Link href="/playground?tab=simulate">
                                 Try Simulation <ArrowRight className="h-4 w-4" />
                             </Link>
                         </Button>

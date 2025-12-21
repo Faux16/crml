@@ -1,0 +1,18 @@
+crml_assessment: "1.0"
+meta:
+  name: "SCF CMM Assessment (Mock)"
+  description: "Demonstrates assessment using SCF Capability Maturity Model (CMM) levels (1-5)."
+  tags: ["example", "scf", "assessment"]
+assessment:
+  id: "scf-assessment-2024"
+  framework: "SCF"
+  assessed_at: "2024-12-21T12:00:00Z"
+  assessments:
+    - id: "scf:AC-1"
+      scf_cmm_level: 3
+      notes: "CMM Level 3: Managed process."
+      affects: frequency
+    - id: "scf:Net-1"
+      scf_cmm_level: 5
+      notes: "CMM Level 5: Optimized."
+      affects: severity

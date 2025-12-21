@@ -1,6 +1,6 @@
-# CRML Web Platform Deployment
+# CRML Studio Deployment
 
-This branch (`web-platform`) contains the complete CRML project including the interactive web platform.
+This repository includes CRML Studio (the interactive web UI) under `web/`.
 
 ## Quick Deploy to Vercel
 
@@ -34,9 +34,9 @@ Visit http://localhost:3000
 ```
 crml_full_repo/
 ├── src/crml/          # Python package
-├── web/               # Next.js web platform
-├── spec/examples/     # Example CRML models
-└── docs/              # Documentation
+├── web/               # CRML Studio (Next.js)
+├── examples/          # Example CRML models
+└── wiki/              # Documentation (wiki source)
 ```
 
 ## Features
@@ -71,7 +71,7 @@ No environment variables required for basic deployment.
 
 ## Python Backend
 
-The web platform calls the Python backend via API routes. Ensure Python 3.8+ is available in your deployment environment.
+CRML Studio calls the Python backend via API routes. Ensure Python 3.9+ is available in your deployment environment.
 
 For Vercel, Python is automatically available.
 

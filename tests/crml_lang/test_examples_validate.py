@@ -1,0 +1,37 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from crml_lang import validate
+from crml_lang import validate_document
+from crml_lang.validators import validate_attack_catalog
+from crml_lang.validators import validate_attack_control_relationships
+
+
+def test_example_attack_catalog_validates() -> None:
+    root = Path(__file__).resolve().parents[2]
+    examples_dir = root / "examples" / "attack_catalogs"
+    for example in sorted(examples_dir.glob("*.yaml")):
+        report = validate_attack_catalog(str(example), source_kind="path", strict_model=True)
+        assert report.ok, report.render_text(source_label=str(example))
+
+
+def test_example_attck_tagged_scenario_validates() -> None:
+    root = Path(__file__).resolve().parents[2]
+    example = root / "examples" / "scenarios" / "scenario-attck-metadata.yaml"
+    report = validate(str(example), source_kind="path")
+    assert report.ok, report.render_text(source_label=str(example))
+
+
+def test_example_attack_control_relationships_validates() -> None:
+    root = Path(__file__).resolve().parents[2]
+    example = root / "examples" / "attack_control_relationships" / "attck-to-cisv8-mappings.yaml"
+    report = validate_attack_control_relationships(str(example), source_kind="path", strict_model=True)
+    assert report.ok, report.render_text(source_label=str(example))
+
+
+def test_example_portfolio_bundle_validates_via_document_dispatch() -> None:
+    root = Path(__file__).resolve().parents[2]
+    example = root / "examples" / "portfolio_bundles" / "portfolio-bundle-documented.yaml"
+    report = validate_document(str(example), source_kind="path", strict_model=True)
+    assert report.ok, report.render_text(source_label=str(example))

@@ -1,12 +1,14 @@
 {
   "name": "web",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "check:no-simulation-route": "node scripts/check_no_simulation_route.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -20,9 +22,10 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "js-yaml": "^4.1.0",
     "lucide-react": "^0.555.0",
     "monaco-editor": "^0.55.1",
-    "next": "16.0.7",
+    "next": "^16.1.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "recharts": "^3.5.1",

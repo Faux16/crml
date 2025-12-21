@@ -27,3 +27,7 @@ web/.turbo/
 web/package-lock.json
 package-lock.json
 vercel.json
+web/package-lock.json
+.pytest_cache
+TODO.md
+/input

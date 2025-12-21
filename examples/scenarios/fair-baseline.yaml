@@ -1,0 +1,28 @@
+crml_scenario: "1.0"
+meta:
+  name: fair-baseline
+  version: "1.0"
+  description: Simple FAIR-like Poisson + Lognormal model
+  author: CRML Team
+  locale:
+    regions: ["world"]
+    countries: ["US"]
+  tags:
+    - fair
+    - baseline
+  company_size:
+    - smb
+  industries:
+    - all
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 1.2
+  severity:
+    model: lognormal
+    parameters:
+      median: "8 100"  # $8,100 median loss
+      currency: USD
+      sigma: 1.0

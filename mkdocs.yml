@@ -1,5 +1,6 @@
 site_name: "CRML Documentation"
 site_url: "https://Faux16.github.io/crml/"
+docs_dir: wiki
 theme:
   name: material
   features:
@@ -10,52 +11,73 @@ theme:
     - search.highlight
 
 nav:
-  - Home: index.md
+  - Home: Home.md
+
+  - Language (crml_lang):
+    - Overview: Language/Overview.md
+    - Installation: Language/Installation.md
+    - Python API: Language/Python-API.md
+    - Validation: Language/Validation.md
+    - CRML Schema: Reference/CRML-Schema.md
+
+  - Engine (crml_engine):
+    - Overview: Engine/Overview.md
+    - Installation: Engine/Installation.md
+    - CLI: Engine/CLI.md
+    - Python API: Engine/Python-API.md
+    - Capabilities:
+      - Supported Models: Engine/Capabilities/Supported-Models.md
+      - Portfolio Execution: Engine/Capabilities/Portfolio-Execution.md
+      - Controls: Engine/Capabilities/Controls.md
+      - Results: Engine/Capabilities/Results.md
+    - Multi-Currency Support: Multi-Currency-Support.md
+    - Control Effectiveness: Control-Effectiveness.md
 
   - Getting Started:
-    - Quick Start (5 min): quickstart.md
-    - Installation: installation.md
-    - Writing CRML Models: writing-crml.md
-    - Understanding Parameters: understanding-parameters.md
-    - Specification: specification.md
-    - Schema: schema/crml_schema.md
+    - Quickstart: Quickstart.md
+    - Getting Started: Getting-Started.md
+
+  - Guides:
+    - Writing CRML Models: Guides/Writing-CRML.md
+    - Lessons (Examples): Guides/Lessons-Example-Suite.md
+    - Excel Controls & Mappings: Guides/Excel-Controls-and-Mappings.md
+    - Understanding Parameters: Guides/Understanding-Parameters.md
+    - Executive Reporting: Guides/Executive-Reporting.md
+    - Tool Integration: Guides/Tool-Integration.md
+    - OSCAL Interop: Guides/OSCAL.md
+    - Calibrate from Data: Guides/Calibrate-from-Data.md
+    - Add New Distribution: Guides/Add-New-Distribution.md
+    - Auto-Calibration: Auto-Calibration.md
 
   - Examples:
-    - By Industry: examples/by-industry.md
-    - Full Model Examples: examples/full_examples.md
-    - FAIR Baseline Model: models/example-fair-baseline.md
-    - QBER Enterprise Model: models/example-qber-enterprise.md
+    - Overview: Examples.md
+    - By Industry: Examples/By-Industry.md
+    - Full Examples: Examples/Full-Examples.md
+    - FAIR Baseline Model: Examples/FAIR-Baseline-Model.md
+    - QBER Enterprise Model: Examples/QBER-Enterprise-Model.md
+    - Best Practices: Examples/Best-Practices.md
+    - Specification Examples: Examples/Spec-Examples.md
 
-  - How-To Guides:
-    - Present to Executives: howto/executive-reporting.md
-    - Calibrate from Data: howto/calibrate-from-data.md
-    - Integrate with Tools: howto/tool-integration.md
-    - Best Practices: models/best-practices.md
+  - Concepts:
+    - Architecture: Concepts/Architecture.md
+    - FAIR vs QBER: Concepts/FAIR-vs-QBER.md
+    - Attack Graphs: Concepts/Attack-Graphs.md
+    - Runtime (Frequency): Concepts/Runtime-Frequency.md
+    - Runtime (Severity): Concepts/Runtime-Severity.md
+    - Runtime (Entropy): Concepts/Runtime-Entropy.md
+    - Runtime (Copula): Concepts/Runtime-Copula.md
+    - Runtime (MCMC): Concepts/Runtime-MCMC.md
+    - Deep Mathematics: Concepts/Deep-Math.md
+    - Diagrams (Mermaid): Concepts/Mermaid-Diagrams.md
 
   - Reference:
-    - CLI Commands: cli/cli-commands.md
-    - Python API: api/python-api.md
-
-  - Mathematical Background:
-    - Frequency Models (Gamma–Poisson): runtime/frequency.md
-    - Severity Models: runtime/severity.md
-    - Entropy & Information Theory: runtime/entropy.md
-    - Copula Models: runtime/copula.md
-    - MCMC (QBER Engine): runtime/mcmc.md
-    - Deep Mathematics: math/deep_math.md
-
-  - Advanced Topics:
-    - Attack Graphs: runtime/attack-graphs.md
-    - FAIR vs QBER: fair-qber-comparison.md
-
-  - Help & Support:
-    - FAQ: faq.md
-    - Troubleshooting: troubleshooting.md
-    - Glossary: glossary.md
+    - CRML Specification (Overview): Reference/CRML-Specification.md
+    - FAQ: Reference/FAQ.md
+    - Troubleshooting: Reference/Troubleshooting.md
+    - Glossary: Reference/Glossary.md
 
   - Project:
-    - Roadmap: roadmap.md
-    - Diagrams: diagrams/mermaid.md
+    - Contributing: Contributing.md
 
 markdown_extensions:
   - admonition
@@ -74,6 +96,8 @@ extra:
       link: https://github.com/Faux16/crml
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/crml-lang/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/crml-engine/
     - icon: fontawesome/solid/envelope
       link: mailto:research@zeron.one
     - icon: fontawesome/solid/globe

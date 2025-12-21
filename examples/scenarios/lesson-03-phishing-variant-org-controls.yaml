@@ -1,0 +1,57 @@
+# Lesson 03 — Phishing variant (scenario-scoped control factors)
+#
+# What this lesson teaches
+# ------------------------
+# - Scenario-scoped factors can change between scenarios even when the org posture
+#   is identical.
+# - In this variant we assume a more sophisticated campaign where:
+#   - MFA is less protective (e.g. prompt-bombing, session token theft)
+#   - awareness training is less protective (more targeted pretext)
+#
+# This scenario is designed to be run with the same org assessment as Lesson 02.
+
+crml_scenario: "1.0"
+
+meta:
+  name: "Lesson 03 — Phishing variant (org controls)"
+  description: |
+    Variant of Lesson 02 with different `effectiveness_against_threat` factors.
+
+    Use this to understand the separation between:
+    - org posture (portfolio assessment)
+    - scenario threat assumptions (this file)
+  tags: ["example", "lessons", "phishing", "controls", "org", "variant"]
+  attck:
+    - "attck:TA0001"
+    - "attck:T1566"
+
+scenario:
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.25
+
+  severity:
+    model: lognormal
+    parameters:
+      currency: USD
+      median: "35 000"
+      sigma: 1.25
+
+  controls:
+    - id: "org:iam.mfa"
+      effectiveness_against_threat: 0.55
+      notes: "Assume partial bypass (fatigue/push abuse, token theft, legacy exceptions)."
+
+    - id: "org:mail.dmarc"
+      effectiveness_against_threat: 0.50
+      notes: "Still helps against some spoofing but not against lookalike domains." 
+
+    - id: "org:awareness.security"
+      effectiveness_against_threat: 0.20
+      notes: "More targeted campaign reduces training effectiveness." 
+
+    - id: "org:endpoint.edr"
+      effectiveness_against_threat: 0.45
+      notes: "EDR still helps contain fallout once the incident is detected."

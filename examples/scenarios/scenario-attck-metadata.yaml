@@ -1,0 +1,40 @@
+crml_scenario: "1.0"
+# CRML Scenario document.
+# - This file is meant to be portable and validated on its own.
+# - It becomes executable when referenced from a Portfolio (which provides assets/exposure and aggregation).
+meta:
+  name: "Phishing scenario (ATT&CK-tagged example)"
+  description: "Example scenario carrying ATT&CK IDs in meta.attck."
+  tags:
+    - example
+    - phishing
+  # Optional: ATT&CK tactic/technique/sub-technique identifiers relevant to this scenario.
+  # These are metadata for classification, reporting, and crosswalks.
+  attck:
+    - "attck:TA0001"
+    - "attck:T1566"
+    - "attck:T1566.001"
+scenario:
+  # Frequency models “how often does the threat event happen?” (baseline threat landscape).
+  # Controls (posture) are applied later by engines/planners when combined with a portfolio.
+  frequency:
+    basis: "per_organization_per_year"
+    model: "poisson"
+    parameters:
+      lambda: 0.4
+  # Severity models “how large is the loss when an event happens?” (impact per event).
+  severity:
+    model: "lognormal"
+    parameters:
+      median: 25000
+      sigma: 1.1
+      currency: "EUR"
+  # Threat-centric controls: “these controls are relevant mitigations for this scenario”.
+  # They can be plain ids ("cisv8:4.1") or a structured object with scenario-scoped overrides.
+  controls:
+    - id: "cisv8:4.1"
+      # Threat-specific control effectiveness factor (0..1).
+      # Use this to express that a control is more/less effective across different scenarios.
+      # Organization-specific posture (coverage, implementation strength) belongs in inventory/assessment.
+      effectiveness_against_threat: 0.75
+      notes: "Scenario-scoped control entry demonstrating threat-specific effectiveness."

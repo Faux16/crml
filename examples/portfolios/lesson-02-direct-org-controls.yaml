@@ -1,0 +1,61 @@
+# Lesson 02 — Portfolio applying org controls
+#
+# What this lesson teaches
+# ------------------------
+# - How a portfolio brings together:
+#   - the scenario (threat baseline)
+#   - an org control catalog (id dictionary)
+#   - an org assessment (posture)
+# - How the reference engine combines:
+#   - scenario `effectiveness_against_threat` (threat-specific)
+#   - assessment posture (org-specific)
+#
+# Run:
+#   crml validate examples/portfolios/lesson-02-direct-org-controls.yaml
+#   crml simulate examples/portfolios/lesson-02-direct-org-controls.yaml --runs 20000
+
+crml_portfolio: "1.0"
+
+meta:
+  name: "Lesson 02 — direct org controls"
+  description: |
+    Executes the Lesson 02 phishing scenario using internal (org) control ids.
+
+    This is the most direct controls workflow: scenario ids match the org catalog.
+  tags: ["example", "lessons", "portfolio", "controls", "org"]
+
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+      validate_scenarios: true
+
+  assets:
+    - name: employees
+      cardinality: 120
+      tags: ["workforce"]
+    - name: endpoints
+      cardinality: 180
+      tags: ["it", "endpoint"]
+
+  control_catalogs:
+    - ../control_catalogs/lesson-org-control-catalog.yaml
+
+  # The assessment is where org posture lives.
+  assessments:
+    - ../control_assessments/lesson-org-control-assessment.yaml
+
+  # OPTIONAL (advanced): per-asset execution (not enabled in this lesson)
+  # -------------------------------------------------------------------
+  # If the scenario used `basis: per_asset_unit_per_year`, you would bind it here:
+  #
+  # scenarios:
+  #   - id: phishing
+  #     path: ../scenarios/lesson-02-phishing-org-controls.yaml
+  #     binding:
+  #       applies_to_assets: [employees]
+
+  scenarios:
+    - id: phishing
+      path: ../scenarios/lesson-02-phishing-org-controls.yaml

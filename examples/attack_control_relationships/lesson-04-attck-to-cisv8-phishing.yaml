@@ -1,0 +1,73 @@
+# Lesson 04 — ATT&CK → CIS v8 mapping pack
+#
+# What this lesson teaches
+# ------------------------
+# - ATT&CK ids (like "attck:T1566") can be used as scenario metadata.
+# - A separate, explicit mapping artifact can translate ATT&CK → relevant CIS controls.
+# - This is a *tooling* building block:
+#   - It can suggest controls for a scenario based on `meta.attck`.
+#   - It can power UI crosswalks and reporting.
+#
+# IMPORTANT
+# ---------
+# This mapping is demonstration-only; it is not authoritative.
+# It intentionally keeps the scope small so readers can understand the format.
+
+crml_attack_control_relationships: "1.0"
+
+meta:
+  name: "Lesson 04 — ATT&CK → CIS v8 (phishing subset)"
+  description: |
+    Small ATT&CK→CIS mapping pack used in the lesson series.
+
+    Tools can use this pack to propose relevant CIS controls for scenarios that
+    carry ATT&CK ids in `meta.attck`.
+  tags: ["example", "lessons", "attck", "cisv8", "mapping"]
+
+relationships:
+  id: "lesson-04-attck-to-cisv8-phishing"
+  metadata:
+    source: "lesson"
+    notes: "Demonstration-only; not authoritative."
+
+  # Each relationship maps ONE attack id to one-or-more control targets.
+  relationships:
+    - attack: "attck:T1566"   # Phishing
+      targets:
+        # Training reduces click-through and credential entry rates.
+        - control: "cisv8:14.2"
+          relationship_type: mitigated_by
+          strength: 0.6
+          confidence: 0.6
+
+        # MFA reduces success probability after credentials are captured.
+        - control: "cisv8:6.3"
+          relationship_type: mitigated_by
+          strength: 0.7
+          confidence: 0.7
+
+        # DMARC reduces certain spoofing-based delivery methods.
+        - control: "cisv8:9.5"
+          relationship_type: mitigated_by
+          strength: 0.4
+          confidence: 0.6
+
+    - attack: "attck:T1566.001"  # Spearphishing Attachment
+      targets:
+        # Email anti-malware helps, but is not perfect.
+        - control: "cisv8:9.7"
+          relationship_type: mitigated_by
+          strength: 0.5
+          confidence: 0.6
+
+        # Endpoint anti-malware/behavioral protection reduces payload execution.
+        - control: "cisv8:10.1"
+          relationship_type: mitigated_by
+          strength: 0.5
+          confidence: 0.6
+
+        # Endpoint anti-exploitation features can blunt payload delivery.
+        - control: "cisv8:10.5"
+          relationship_type: mitigated_by
+          strength: 0.4
+          confidence: 0.5

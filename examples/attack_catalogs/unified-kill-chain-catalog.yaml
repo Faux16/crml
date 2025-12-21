@@ -1,0 +1,13 @@
+crml_attack_catalog: "1.0"
+meta:
+  name: "Unified Kill Chain (example)"
+  description: "Example attack catalog for a subset of Unified Kill Chain phases."
+  tags: ["example", "kill-chain", "unified"]
+catalog:
+  id: "ukc"
+  framework: "Unified Kill Chain"
+  attacks:
+    - { id: "ukc:reconnaissance", kind: "phase", title: "Reconnaissance" }
+    - { id: "ukc:weaponization", kind: "phase", title: "Weaponization" }
+    - { id: "ukc:delivery", kind: "phase", title: "Delivery" }
+    - { id: "ukc:initial-access", kind: "phase", title: "Initial Access" }

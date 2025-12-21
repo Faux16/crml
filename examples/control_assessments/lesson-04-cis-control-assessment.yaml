@@ -1,0 +1,50 @@
+# Lesson 04 — CIS posture assessment
+#
+# What this lesson teaches
+# ------------------------
+# - A portfolio can assess CIS controls directly.
+# - This makes CIS-authored scenarios executable without any translation layer.
+#
+# Notes
+# -----
+# - This is *not* a real benchmark posture.
+# - SCF CMM levels are used for demonstration (0..5).
+
+crml_assessment: "1.0"
+
+meta:
+  name: "Lesson 04 — CIS control assessment (example)"
+  description: |
+    Example CIS control posture used to execute Lesson 04.
+
+    A real organization would typically map internal controls to CIS controls,
+    then maintain posture in internal terms.
+  tags: ["example", "lessons", "cisv8", "assessment"]
+
+assessment:
+  framework: "CISv8"
+  assessed_at: "2025-12-20T00:00:00Z"
+  assessments:
+    - id: "cisv8:14.2"  # awareness training
+      affects: frequency
+      scf_cmm_level: 2
+
+    - id: "cisv8:6.3"   # MFA external apps
+      affects: frequency
+      scf_cmm_level: 3
+
+    - id: "cisv8:9.5"   # DMARC
+      affects: frequency
+      scf_cmm_level: 2
+
+    - id: "cisv8:9.7"   # email anti-malware
+      affects: frequency
+      scf_cmm_level: 2
+
+    - id: "cisv8:10.1"  # anti-malware
+      affects: frequency
+      scf_cmm_level: 3
+
+    - id: "cisv8:10.5"
+      affects: frequency
+      scf_cmm_level: 2

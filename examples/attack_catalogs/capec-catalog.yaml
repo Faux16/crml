@@ -1,0 +1,13 @@
+crml_attack_catalog: "1.0"
+meta:
+  name: "CAPEC catalog (example)"
+  description: "Example attack catalog for CAPEC attack patterns. Metadata only; no framework text."
+  tags: ["example", "capec"]
+catalog:
+  id: "capec"
+  framework: "CAPEC"
+  attacks:
+    - id: "capec:98"
+      kind: "attack-pattern"
+      title: "Phishing"
+      url: "https://capec.mitre.org/data/definitions/98.html"

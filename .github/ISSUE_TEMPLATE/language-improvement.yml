@@ -1,0 +1,35 @@
+name: "Language: Improvement"
+description: "Suggest an improvement to crml_lang (spec, schema, validation errors, semantics)."
+title: "[lang][enhancement]: "
+labels: ["enhancement", "language"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Propose an improvement for **crml_lang**.
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: If this impacts the spec or schema, describe the desired shape.
+    validations:
+      required: true
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility / migration
+      description: Any breaking changes or migration suggestions?
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context

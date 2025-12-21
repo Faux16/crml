@@ -8,7 +8,7 @@ Thank you for your interest in contributing to CRML! We welcome contributions fr
 
 ### Prerequisites
 
-- Python 3.7+
+- Python 3.9+
 - git
 - pip
 
@@ -30,10 +30,10 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 ### 3. Install Dependencies
 
-Install the package in editable mode with dev dependencies:
+Install the packages in editable mode with dev dependencies:
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ./crml_lang -e ./crml_engine
 ```
 
 ---
@@ -57,7 +57,7 @@ pytest tests/test_controls.py
 ### Check Coverage
 
 ```bash
-pytest --cov=crml
+pytest --cov=crml_lang --cov=crml_engine
 ```
 
 ---
@@ -118,7 +118,7 @@ flake8 .
 ## 📄 Documentation
 
 - **Wiki:** If you are adding a major feature, please consider updating the Wiki.
-- **Specification:** Changes to the language itself require updating `spec/crml-1.1.md`.
+- **Specification:** Changes to the language itself require updating `wiki/Reference/CRML-1.1.md`.
 
 ---
 

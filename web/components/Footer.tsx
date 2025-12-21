@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Github, Mail, Globe } from "lucide-react";
+import { Link2, Mail, Globe } from "lucide-react";
 
 export default function Footer() {
     return (
@@ -9,11 +10,7 @@ export default function Footer() {
                     {/* Logo & Description */}
                     <div>
                         <Link href="/" className="flex items-center space-x-2 mb-3">
-                            <img
-                                src="/crml-logo.png"
-                                alt="CRML Logo"
-                                className="h-8 w-8"
-                            />
+                            <Image src="/crml-logo.png" alt="CRML Logo" width={32} height={32} className="h-8 w-8" />
                             <span className="font-bold text-lg">CRML</span>
                         </Link>
                         <p className="text-sm text-muted-foreground">
@@ -105,7 +102,7 @@ export default function Footer() {
                                 </a>
                             </li>
                             <li className="flex items-center space-x-2 text-muted-foreground">
-                                <Github className="h-4 w-4" />
+                                <Link2 className="h-4 w-4" />
                                 <a
                                     href="https://github.com/Faux16"
                                     target="_blank"
@@ -129,8 +126,7 @@ export default function Footer() {
                             className="hover:text-primary transition-colors"
                         >
                             MIT License
-                        </a>
-                        .
+                        </a>.
                     </p>
                 </div>
             </div>

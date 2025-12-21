@@ -1,0 +1,28 @@
+crml_portfolio: "1.0"
+meta:
+  name: "SCF Demo Portfolio"
+  description: "A portfolio demonstrating the use of SCF controls and CMM assessments."
+  tags: ["example", "scf", "portfolio"]
+
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: false
+
+  assets:
+    - name: "Enterprise"
+      cardinality: 1
+      tags: ["org"]
+
+  # These references serve as documentation/traceability.
+  # In the Playground, you must also select the corresponding Scenarios and Packs.
+  scenarios:
+    - id: "unsanctioned-access-scf"
+      path: "../scenarios/scf-scenario-demo.yaml"
+
+  control_catalogs:
+    - "../control_catalogs/scf-catalog-mock.yaml"
+  
+  assessments:
+    - "../control_assessments/scf-assessment-mock.yaml"

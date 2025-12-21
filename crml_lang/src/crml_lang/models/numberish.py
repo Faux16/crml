@@ -1,0 +1,102 @@
+from __future__ import annotations
+
+from typing import Iterable
+
+
+def _clean_numeric_string(raw: str) -> str:
+    """Normalize a numeric string by removing readability separators.
+
+    Accepts common separators that users may include in YAML/JSON:
+    spaces, thin spaces (U+202F), underscores, and commas.
+    """
+    # Allow readability separators commonly used in YAML/JSON.
+    # - regular space
+    # - thin space (U+202F)
+    # - underscore
+    # - comma
+    return (
+        raw.strip()
+        .replace(" ", "")
+        .replace("\u202f", "")
+        .replace("_", "")
+        .replace(",", "")
+    )
+
+
+def parse_floatish(value, *, allow_percent: bool) -> float:
+    """Parse a float-like input.
+
+    Supported inputs:
+    - int/float (converted to float)
+    - str (optionally with separators; optional trailing '%' when allow_percent)
+
+    Raises:
+        TypeError: For unsupported types / booleans / None.
+        ValueError: For invalid strings or disallowed percent values.
+    """
+    if value is None:
+        raise TypeError("value is None")
+
+    if isinstance(value, bool):
+        raise TypeError("boolean is not a valid numeric value")
+
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    if isinstance(value, str):
+        s = _clean_numeric_string(value)
+        if not s:
+            raise ValueError("empty numeric string")
+
+        if s.endswith("%"):
+            if not allow_percent:
+                raise ValueError("percent values are not allowed here")
+            number_part = s[:-1]
+            return float(number_part) / 100.0
+
+        return float(s)
+
+    raise TypeError(f"unsupported numeric type: {type(value).__name__}")
+
+
+def parse_intish(value) -> int:
+    """Parse an integer-like input.
+
+    Notes:
+        This is strict: floats are rejected even if integer-like (e.g. 10.0).
+        Percent values are not allowed.
+    """
+    if value is None:
+        raise TypeError("value is None")
+
+    if isinstance(value, bool):
+        raise TypeError("boolean is not a valid integer")
+
+    if isinstance(value, int):
+        return value
+
+    # Strict: floats are not accepted even if integer-like (e.g. 10.0).
+    # Raise ValueError so downstream validators (e.g., Pydantic) treat this as a data-validation failure.
+    if isinstance(value, float):
+        raise ValueError("expected an integer")
+
+    if isinstance(value, str):
+        s = _clean_numeric_string(value)
+        if not s:
+            raise ValueError("empty integer string")
+        if s.endswith("%"):
+            raise ValueError("percent values are not allowed for integers")
+
+        # Strict: digits only (no decimals, no exponent).
+        if s.startswith("+"):
+            s = s[1:]
+        if not s.isdigit():
+            raise ValueError("expected an integer")
+        return int(s)
+
+    raise TypeError(f"unsupported integer type: {type(value).__name__}")
+
+
+def parse_float_list(values: Iterable, *, allow_percent: bool) -> list[float]:
+    """Parse an iterable of float-like values into a list of floats."""
+    return [parse_floatish(v, allow_percent=allow_percent) for v in values]

@@ -1,0 +1,14 @@
+crml_control_catalog: "1.0"
+meta:
+  name: "SCF Catalog (Mock)"
+  description: "Demonstration of an SCF catalog structure. Contains 'Access Control' and 'Network Security' examples."
+  tags: ["example", "scf", "catalog"]
+catalog:
+  framework: "Secure Controls Framework (SCF)"
+  controls:
+    - id: "scf:AC-1"
+      title: "Access Control Policy and Procedures"
+      tags: ["Access Control"]
+    - id: "scf:Net-1"
+      title: "Network Boundaries"
+      tags: ["Network Security"]

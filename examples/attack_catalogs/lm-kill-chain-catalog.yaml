@@ -1,0 +1,16 @@
+crml_attack_catalog: "1.0"
+meta:
+  name: "Lockheed Martin Cyber Kill Chain (example)"
+  description: "Example attack catalog for the Lockheed Martin Cyber Kill Chain phases."
+  tags: ["example", "kill-chain", "lm"]
+catalog:
+  id: "lm-kc"
+  framework: "Lockheed Martin Cyber Kill Chain"
+  attacks:
+    - { id: "lm-kc:reconnaissance", kind: "phase", title: "Reconnaissance" }
+    - { id: "lm-kc:weaponization", kind: "phase", title: "Weaponization" }
+    - { id: "lm-kc:delivery", kind: "phase", title: "Delivery" }
+    - { id: "lm-kc:exploitation", kind: "phase", title: "Exploitation" }
+    - { id: "lm-kc:installation", kind: "phase", title: "Installation" }
+    - { id: "lm-kc:command-and-control", kind: "phase", title: "Command and Control" }
+    - { id: "lm-kc:actions-on-objectives", kind: "phase", title: "Actions on Objectives" }

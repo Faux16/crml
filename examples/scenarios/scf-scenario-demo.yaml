@@ -1,0 +1,25 @@
+crml_scenario: "1.0"
+meta:
+  name: "Unsanctioned Access (SCF Demo)"
+  description: "A scenario where access control failures lead to unauthorized entry. Mitigated by SCF AC controls."
+  tags: ["example", "scf", "scenario"]
+scenario:
+  frequency:
+    model: poisson
+    parameters:
+      lambda: 1.2
+  severity:
+    model: lognormal
+    parameters:
+      median: 200000
+      sigma: 1.8
+      currency: USD
+  controls:
+    - id: "scf:AC-1"
+      factor: 0.6
+      affects: frequency
+      notes: "Checking policy alignment reduces likelihood of gaps."
+    - id: "scf:Net-1"
+      factor: 0.5
+      affects: frequency
+      notes: "Network boundaries prevent lateral movement."

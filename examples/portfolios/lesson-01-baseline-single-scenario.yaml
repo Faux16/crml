@@ -1,0 +1,58 @@
+# Lesson 01 — Minimal portfolio
+#
+# What this lesson teaches
+# ------------------------
+# - A scenario is portable, but it becomes executable when referenced by a portfolio.
+# - The portfolio defines aggregation semantics and (optionally) exposure assets.
+#
+# Run:
+#   crml validate examples/portfolios/lesson-01-baseline-single-scenario.yaml
+#   crml simulate examples/portfolios/lesson-01-baseline-single-scenario.yaml --runs 20000
+
+crml_portfolio: "1.0"
+
+meta:
+  name: "Lesson 01 — baseline portfolio (single scenario)"
+  description: |
+    Minimal portfolio that references a single baseline scenario.
+
+    This is the smallest "portfolio-shaped" executable example.
+  tags: ["example", "lessons", "portfolio", "baseline"]
+
+portfolio:
+  semantics:
+    method: sum
+    constraints:
+      require_paths_exist: true
+      validate_scenarios: true
+
+  # Assets are optional for `per_organization_per_year` scenarios.
+  # We keep a tiny asset list here so later lessons can reuse familiar structure.
+  assets:
+    - name: employees
+      cardinality: 120
+      tags: ["workforce"]
+    - name: endpoints
+      cardinality: 180
+      tags: ["it", "endpoint"]
+
+  # OPTIONAL (advanced): per-asset exposure scaling / scenario binding (not enabled)
+  # ---------------------------------------------------------------------------
+  # CRML supports `frequency.basis: per_asset_unit_per_year` in a *scenario* and
+  # `binding.applies_to_assets` in a *portfolio* to scale frequency by asset
+  # cardinality.
+  #
+  # These lessons keep `per_organization_per_year` enabled so behavior is stable
+  # across runners; some workflows may not support per-asset execution yet.
+  #
+  # Example snippet (commented out):
+  #
+  # scenarios:
+  #   - id: some_per_asset_scenario
+  #     path: ../scenarios/some-per-asset.yaml
+  #     binding:
+  #       applies_to_assets: [employees]
+
+  scenarios:
+    - id: fair_baseline
+      path: ../scenarios/fair-baseline.yaml

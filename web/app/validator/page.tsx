@@ -3,29 +3,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CodeEditor from "@/components/CodeEditor";
 import ValidationResults, { ValidationResult } from "@/components/ValidationResults";
 import { Upload, Play, FileText, Download } from "lucide-react";
+import { PORTFOLIO_BUNDLE_DOCUMENTED_YAML } from "@/lib/crmlExamples";
 
-const DEFAULT_YAML = `crml: "1.1"
-meta:
-  name: "my-risk-model"
-  description: "A simple cyber risk model"
-model:
-  assets:
-    - name: "PIIdatabase"
-      cardinality: 50  # 50 databases with PII
-  frequency:
-    model: poisson
-    parameters:
-      lambda: 0.1
-  severity:
-    model: lognormal
-    parameters:
-      mu: 10.0
-      sigma: 1.0
-`;
+const DEFAULT_YAML = PORTFOLIO_BUNDLE_DOCUMENTED_YAML;
 
 export default function ValidatorPage() {
     const [yamlContent, setYamlContent] = useState(DEFAULT_YAML);
@@ -64,17 +47,13 @@ export default function ValidatorPage() {
         }
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const content = e.target?.result as string;
-                setYamlContent(content);
-                setValidationResult(null);
-            };
-            reader.readAsText(file);
-        }
+        if (!file) return;
+
+        const content = await file.text();
+        setYamlContent(content);
+        setValidationResult(null);
     };
 
     const handleDownload = () => {
@@ -85,7 +64,7 @@ export default function ValidatorPage() {
         a.download = "model.yaml";
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        a.remove();
         URL.revokeObjectURL(url);
     };
 

@@ -1,10 +1,9 @@
 
 import { XCircle, AlertCircle } from "lucide-react";
-import { ValidationResult } from "../ValidationResults";
 
 interface ErrorDetailListProps {
-    errors?: string[];
-    warnings?: string[];
+    readonly errors?: string[];
+    readonly warnings?: string[];
 }
 
 /**
@@ -12,6 +11,9 @@ interface ErrorDetailListProps {
  * Displays a list of validation errors and warnings.
  */
 export function ErrorDetailList({ errors, warnings }: ErrorDetailListProps) {
+    const errorCounts = new Map<string, number>();
+    const warningCounts = new Map<string, number>();
+
     return (
         <>
             {/* Errors */}
@@ -22,14 +24,20 @@ export function ErrorDetailList({ errors, warnings }: ErrorDetailListProps) {
                         Errors ({errors.length})
                     </h3>
                     <div className="space-y-2">
-                        {errors.map((error, index) => (
+                        {errors.map((error) => {
+                            const seen = errorCounts.get(error) ?? 0;
+                            errorCounts.set(error, seen + 1);
+                            const key = seen === 0 ? error : `${error}#${seen}`;
+
+                            return (
                             <div
-                                key={index}
+                                key={key}
                                 className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950/20"
                             >
                                 <p className="font-mono text-red-900 dark:text-red-300">{error}</p>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -42,14 +50,20 @@ export function ErrorDetailList({ errors, warnings }: ErrorDetailListProps) {
                         Warnings ({warnings.length})
                     </h3>
                     <div className="space-y-2">
-                        {warnings.map((warning, index) => (
+                        {warnings.map((warning) => {
+                            const seen = warningCounts.get(warning) ?? 0;
+                            warningCounts.set(warning, seen + 1);
+                            const key = seen === 0 ? warning : `${warning}#${seen}`;
+
+                            return (
                             <div
-                                key={index}
+                                key={key}
                                 className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm dark:border-yellow-900 dark:bg-yellow-950/20"
                             >
                                 <p className="font-mono text-yellow-900 dark:text-yellow-300">{warning}</p>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}

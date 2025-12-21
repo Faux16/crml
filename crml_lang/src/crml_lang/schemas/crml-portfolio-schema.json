@@ -1,0 +1,902 @@
+{
+  "$defs": {
+    "Asset": {
+      "properties": {
+        "name": {
+          "description": "Unique asset name within the portfolio.",
+          "title": "Name",
+          "type": "string"
+        },
+        "cardinality": {
+          "description": "Number of identical asset units represented by this asset entry (>= 1).",
+          "minimum": 1,
+          "title": "Cardinality",
+          "type": "integer"
+        },
+        "criticality_index": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CriticalityIndex"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional criticality index configuration for this asset."
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of tags for grouping/filtering assets.",
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "name",
+        "cardinality"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "ConditionalRelationship": {
+      "properties": {
+        "type": {
+          "const": "conditional",
+          "description": "Relationship type discriminator.",
+          "title": "Type",
+          "type": "string"
+        },
+        "given": {
+          "description": "Scenario id representing the condition event.",
+          "title": "Given",
+          "type": "string"
+        },
+        "then": {
+          "description": "Scenario id whose behavior depends on the condition event.",
+          "title": "Then",
+          "type": "string"
+        },
+        "probability": {
+          "description": "Conditional probability in [0, 1].",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability",
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "given",
+        "then",
+        "probability"
+      ],
+      "title": "ConditionalRelationship",
+      "type": "object"
+    },
+    "CorrelationRelationship": {
+      "properties": {
+        "type": {
+          "const": "correlation",
+          "description": "Relationship type discriminator.",
+          "title": "Type",
+          "type": "string"
+        },
+        "between": {
+          "description": "Pair of scenario ids this correlation applies to.",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Between",
+          "type": "array"
+        },
+        "value": {
+          "description": "Correlation coefficient in [-1, 1].",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "enum": [
+                "gaussian_copula",
+                "rank_correlation"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional correlation method used by the runtime (engine-defined).",
+          "title": "Method"
+        }
+      },
+      "required": [
+        "type",
+        "between",
+        "value"
+      ],
+      "title": "CorrelationRelationship",
+      "type": "object"
+    },
+    "Coverage": {
+      "description": "Breadth of application of a control across an organization.\n\nSemantics:\n- value=0.0 means \"not deployed/applied anywhere in the stated basis\"\n- value=1.0 means \"fully deployed/applied across the stated basis\"\n\nThe basis defines the denominator for the fraction (e.g. endpoints, employees).",
+      "properties": {
+        "value": {
+          "description": "Coverage fraction in [0, 1] for the stated basis.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "basis": {
+          "description": "Coverage basis/denominator (e.g. endpoints, employees).",
+          "enum": [
+            "endpoints",
+            "employees",
+            "servers",
+            "applications",
+            "business_units",
+            "data_stores",
+            "other"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form notes about how coverage was estimated.",
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "CriticalityIndex": {
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Criticality index method identifier (tool/engine-defined).",
+          "title": "Type"
+        },
+        "inputs": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional mapping of input names to asset fields/values used by the index.",
+          "title": "Inputs"
+        },
+        "weights": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional weights applied to inputs when computing the criticality index.",
+          "title": "Weights"
+        },
+        "transform": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional post-transform applied to the computed index.",
+          "title": "Transform"
+        }
+      },
+      "title": "CriticalityIndex",
+      "type": "object"
+    },
+    "DependencyCopula": {
+      "description": "Engine-independent copula dependency specification.\n\nThe copula operates over `targets` in the given order.\nThis version is intentionally minimal and supports Gaussian copulas.\n\nTargets are language-level references. Currently supported targets:\n- control:<id>:state  (a control availability/performance state)",
+      "properties": {
+        "type": {
+          "const": "gaussian",
+          "default": "gaussian",
+          "description": "Copula family/type discriminator.",
+          "title": "Type",
+          "type": "string"
+        },
+        "targets": {
+          "description": "Ordered list of dependency target references; list length defines the copula dimension.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        },
+        "structure": {
+          "anyOf": [
+            {
+              "const": "toeplitz",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shorthand correlation structure (e.g. toeplitz).",
+          "title": "Structure"
+        },
+        "rho": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -1.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Toeplitz correlation parameter (used when structure='toeplitz').",
+          "title": "Rho"
+        },
+        "matrix": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional explicit correlation matrix (dimension must match targets).",
+          "title": "Matrix"
+        }
+      },
+      "required": [
+        "targets"
+      ],
+      "title": "DependencyCopula",
+      "type": "object"
+    },
+    "Meta": {
+      "properties": {
+        "name": {
+          "description": "Human-friendly name for this document.",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional version string for this document.",
+          "title": "Version"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form description.",
+          "title": "Description"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional author/owner.",
+          "title": "Author"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional organization name.",
+          "title": "Organization"
+        },
+        "industries": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of industry tags.",
+          "title": "Industries"
+        },
+        "locale": {
+          "additionalProperties": true,
+          "description": "Optional locale/region information and arbitrary locale metadata.",
+          "title": "Locale",
+          "type": "object"
+        },
+        "company_sizes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional company size tags.",
+          "title": "Company Sizes"
+        },
+        "regulatory_frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of regulatory frameworks relevant to this document.",
+          "title": "Regulatory Frameworks"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of user-defined tags.",
+          "title": "Tags"
+        },
+        "attck": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "ATT&CK identifier in canonical namespaced form 'namespace:key' (no whitespace). Recommended namespace is 'attck'. Examples: attck:TA0001, attck:T1059, attck:T1059.003",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of ATT&CK tactic/technique/sub-technique identifiers relevant to this document, expressed as namespaced ids (e.g. 'attck:T1059.003').",
+          "title": "Attck"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Meta",
+      "type": "object"
+    },
+    "Portfolio": {
+      "properties": {
+        "assets": {
+          "description": "List of assets/exposures in the portfolio.",
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "title": "Assets",
+          "type": "array"
+        },
+        "controls": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PortfolioControl"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of controls present in the organization/portfolio.",
+          "title": "Controls"
+        },
+        "control_catalogs": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced control catalogs.",
+          "title": "Control Catalogs"
+        },
+        "attack_catalogs": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced attack catalogs (e.g., MITRE ATT&CK). These are metadata-only catalogs used by tools/engines to resolve attack-pattern ids.",
+          "title": "Attack Catalogs"
+        },
+        "assessments": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced assessment catalogs.",
+          "title": "Assessments"
+        },
+        "control_relationships": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced control relationships packs (control-to-control mappings). These can be used by tools/engines to resolve scenario control ids to implemented portfolio controls with quantitative overlap metadata.",
+          "title": "Control Relationships"
+        },
+        "attack_control_relationships": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of file paths to referenced attack-to-control relationships mappings. These can be used by tools/engines to translate attack-pattern ids (e.g., ATT&CK) into relevant controls.",
+          "title": "Attack Control Relationships"
+        },
+        "scenarios": {
+          "description": "List of scenario references included in the portfolio.",
+          "items": {
+            "$ref": "#/$defs/ScenarioRef"
+          },
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "semantics": {
+          "$ref": "#/$defs/PortfolioSemantics",
+          "description": "Portfolio aggregation semantics and constraints."
+        },
+        "relationships": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CorrelationRelationship"
+                  },
+                  {
+                    "$ref": "#/$defs/ConditionalRelationship"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional relationships between scenarios (correlation/conditional).",
+          "title": "Relationships"
+        },
+        "dependency": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PortfolioDependency"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional dependency specification for runtime models (e.g. copulas)."
+        },
+        "context": {
+          "additionalProperties": true,
+          "description": "Free-form context object for tools/runtimes (engine-defined).",
+          "title": "Context",
+          "type": "object"
+        }
+      },
+      "required": [
+        "scenarios",
+        "semantics"
+      ],
+      "title": "Portfolio",
+      "type": "object"
+    },
+    "PortfolioConstraints": {
+      "properties": {
+        "require_paths_exist": {
+          "default": false,
+          "description": "If true, referenced file paths must exist during validation.",
+          "title": "Require Paths Exist",
+          "type": "boolean"
+        },
+        "validate_scenarios": {
+          "default": true,
+          "description": "If true, referenced scenario files are schema-validated during portfolio validation.",
+          "title": "Validate Scenarios",
+          "type": "boolean"
+        },
+        "validate_relevance": {
+          "default": false,
+          "description": "If true, perform additional relevance checks between the portfolio organization context (meta.locale/meta.industries/meta.company_sizes/meta.regulatory_frameworks) and the referenced scenarios. Also validates that portfolio control id namespaces align with declared regulatory frameworks.",
+          "title": "Validate Relevance",
+          "type": "boolean"
+        }
+      },
+      "title": "PortfolioConstraints",
+      "type": "object"
+    },
+    "PortfolioControl": {
+      "properties": {
+        "id": {
+          "description": "Canonical unique control id present in the portfolio inventory.",
+          "maxLength": 256,
+          "minLength": 1,
+          "not": {
+            "pattern": "^attck:"
+          },
+          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "implementation_effectiveness": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Portfolio-level implementation strength for this control (0..1). Represents organization-specific vulnerability likelihood (susceptibility) reduction when applied to a scenario's baseline threat frequency.",
+          "title": "Implementation Effectiveness"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coverage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Breadth of deployment/application across the organization. This contributes to vulnerability likelihood reduction when the control is used to mitigate a scenario's baseline threat frequency."
+        },
+        "reliability": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Reliability/uptime probability for this control being effective in a given period. This is an inventory attribute; runtimes may treat it as a stochastic state.",
+          "title": "Reliability"
+        },
+        "affects": {
+          "anyOf": [
+            {
+              "enum": [
+                "frequency",
+                "severity",
+                "both"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "frequency",
+          "description": "Which loss component this control is intended to affect (frequency, severity, or both). Note: the current reference engine primarily applies controls to frequency (lambda).",
+          "title": "Affects"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Free-form notes about this portfolio control entry.",
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "PortfolioControl",
+      "type": "object"
+    },
+    "PortfolioDependency": {
+      "properties": {
+        "copula": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DependencyCopula"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional copula specification for dependency across targets."
+        }
+      },
+      "title": "PortfolioDependency",
+      "type": "object"
+    },
+    "PortfolioSemantics": {
+      "properties": {
+        "method": {
+          "description": "Aggregation semantics used to combine scenario losses.",
+          "enum": [
+            "sum",
+            "mixture",
+            "choose_one",
+            "max"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "constraints": {
+          "$ref": "#/$defs/PortfolioConstraints",
+          "description": "Validation/runtime constraints for this portfolio."
+        }
+      },
+      "required": [
+        "method"
+      ],
+      "title": "PortfolioSemantics",
+      "type": "object"
+    },
+    "ScenarioBinding": {
+      "properties": {
+        "applies_to_assets": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional explicit list of portfolio asset names this scenario applies to. Used for per-asset-unit scenarios to define the exposure set.",
+          "title": "Applies To Assets"
+        }
+      },
+      "title": "ScenarioBinding",
+      "type": "object"
+    },
+    "ScenarioRef": {
+      "properties": {
+        "id": {
+          "description": "Unique scenario id within the portfolio.",
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "description": "Path to the referenced CRML scenario document.",
+          "title": "Path",
+          "type": "string"
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional weight used by some portfolio aggregation methods (model-specific).",
+          "title": "Weight"
+        },
+        "binding": {
+          "$ref": "#/$defs/ScenarioBinding",
+          "description": "Optional binding/exposure configuration for this scenario."
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of tags for grouping/filtering scenarios.",
+          "title": "Tags"
+        }
+      },
+      "required": [
+        "id",
+        "path"
+      ],
+      "title": "ScenarioRef",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "crml_portfolio": {
+      "const": "1.0",
+      "description": "Portfolio document version identifier.",
+      "title": "Crml Portfolio",
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta",
+      "description": "Document metadata (name, description, tags, etc.)."
+    },
+    "portfolio": {
+      "$ref": "#/$defs/Portfolio",
+      "description": "The portfolio payload."
+    }
+  },
+  "required": [
+    "crml_portfolio",
+    "meta",
+    "portfolio"
+  ],
+  "title": "CRPortfolio",
+  "type": "object"
+}

@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # CRML Wiki Publishing Script
-# This script helps you publish wiki content to GitHub
+# This script helps you publish wiki content to GitHub.
+#
+# Note: This repo also supports automatic publishing via GitHub Actions.
+# See: .github/workflows/publish_wiki.yml
 
 echo "🚀 CRML Wiki Publishing Helper"
 echo "================================"
@@ -36,7 +39,7 @@ echo "4. After creating the first page, you can clone the wiki repo:"
 echo "   git clone https://github.com/Faux16/crml.wiki.git"
 echo ""
 echo "5. Then bulk upload remaining pages:"
-echo "   cp wiki/*.md crml.wiki/"
+echo "   cp -r wiki/* crml.wiki/"
 echo "   cd crml.wiki"
 echo "   git add ."
 echo "   git commit -m 'Add comprehensive wiki content'"

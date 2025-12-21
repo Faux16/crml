@@ -1,0 +1,65 @@
+# Lesson 02 — Phishing (direct org controls)
+#
+# What this lesson teaches
+# ------------------------
+# - A scenario can reference *internal* controls directly via `scenario.controls`.
+# - `effectiveness_against_threat` is a *scenario-scoped* assumption:
+#   "If this control exists, how effective is it against THIS threat?"
+# - Organization-specific posture is NOT defined here; it lives in the portfolio
+#   (inventory/assessment).
+#
+# This scenario is intentionally simple and designed to be paired with:
+# - examples/portfolios/lesson-02-direct-org-controls.yaml
+
+crml_scenario: "1.0"
+
+meta:
+  name: "Lesson 02 — Phishing → account takeover (org controls)"
+  description: |
+    Phishing baseline scenario authored against internal control ids.
+
+    This is the simplest execution path for controls:
+    - scenario declares which org controls are relevant mitigations
+    - portfolio provides posture (implementation/coverage/reliability) via assessment
+  tags: ["example", "lessons", "phishing", "controls", "org"]
+  attck:
+    - "attck:TA0001"
+    - "attck:T1566"
+    - "attck:T1566.001"
+
+scenario:
+  # Frequency = how often the threat event happens per year.
+  frequency:
+    basis: per_organization_per_year
+    model: poisson
+    parameters:
+      lambda: 0.4
+
+  # Severity = conditional loss distribution when an event happens.
+  severity:
+    model: lognormal
+    parameters:
+      currency: USD
+      median: "25 000"
+      sigma: 1.15
+
+  # Threat-centric controls (scenario declares relevance and threat-specific factor).
+  # Portfolio assessments provide org posture and are combined by the planner.
+  controls:
+    - id: "org:iam.mfa"
+      effectiveness_against_threat: 0.85
+      notes: "If MFA is present and used correctly, many credential-only ATO attempts fail."
+
+    - id: "org:mail.dmarc"
+      effectiveness_against_threat: 0.55
+      notes: "DMARC reduces some spoofing-based phishing, but not all phishing delivery modes."
+
+    - id: "org:awareness.security"
+      effectiveness_against_threat: 0.35
+      notes: "Training reduces click-through rate; effectiveness varies by campaign sophistication."
+
+    # EDR is mostly an impact reducer in phishing-to-ATO stories.
+    # Whether it affects frequency vs severity is set by the portfolio assessment (`affects`).
+    - id: "org:endpoint.edr"
+      effectiveness_against_threat: 0.40
+      notes: "EDR can reduce dwell time and containment cost (severity impact)."

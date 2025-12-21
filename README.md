@@ -1,150 +1,214 @@
 # CRML — Cyber Risk Modeling Language
 
-[![PyPI version](https://badge.fury.io/py/crml-lang.svg)](https://badge.fury.io/py/crml-lang)
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![crml-lang](https://img.shields.io/pypi/v/crml-lang.svg)](https://pypi.org/project/crml-lang/)
+[![crml-engine](https://img.shields.io/pypi/v/crml-engine.svg)](https://pypi.org/project/crml-engine/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+> **Status:** Draft. This project is under heavy development and may change without notice.
+> We welcome input, issues, and contributions.
 > **⚠️ WARNING**
 > This codebase is currently being developed on the **`1.2` branch**. For the latest work-in-progress and source of truth, see: https://github.com/Faux16/crml/tree/crml-dev-1.2
 
-**Version:** 1.1
-**Maintained by:** Zeron Research Labs
+**Version:** 1.2
 
-CRML is an open, declarative, implementation-agnostic language for expressing cyber risk models, telemetry mappings, simulation pipelines, dependencies, and output requirements.
+**Maintained by:** Zeron Research Labs and CyberSec Consulting LLC
 
-CRML is designed for:
+**Supported by:**
 
-- **Bayesian cyber risk models** (QBER, MCMC-based)
-- **FAIR-style Monte Carlo engines**
-- **Insurance actuarial risk systems**
-- **Enterprise cyber risk quantification platforms**
-- **Regulatory or audit-ready risk engines**
+- Community contributors and early adopters
 
-## ✨ Key Features
+CRML is an open, declarative, **engine-agnostic** and **Control / Attack framework–agnostic** Cyber Risk Modeling Language.
+It provides a YAML/JSON format for describing cyber risk models, telemetry mappings, simulation pipelines, dependencies, and output requirements — without forcing you into a specific quantification method, simulation engine, or security-control / threat catalog.
 
-- **🛡️ Control Effectiveness Modeling** - Quantify how security controls reduce risk with defense-in-depth calculations
-- **📊 Intuitive Median-Based Parameterization** - Use `median` directly instead of log-space `mu` for lognormal distributions
-- **💱 Multi-Currency Support** - Model risks across different currencies with automatic conversion (15+ currencies supported)
-- **🔄 Auto-Calibration** - Provide raw loss data and let CRML calibrate distributions automatically
-- **✅ Strict Validation** - JSON Schema validation catches errors before simulation
-- **🎯 Implementation-Agnostic** - Works with any compliant simulation engine
-- **📝 Human-Readable YAML** - Models are easy to read, review, and audit
+CRML enables **RaC (Risk as Code)**: risk and compliance assumptions become versioned, reviewable artifacts that can be validated and executed consistently across teams and tools.
 
-<img src="/images/simulation.png">
+## Problem statement (what CRML is solving)
 
-## 📦 Installation
+Cyber security, compliance, and risk management professionals often face the same practical problems:
 
-Install CRML from PyPI:
+- Risk models are locked in spreadsheets, slide decks, or proprietary tools, making them hard to review, audit, reproduce, and automate.
+- Control effectiveness and “defense in depth” assumptions are documented inconsistently, so results vary by analyst and by quarter.
+- Threat and control frameworks (e.g., ATT&CK, CIS, NIST, ISO, SCF, internal catalogs) change over time; do not provide a consistent machine readable format; mappings are brittle and rarely versioned.
+- Quantification engines differ (FAIR-style Monte Carlo, Bayesian/QBER, actuarial models, internal platforms), causing costly rewrites and re-interpretation.
+- Audit-ready evidence is fragmented: “what was modeled, with which parameters, using which data, and producing which outputs” is hard to prove.
 
-```bash
-pip install crml-lang
-```
+CRML addresses this by standardizing the *description* of cyber risk models and their inputs/outputs, so different engines and organizations can exchange and execute the same model with clear validation and traceability.
 
-## 🚀 Quick Start
+## Why qualitative assessments aren’t enough
 
-### Validate a CRML File
+Qualitative methods (red/amber/green, “high/medium/low”, maturity scores) are useful for communication and prioritization, but they tend to break down when you need to:
 
-```bash
-crml validate path/to/your/model.yaml
-```
+- Justify security spend (or a new security product) by comparing expected risk *with* vs. *without* the investment
+- Compare risk consistently across business units, vendors, or time periods
+- Show measured risk reduction from controls (not just “improved posture”)
+- Connect cyber risk to enterprise risk, insurance, and financial planning
+- Produce repeatable, audit-ready evidence of “how we calculated this number”
 
-### Example
+The next evolution is **quantified risk management**: treating cyber risk as an estimable distribution of outcomes, grounded in explicit assumptions and data, and computed by repeatable methods.
+But quantified approaches only scale when models are **standardized** — so they can be validated, reviewed, reused, and executed across tools and teams.
 
-```bash
-crml validate spec/examples/qber-enterprise.yaml
-```
+CRML’s goal is to be this standard: it makes the model *portable*, the assumptions *explicit*, and the results *reproducible*.
 
-Output:
-```
-[OK] spec/examples/qber-enterprise.yaml is a valid CRML 1.1 document.
-```
+## Key features
 
-### Model Security Controls
+- Control effectiveness modeling — quantify how controls reduce risk (including defense-in-depth)
+- Median-based parameterization — specify medians directly for lognormal distributions
+- Multi-currency support — model across currencies with automatic conversion
+- Auto-calibration — calibrate distributions from loss data
+- Strict validation — JSON Schema validation catches errors before simulation
+- Implementation-agnostic — works with any compliant simulation engine
+- Human-readable YAML — easy to read, review, and audit
 
-**New in CRML 1.1:** Quantify how security controls reduce cyber risk.
+## Vision (a world where CRML is the standard)
+
+Imagine a near-future where CRML is as normal to risk work as IaC is to infrastructure:
+
+- A security architect proposes a new control program by updating CRML documents; the change is peer-reviewed in Git with clear diffs.
+- GRC and audit teams can trace every metric back to a validated, versioned model (inputs, assumptions, mappings, outputs).
+- Different quant engines (vendor platforms, internal FAIR Monte Carlo, Bayesian QBER, insurance actuarial models) all consume the same CRML documents.
+- Framework changes are handled by updating catalogs/mappings (also versioned), rather than rewriting the model logic.
+- Organizations can exchange models with partners, insurers, and regulators without sending spreadsheets or screenshots.
+- A cyber security authority can publish its yearly threat landscape report in CRML — encoding richer nuance than narrative PDFs (assumptions, distributions, dependencies, control baselines, and mappings) — and in turn benefit from more standardized, machine-readable data submissions from industry.
+
+In that world, cyber risk becomes reproducible, comparable, and automatable across teams — while still allowing methodological diversity.
+
+See **General Architecture**: [wiki/Concepts/Architecture.md](wiki/Concepts/Architecture.md)
+
+
+### Short example (what “standardized CRML” looks like)
+
+A typical organization might keep CRML alongside detection and infrastructure code:
+
+- `risk/models/` — scenarios and portfolios in CRML
+- `risk/catalogs/` — versioned control + attack catalogs (internal or external)
+- `risk/mappings/` — telemetry/control/threat mappings with ownership and change history
+- CI runs `crml-lang validate` on every PR; a nightly job runs `crml simulate` and publishes dashboards
+
+Example snippet (illustrative):
 
 ```yaml
-model:
+crml_scenario: "1.0"
+meta:
+  name: "ransomware-baseline"
+  description: "A simple ransomware risk model"
+
+scenario:
   frequency:
+    basis: per_organization_per_year
     model: poisson
     parameters:
-      lambda: 0.15  # 15% baseline probability
-  
-  controls:
-    layers:
-      - name: "email_security"
-        controls:
-          - id: "email_filtering"
-            type: "preventive"
-            effectiveness: 0.90  # Blocks 90% of attacks
-            coverage: 1.0
-            reliability: 0.95
-      
-      - name: "endpoint_protection"
-        controls:
-          - id: "edr"
-            type: "detective"
-            effectiveness: 0.80
-            coverage: 0.98
-  
+      lambda: 0.15
+
   severity:
     model: lognormal
     parameters:
-      median: "700 000"
+      median: "250 000"
       currency: USD
-      sigma: 1.8
+      sigma: 1.2
+
+  # Optional, threat-centric controls (org posture typically belongs in portfolios/assessments)
+  controls:
+    - id: "org:iam.mfa"
+      effectiveness_against_threat: 0.35
 ```
 
-**Result:** Risk reduced from 15% to ~3.5% (76% reduction!)
+This repository ships two Python packages and a web UI:
 
-See [docs/controls-guide.md](docs/controls-guide.md) for detailed guidance.
+- `crml-lang`: language/spec models + schema validation + YAML IO
+- `crml-engine`: reference runtime + `crml` CLI (depends on `crml-lang`)
+- `web/`: **CRML Studio** — browser UI for validation and simulation (Next.js)
 
+## Installation
 
-## 📁 Repository Layout
-
-- **`spec/`** — CRML specification and example models
-- **`src/crml/`** — Python package source code (validator, CLI)
-- **`src/crml/schema`** CRML json schema
-- **`tools/`** — Legacy validator and CLI utilities
-- **`docs/`** — Documentation, roadmap, and diagrams
-
-## 🛠️ Development
-
-### Install from Source
+If you want the CLI:
 
 ```bash
-git clone https://github.com/Faux16/crml.git
-cd crml
-pip install -e .
+pip install crml-engine
 ```
 
-### Run Validator Directly
-
-<img src="/images/validator.png">
+If you only want the language library:
 
 ```bash
-python tools/validator/crml_validator.py spec/examples/qber-enterprise.yaml
+pip install crml-lang
+# or with SCF support:
+pip install "crml-lang[scf]"
 ```
 
-## 📖 Documentation
+## Quick start (CLI)
 
-For detailed documentation, examples, and the full specification, visit the `docs/` directory or check out the [specification](spec/crml-1.1.md).
+```bash
+crml-lang validate examples/scenarios/qber-enterprise.yaml
+crml simulate examples/scenarios/data-breach-simple.yaml --runs 10000
 
-## 🤝 Contributing
+# Import SCF Catalog from Excel
+crml-lang scf-import-catalog path/to/SCF_2025.xlsx scf-catalog.yaml
+```
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+## Quick start (Python)
 
-## 📄 License
+Load and validate:
 
-MIT License — see [`LICENSE`](LICENSE) for details.
+```python
+from crml_lang import CRScenario, validate
 
-## 🔗 Links
+scenario = CRScenario.load_from_yaml("examples/scenarios/data-breach-simple.yaml")
+report = validate("examples/scenarios/data-breach-simple.yaml", source_kind="path")
+print(report.ok)
+```
 
-- **PyPI Package:** https://pypi.org/project/crml-lang/
-- **GitHub Repository:** https://github.com/Faux16/crml
-- **Specification:** [CRML 1.1](spec/crml-1.1.md)
+Run a simulation:
 
----
+```python
+from crml_engine.runtime import run_simulation
 
-**Maintained by Zeron Research Labs** | [Website](https://zeron.one) | [Contact](mailto:research@zeron.one)
+result = run_simulation("examples/scenarios/data-breach-simple.yaml", n_runs=10000)
+print(result.metrics.eal)
+```
+
+## Repository layout
+
+- `crml_lang/` — language/spec package
+- `crml_engine/` — reference engine package
+- `web/` — web UI (Next.js)
+- `examples/` — example CRML YAML models and FX config
+- `wiki/` — documentation source (MkDocs)
+
+## CRML Studio
+
+CRML Studio lives in `web/`.
+
+Run it locally:
+
+```bash
+pip install crml-engine
+cd web
+npm install
+npm run dev
+```
+
+Open http://localhost:3000
+
+## Screenshots
+
+![Simulation](images/simulation.png)
+
+![Validator](images/validator.png)
+
+## Documentation
+
+See the docs under [wiki/](wiki/) (start at [wiki/Home.md](wiki/Home.md)).
+
+OSCAL interoperability and mapping rules: [wiki/Guides/OSCAL.md](wiki/Guides/OSCAL.md).
+
+SCF integration and mapping guide: [wiki/Guides/SCF.md](wiki/Guides/SCF.md).
+
+Current document types:
+
+- Scenario documents: `crml_scenario: "1.0"` with top-level `scenario:`
+- Portfolio documents: `crml_portfolio: "1.0"` with top-level `portfolio:`
+
+## License
+
+MIT License — see [LICENSE](LICENSE).
 

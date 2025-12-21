@@ -318,7 +318,7 @@ def run_monte_carlo(
     yaml_content: Union[str, dict],
     n_runs: int = DEFAULT_N_RUNS,
     seed: Optional[int] = None,
-    fx_config: FXConfig | Mapping[str, Any] | None = None,
+    fx_config: Union[FXConfig, Mapping[str, Any], None] = None,
     cardinality: int = 1,
     frequency_rate_multiplier: Optional[object] = None,
     severity_loss_multiplier: Optional[object] = None,
@@ -402,7 +402,7 @@ def run_monte_carlo(
     sev = scenario.severity
 
     severity_components_any = getattr(sev, "components", None)
-    severity_components: List[Dict[str, Any]] | None = None
+    severity_components: Union[List[Dict[str, Any]], None] = None
     if isinstance(severity_components_any, list) and all(isinstance(x, dict) for x in severity_components_any):
         severity_components = severity_components_any
 

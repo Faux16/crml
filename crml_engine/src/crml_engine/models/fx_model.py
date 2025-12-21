@@ -179,7 +179,7 @@ def normalize_currency(amount: float, from_currency: str, fx_context: Optional['
     # If rate not found, assume no conversion
     return amount
 
-def normalize_fx_config(fx_config: Mapping[str, Any] | FXConfig | None) -> FXConfig:
+def normalize_fx_config(fx_config: Union[Mapping[str, Any], FXConfig, None]) -> FXConfig:
     """Normalize any FX config input into a valid `FXConfig`.
 
     Args:
@@ -200,7 +200,7 @@ def normalize_fx_config(fx_config: Mapping[str, Any] | FXConfig | None) -> FXCon
             fx_config.rates = DEFAULT_FX_RATES
         return fx_config
     if isinstance(fx_config, Mapping):
-        fx_config_dict: dict[str, Any] = dict(fx_config)  # copy
+        fx_config_dict: Dict[str, Any] = dict(fx_config)  # copy
         if "rates" not in fx_config_dict or not isinstance(fx_config_dict.get("rates"), dict):
             fx_config_dict["rates"] = DEFAULT_FX_RATES
         fx_config_dict.setdefault("as_of", None)

@@ -2,7 +2,7 @@
 Frequency generation logic for CRML simulation.
 """
 import numpy as np
-from typing import Any, Optional
+from typing import Any, Optional, Union
 from .utils import parse_numberish_value
 
 class FrequencyEngine:
@@ -14,7 +14,7 @@ class FrequencyEngine:
         *,
         rate_multiplier: Optional[object],
         n_runs: int,
-    ) -> float | np.ndarray:
+    ) -> Union[float, np.ndarray]:
         if rate_multiplier is None:
             return total_lambda
 

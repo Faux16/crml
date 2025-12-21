@@ -36,6 +36,16 @@ def _extract_title(catalog: dict[str, Any]) -> Optional[str]:
 _NS_RE = re.compile(r"^[a-z][a-z0-9_-]{0,31}$")
 
 
+def is_valid_namespace(namespace: str) -> bool:
+    """Return True if `namespace` satisfies CRML ControlId namespace constraints."""
+    return bool(_NS_RE.match(namespace))
+
+
+def slug_namespace(text: str) -> str:
+    """Convert arbitrary text into a CRML-safe namespace slug."""
+    return _slug_namespace(text)
+
+
 def _slug_namespace(text: str) -> str:
     s = str(text).strip().lower()
     s = re.sub(r"[^a-z0-9_-]+", "-", s)

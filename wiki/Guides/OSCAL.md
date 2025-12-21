@@ -25,8 +25,10 @@ That’s why OSCAL by itself is not a quantitative risk modeling standard.
 
 CRML can still interoperate with OSCAL because CRML can:
 
-- **ingest OSCAL-like assessment artifacts** (findings/risks) as structured inputs to a portfolio and governance workflow, and
-- **export CRML outcomes** into OSCAL Assessment Results structures so other governance/compliance tooling can consume them.
+- **convert OSCAL Catalogs** (JSON/YAML) into redistributable **CRML control catalogs** (minimal, metadata-only) for use in CRML scenarios, mappings, and portfolios, and
+- (optionally) **publish CRML assessment outputs into OSCAL Assessment Results-style structures** using a documented convention (see below).
+
+Important: CRML’s shipped OSCAL tooling today is **catalog-centric**. It converts **OSCAL catalogs → CRML** (control catalogs and assessment templates). It does **not** ingest OSCAL Assessment Results as a first-class quantitative input format.
 
 In practice, teams often position them like this:
 
@@ -43,6 +45,19 @@ CRML’s quantitative outputs can be preserved in OSCAL using:
 - `risk.characterizations` (preferred for likelihood/impact-like concepts), and
 - `props` (for structured extensions, units, currencies, scale definitions, and tool-specific metadata).
 
+## What CRML supports today (OSCAL)
+
+CRML currently supports these OSCAL-related conversions:
+
+- **OSCAL Catalog → CRML Control Catalog (minimal, metadata-only)**
+  - Python: `CRControlCatalog.fromOscal(path)`
+  - CLI: `crml-lang oscal import-catalog ...`
+- **OSCAL Catalog → CRML Assessment template** (no posture values exist in catalogs)
+  - Python: `CRAssessment.fromOscal(path)`
+  - CLI: `crml-lang oscal import-assessment-template ...`
+
+Endpoint-driven imports (built-in + user-extended) are supported via `crml-lang oscal list-endpoints` and `--endpoint`.
+
 ## Practical limitation: framework catalogs, licensing, and identifiers
 
 In the real world, OSCAL representations of major control frameworks are often:
@@ -56,7 +71,21 @@ CRML documentation and examples in this repository therefore **SHOULD NOT** embe
 For quantitative risk modeling, the *human-readable control description text* is usually not the critical input anyway. What matters most for modeling workflows is:
 
 - stable control identifiers,
-- and the **relationships and mappings** (control-to-control, control-to-objective, control-to-threat/technique, coverage/overlap, inheritance).
+- a stable framework/catalog identifier, and
+- the **relationships and mappings** (control-to-control, control-to-objective, control-to-threat/technique, coverage/overlap, inheritance).
+
+### Practical limitation: OSCAL has no stable catalog identifier
+
+OSCAL Catalog documents do not provide a single, standardized, globally stable identifier for “this is *the* catalog for framework X” that all tools can rely on.
+
+In practice, implementers often fall back to unstable signals such as:
+
+- the local file name,
+- an access URL that can change over time,
+- the metadata title string (human-facing), or
+- publisher-specific UUIDs that are not standardized across catalogs or distributions.
+
+For cross-framework work (e.g., CIS → internal org controls, or NIST → ISO mappings), a **stable global catalog identifier** is required. Without it, different tools can generate identical-looking control ids while referring to different catalog variants.
 
 ### Normative identifier rules
 
@@ -76,11 +105,34 @@ catalog:
 
 CRML’s canonical join key is the control entry `id` in the form `namespace:key`.
 
-### OSCAL → CRML skeleton catalogs (practical ingestion)
+#### Stable framework/catalog identifier (required for mapping)
 
-If you have an OSCAL Catalog (JSON or YAML) for a framework, CRML can ingest it and generate a **redistributable skeleton** CRML control catalog.
+To do framework-to-framework mapping reliably, you must also be able to identify **which catalog/framework a namespace refers to**.
 
-The skeleton intentionally keeps only:
+In CRML, stable mapping depends on using **stable control identifiers** (the `namespace:key` form) and keeping the `namespace` stable over time.
+
+For standardized public frameworks, the recommended way to get stable namespaces is to import via the **shipped OSCAL endpoint list** (or an organization-provided extension of it). The endpoint provides a stable `catalog_id`, and CRML uses that value as the default control-id namespace (slugged if needed).
+
+If you import directly from a local OSCAL file path (without an endpoint), the current implementation derives the namespace from the OSCAL catalog title (slugged). If that title changes, the namespace will change.
+
+- The project ships a built-in OSCAL API endpoint list at `crml_lang/src/crml_lang/oscal/api-endpoints.yaml`.
+- Each catalog endpoint includes a required `catalog_id` (stable dataset identifier) and a `url` (or `path`) for the OSCAL catalog.
+- When you import via an endpoint, CRML uses `catalog_id` as the stable catalog identifier and (by default) as the control-id namespace.
+
+This is intentional: only by using the shipped list can CRML implementations converge on the same stable identifiers.
+
+Normative rules:
+
+- For standardized public frameworks, the **stable catalog source URL** MUST be selected from the shipped endpoint list.
+- The endpoint’s `catalog_id` MUST be treated as the stable dataset identifier for that framework.
+
+If you need to work with a framework that is not in the shipped list, treat that as a catalog onboarding step: add it to your own endpoint file, distribute it alongside your CRML implementation(s) and open a pull request here for us to add it. (see “Endpoint config files” below).
+
+### OSCAL → CRML control catalogs (practical ingestion)
+
+If you have an OSCAL Catalog (JSON or YAML) for a framework, CRML can ingest it and generate a **redistributable, minimal** CRML control catalog.
+
+The generated catalog intentionally keeps only:
 
 - control identifiers (`id`),
 - optional `oscal_uuid` (the OSCAL control UUID),
@@ -100,9 +152,100 @@ catalog = CRControlCatalog.fromOscal("in-oscal-catalog.json", catalog_id="cisv8"
 catalog.dump_to_yaml("out-crml-control-catalog.yaml")
 ```
 
+CLI (single file):
+
+```bash
+crml-lang oscal import-catalog --path in-oscal-catalog.json --out out-crml-control-catalog.yaml
+```
+
+CLI (endpoint):
+
+```bash
+crml-lang oscal list-endpoints
+crml-lang oscal import-catalog --endpoint bsi-kompendium-grundschutz-plusplus --out out-crml-control-catalog.yaml
+```
+
+When using `--endpoint`, CRML uses the endpoint’s `catalog_id` as the stable catalog identifier and as the default control-id namespace (so ids remain stable even if upstream OSCAL metadata like `title` changes).
+
+### Endpoint config files (url/path)
+
+OSCAL endpoints are configured via YAML with these top-level lists:
+
+- `catalogs: [...]`
+- `assets: [...]`
+- `assessments: [...]`
+- `mappings: [...]`
+
+Each endpoint entry MUST specify **exactly one** of:
+
+- `url: https://...` (remote OSCAL JSON/YAML)
+- `path: ./relative/or/absolute.json` (local OSCAL JSON/YAML)
+
+If `path` is relative, it is resolved relative to the config file location.
+
+Example:
+
+```yaml
+catalogs:
+  - id: my-local-catalog
+    description: My local OSCAL catalog
+    path: ./oscal/catalog.json
+    catalog_id: my_catalog_v1
+
+assets: []
+assessments: []
+mappings: []
+```
+
+#### Built-in list + extending it in your environment
+
+This project ships with a built-in (and intentionally expanding) endpoint list in `crml_lang/src/crml_lang/oscal/api-endpoints.yaml`.
+
+You can extend or override endpoints in your environment by providing additional endpoint YAML files via the `CRML_OSCAL_ENDPOINTS_PATH` environment variable (path-separated). Endpoints are merged by `id` and later files override earlier ones.
+
+This is the supported way to:
+
+- add additional catalogs you have access to,
+- pin an internal mirror URL, or
+- introduce organization-specific frameworks.
+
+### Importing catalogs into your environment (after cloning)
+
+After cloning this repository, you can use the OSCAL endpoint tooling to populate your local CRML environment. The `examples/` folder provides convenient places to store generated artifacts.
+
+Typical workflow:
+
+1) List the shipped endpoints:
+
+```bash
+crml-lang oscal list-endpoints
+```
+
+2) Import a shipped catalog endpoint into a CRML control catalog YAML:
+
+```bash
+crml-lang oscal import-catalog --endpoint bsi-kompendium-grundschutz-plusplus --out examples/control_catalogs/bsi-gspp-control-catalog.yaml
+```
+
+3) (Optional) Generate a CRML assessment template for the same framework (still sourced from the OSCAL catalog, so it has no measured posture values):
+
+```bash
+crml-lang oscal import-assessment-template --endpoint bsi-kompendium-grundschutz-plusplus --out examples/control_assessments/bsi-gspp-assessment-template.yaml
+```
+
+### Batch generation (catalogs only)
+
+To generate CRML control catalogs for every catalog endpoint listed in a config file:
+
+```bash
+crml-lang oscal generate-catalogs --config path/to/api-endpoints.yaml --out-dir out/
+```
+
+This writes one `*-control-catalog.yaml` file per catalog endpoint into `out/`.
+
 Notes:
 
-- `--namespace` becomes the `namespace` part in generated control ids like `cisv8:1.1`.
+- The endpoint's `catalog_id` becomes the `namespace` part in generated control ids like `cisv8:1.1` (unless `namespace` is explicitly set on the endpoint).
 - The OSCAL control `id` becomes the `key` part.
 - OSCAL control UUIDs are preserved in the CRML field `oscal_uuid` when present.
 
@@ -117,6 +260,56 @@ Practical guidance:
 
 - If you build cross-framework mappings (e.g., CISv8 → Org), it is usually simplest to include a complete catalog for the source framework so every `source_id` in the mapping has a corresponding catalog entry.
 
+## Field mapping: OSCAL Catalog → CRML (implemented)
+
+CRML's shipped OSCAL support today is **catalog-centric**. It supports importing an OSCAL Catalog (JSON/YAML) into:
+
+- a CRML Control Catalog skeleton (`CRControlCatalog.fromOscal(...)` / `crml-lang oscal import-catalog`), and
+- a CRML Assessment template (`CRAssessment.fromOscal(...)` / `crml-lang oscal import-assessment-template`).
+
+These conversions intentionally keep only a minimal, redistributable subset of fields.
+
+### Namespace and identifiers
+
+CRML uses `namespace:key` identifiers as the canonical join key across catalogs, assessments, scenarios, and mappings.
+
+Implemented rules:
+
+- **Key**: the OSCAL control `id` becomes the CRML `key`.
+- **Namespace**:
+  - If importing via `--endpoint`, the namespace defaults to the endpoint's `catalog_id` (slugged if needed), unless the endpoint provides an explicit `namespace` override.
+  - If importing via `--path`, the namespace defaults to a slug of the OSCAL catalog title.
+
+### Control catalog fields (OSCAL Catalog → CRML Control Catalog)
+
+| OSCAL source | CRML target | Notes |
+|---|---|---|
+| `catalog.metadata.title` (preferred) or `catalog.title` | `catalog.framework` | Human label only. |
+| `catalog.controls[].id` (including nested groups/sub-controls) | `catalog.controls[].id` | Transformed into `namespace:key`. |
+| `catalog.controls[].uuid` | `catalog.controls[].oscal_uuid` | Preserved as interoperability metadata. |
+| `catalog.controls[].title` | `catalog.controls[].title` | Optional. |
+| `catalog.controls[].links[0].href` | `catalog.controls[].url` | Optional; first link only. |
+
+### Assessment template fields (OSCAL Catalog → CRML Assessment)
+
+OSCAL catalogs do not include organization-specific posture values. The import therefore produces a template with a default SCF CMM level.
+
+| OSCAL source | CRML target | Notes |
+|---|---|---|
+| `catalog.metadata.title` (preferred) or `catalog.title` | `assessment.framework` | Human label only. |
+| `catalog.controls[].id` | `assessment.assessments[].id` | Transformed into `namespace:key`. |
+| `catalog.controls[].uuid` | `assessment.assessments[].oscal_uuid` | Preserved as interoperability metadata. |
+| *(no OSCAL equivalent)* | `assessment.assessments[].scf_cmm_level` | Defaulted (0 unless configured by the importer). |
+
+## CRML → OSCAL Assessment Results (not implemented)
+
+This repository currently does **not** implement exporting CRML results into OSCAL Assessment Results (`finding`/`risk`) objects.
+
+The earlier "CRML → OSCAL" mapping tables (findings/risks/characterizations/`urn:crml` props) describe a **proposed convention** only. If you want, we can:
+
+- keep that convention in a separate "Future / Draft" section, or
+- implement an exporter in code (and then make the guide normative again).
+
 When an original framework author/publisher provides an OSCAL representation, exporters/importers **SHOULD** treat the framework’s published identifier as canonical:
 
 - Prefer the framework’s **human-readable identifier** (the control ID that humans cite, e.g., `AC-2`) as the primary mapping key.
@@ -128,20 +321,27 @@ When no canonical OSCAL representation exists (or cannot be redistributed), CRML
 - minting stable IDs in an explicit namespace (e.g., `org:`, `vendor:`, or a URN scheme), and
 - keeping catalogs minimal: identifiers + relationship structure + any non-copyrightable metadata needed for mapping.
 
-### “Skeleton” catalogs and licensed enrichment
+### Minimal catalogs and licensed enrichment
 
-CRML examples and reference catalogs are intentionally **skeleton models**: they focus on identifiers and relationship structure, and avoid embedding copyrighted framework prose.
+CRML examples and reference catalogs are intentionally **minimal models**: they focus on identifiers and relationship structure, and avoid embedding copyrighted framework prose.
 
-Organizations that have the appropriate rights **MAY** enrich these skeleton catalogs locally by attaching the full, licensed control text and metadata sourced from the standards bodies themselves — either via:
+Organizations that have the appropriate rights **MAY** enrich these minimal catalogs locally by attaching the full, licensed control text and metadata sourced from the standards bodies themselves — either via:
 
 - official OSCAL catalogs published by the framework owner, or
 - licensed CRML control catalogs (if a standards body publishes CRML-native representations).
 
 This keeps the public CRML ecosystem redistributable while still enabling full-fidelity internal catalogs where licensing permits.
 
-## Mapping rules (normative)
+## Publishing CRML assessment outputs into OSCAL (normative convention)
 
-This section defines rules for mapping CRML concepts to OSCAL Assessment Results-style `finding` and `risk` objects.
+CRML is a better **native output format** for assessment tools that want to support quantified risk, because CRML standardizes the fields needed for risk math (distributions, time bases, currencies, and other numeric semantics).
+
+OSCAL Assessment Results is excellent for interoperability and traceability, but it does not normatively define quantitative risk math (many values are open strings). As a result:
+
+- **CRML → OSCAL** is possible (by writing CRML’s standardized values into OSCAL `risk.characterizations` and `props` using a clear convention), and
+- **OSCAL → CRML** (for assessments/results) is not generally possible in a safe, non-lossy way, because the quantitative semantics are not standardized in OSCAL and are often tool-specific strings.
+
+This section defines the normative convention for mapping CRML concepts to OSCAL Assessment Results-style `finding` and `risk` objects.
 
 ### Conventions
 
@@ -379,6 +579,6 @@ risk:
 
 - OSCAL is excellent for interoperable assessment result interchange and traceability.
 - CRML is designed for quantified modeling and computation.
-- CRML can export results into OSCAL by:
+- CRML results can be represented in OSCAL by:
   - using `risk.characterizations` for likelihood/impact-like summaries,
   - using `props` for precise numeric values, units, currencies, and scale definitions.

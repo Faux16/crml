@@ -5,7 +5,13 @@ from typing import Any
 from crml_lang.api import CRAssessment, CRControlCatalog
 
 from .config import OscalEndpoint, load_endpoints
-from .convert import infer_namespace_and_framework, oscal_catalog_to_crml_assessment, oscal_catalog_to_crml_control_catalog
+from .convert import (
+    infer_namespace_and_framework,
+    is_valid_namespace,
+    slug_namespace,
+    oscal_catalog_to_crml_assessment,
+    oscal_catalog_to_crml_control_catalog,
+)
 from .errors import OscalEndpointNotFoundError
 from .io import load_oscal_document
 from .provenance import OscalProvenance
@@ -28,7 +34,13 @@ def list_endpoints() -> list[dict[str, Any]]:
                 "id": e.id,
                 "description": e.description,
                 "url": e.url,
+                "path": e.path,
+                "source": e.source,
                 "kind": e.kind,
+                "catalog_id": e.catalog_id,
+                "framework": e.framework_override,
+                "namespace": e.namespace_override,
+                "meta_name": e.meta_name,
                 "mapping_type": e.mapping_type,
                 "portfolio_meta_name": e.portfolio_meta_name,
                 "default_cardinality": e.default_cardinality,
@@ -38,27 +50,49 @@ def list_endpoints() -> list[dict[str, Any]]:
     return out
 
 
+def _effective_namespace(*, inferred: str, endpoint: OscalEndpoint) -> str:
+    if endpoint.namespace_override:
+        return endpoint.namespace_override
+
+    # Prefer catalog_id as a stable namespace if provided.
+    # This makes control ids stable even if upstream OSCAL metadata.title changes.
+    if endpoint.catalog_id:
+        return endpoint.catalog_id if is_valid_namespace(endpoint.catalog_id) else slug_namespace(endpoint.catalog_id)
+
+    return inferred
+
+
 def load_oscal_from_endpoint(
     endpoint_id: str,
     *,
     user_agent: Optional[str] = None,
 ) -> tuple[OscalEndpoint, dict[str, Any], OscalProvenance]:
     endpoint = get_endpoint(endpoint_id)
+    doc, prov = load_oscal_from_endpoint_obj(endpoint, endpoint_id=endpoint_id, user_agent=user_agent)
+    return endpoint, doc, prov
 
+
+def load_oscal_from_endpoint_obj(
+    endpoint: OscalEndpoint,
+    *,
+    endpoint_id: Optional[str] = None,
+    user_agent: Optional[str] = None,
+) -> tuple[dict[str, Any], OscalProvenance]:
     doc = load_oscal_document(
         url=endpoint.url,
+        path=endpoint.path,
         timeout_seconds=endpoint.timeout_seconds,
         user_agent=user_agent,
-        source_label=f"endpoint:{endpoint_id}",
+        source_label=f"endpoint:{endpoint_id or endpoint.id}",
     )
 
     prov = OscalProvenance(
         source_kind="endpoint",
-        source=endpoint.url,
-        endpoint_id=endpoint_id,
+        source=endpoint.source,
+        endpoint_id=endpoint_id or endpoint.id,
         fetched_at_utc=OscalProvenance.now_utc_iso(),
     )
-    return endpoint, doc, prov
+    return doc, prov
 
 
 def control_catalog_from_endpoint(
@@ -66,16 +100,20 @@ def control_catalog_from_endpoint(
     *,
     user_agent: Optional[str] = None,
 ) -> tuple[CRControlCatalog, OscalProvenance]:
-    endpoint, doc, prov = load_oscal_from_endpoint(
-        endpoint_id,
-        user_agent=user_agent,
-    )
+    endpoint = get_endpoint(endpoint_id)
+    return control_catalog_from_endpoint_obj(endpoint, endpoint_id=endpoint_id, user_agent=user_agent)
+
+
+def control_catalog_from_endpoint_obj(
+    endpoint: OscalEndpoint,
+    *,
+    endpoint_id: Optional[str] = None,
+    user_agent: Optional[str] = None,
+) -> tuple[CRControlCatalog, OscalProvenance]:
+    doc, prov = load_oscal_from_endpoint_obj(endpoint, endpoint_id=endpoint_id, user_agent=user_agent)
 
     namespace, framework = infer_namespace_and_framework(doc)
-    if endpoint.framework_override:
-        framework = endpoint.framework_override
-    if endpoint.namespace_override:
-        namespace = endpoint.namespace_override
+    namespace = _effective_namespace(inferred=namespace, endpoint=endpoint)
 
     payload = oscal_catalog_to_crml_control_catalog(
         doc,
@@ -83,7 +121,7 @@ def control_catalog_from_endpoint(
         framework=framework,
         catalog_id=endpoint.catalog_id or None,
         meta_name=endpoint.meta_name or None,
-        source_url=endpoint.url,
+        source_url=endpoint.source,
     )
     return CRControlCatalog.model_validate(payload), prov
 
@@ -99,10 +137,7 @@ def assessment_template_from_endpoint(
     )
 
     namespace, framework = infer_namespace_and_framework(doc)
-    if endpoint.framework_override:
-        framework = endpoint.framework_override
-    if endpoint.namespace_override:
-        namespace = endpoint.namespace_override
+    namespace = _effective_namespace(inferred=namespace, endpoint=endpoint)
 
     payload = oscal_catalog_to_crml_assessment(
         doc,
@@ -110,7 +145,7 @@ def assessment_template_from_endpoint(
         framework=framework,
         assessment_id=None,
         meta_name=None,
-        source_url=endpoint.url,
+        source_url=endpoint.source,
         default_scf_cmm_level=0,
     )
     return CRAssessment.model_validate(payload), prov

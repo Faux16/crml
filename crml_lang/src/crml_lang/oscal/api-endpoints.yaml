@@ -1,5 +1,15 @@
-endpoints:
+catalogs:
   - id: bsi-kompendium-grundschutz-plusplus
     description: BSI Kompendium Grundschutz++
+    # Provide exactly one of: url, path
     url: https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/refs/heads/main/Kompendien/Grundschutz%2B%2B-Kompendium/Grundschutz%2B%2B-Kompendium.json
-    kind: catalog
+    # Stable identifier for this dataset (required).
+    # In CRML ingestion, this is also used as the default control-id namespace
+    # unless `namespace` is explicitly set.
+    catalog_id: bsi_gspp_2023
+
+assets: []
+
+assessments: []
+
+mappings: []

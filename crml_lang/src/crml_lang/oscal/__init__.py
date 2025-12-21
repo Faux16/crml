@@ -6,7 +6,7 @@ Field mapping review:
 - See `field-mappings.yaml` for the intended OSCAL -> CRML field mapping rules.
 """
 
-from .config import OscalEndpoint, load_endpoints
+from .config import OscalEndpoint, load_endpoints, load_endpoints_from_file
 from .convert import (
     oscal_catalog_to_crml_assessment,
     oscal_catalog_to_crml_control_catalog,
@@ -31,6 +31,7 @@ from .provenance import OscalProvenance
 __all__ = [
     "OscalEndpoint",
     "load_endpoints",
+    "load_endpoints_from_file",
     "get_endpoint",
     "list_endpoints",
     "load_oscal_from_endpoint",

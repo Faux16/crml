@@ -9,6 +9,21 @@
 # - Path syntax is informal “dot + []” notation for humans.
 # - These mappings describe defaults; endpoint config may override some values.
 #
+# Endpoint config interaction (important):
+# - When converting via an OSCAL endpoint, the endpoint may override how we pick
+#   CRML `framework` and `namespace`.
+# - CRML uses `namespace:key` control ids as the canonical join key across
+#   catalogs/assessments/portfolios/scenarios.
+# - To keep ids stable even if upstream OSCAL metadata.title changes, we prefer
+#   endpoint `catalog_id` as the CRML namespace (unless endpoint `namespace` is
+#   explicitly set). If `catalog_id` is not already a valid CRML namespace, it
+#   is slugged into one.
+#
+# In other words:
+# - endpoint.namespace (explicit) wins
+# - else endpoint.catalog_id becomes namespace (stable)
+# - else fall back to slug(framework) inferred from OSCAL title
+#
 # Kinds:
 # - catalog: OSCAL Catalog -> CRML Control Catalog
 # - assets: OSCAL SSP/Component/etc -> CRML Portfolio assets
@@ -20,12 +35,15 @@ catalog:
       - catalog
       - (document root)
   infer:
+    # `framework` is a human label (free-form). Prefer OSCAL metadata.title.
     framework:
       source: catalog.metadata.title
       fallback:
         - catalog.title
         - "OSCAL"
       target: crml_control_catalog.catalog.framework
+    # `namespace` is the machine-stable prefix used in ControlId (namespace:key).
+    # This default is overridden by endpoint config as described above.
     namespace:
       source: slug(framework)
       fallback: "oscal"
@@ -73,6 +91,7 @@ mapping:
       - CRControlRelationships (mapping_type=control_relationships)
       - CRAttackControlRelationships (mapping_type=attack_control_relationships)
   required_endpoint_fields:
+    # Endpoint must declare which relationships document type to produce.
     - mapping_type
   notes:
     - "Exact OSCAL source structures for cross-framework mappings are not standardized in OSCAL core; this section is a placeholder until concrete inputs are chosen."

@@ -10,7 +10,7 @@ import importlib.resources
 from crml_lang.yamlio import load_yaml_mapping_from_str
 
 
-OscalKind = Literal["catalog", "assets", "mapping"]
+OscalKind = Literal["catalog", "assets", "assessment", "mapping"]
 OscalMappingType = Literal["control_relationships", "attack_control_relationships"]
 
 
@@ -18,8 +18,11 @@ OscalMappingType = Literal["control_relationships", "attack_control_relationship
 class OscalEndpoint:
     id: str
     description: str
-    url: str
     kind: OscalKind
+
+    # --- source (exactly one of these must be set) ---
+    url: Optional[str] = None
+    path: Optional[str] = None
 
     # --- kind: assets ---
     # Creates a CRML portfolio-like asset inventory from an OSCAL source.
@@ -38,6 +41,15 @@ class OscalEndpoint:
     framework_override: Optional[str] = None
     catalog_id: Optional[str] = None
     meta_name: Optional[str] = None
+
+    @property
+    def source(self) -> str:
+        if self.url:
+            return self.url
+        if self.path:
+            return self.path
+        # Should be unreachable due to parsing validation.
+        return ""
 
 
 def _read_endpoints_yaml_text() -> str:
@@ -104,48 +116,90 @@ def _parse_mapping_type(item: dict[str, Any], endpoint_id: str) -> OscalMappingT
     return cast(OscalMappingType, mapping_type_raw)
 
 
-def _parse_endpoint_item(item: Any) -> OscalEndpoint:
+def _optional_str(item: dict[str, Any], key: str) -> Optional[str]:
+    raw = item.get(key)
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    return text or None
+
+
+def _parse_kind(item: dict[str, Any], *, default_kind: Optional[OscalKind]) -> OscalKind:
+    kind_raw = _optional_str(item, "kind") or (default_kind or "catalog")
+    if kind_raw not in ("catalog", "assets", "assessment", "mapping"):
+        raise ValueError(f"Unsupported OSCAL endpoint kind: {kind_raw!r}")
+    return cast(OscalKind, kind_raw)
+
+
+def _parse_source(
+    item: dict[str, Any],
+    *,
+    endpoint_id: str,
+    base_dir: Optional[Path],
+) -> tuple[Optional[str], Optional[str]]:
+    url = _optional_str(item, "url")
+    path_raw = _optional_str(item, "path")
+
+    if (url is None) == (path_raw is None):
+        raise ValueError(f"OSCAL endpoint {endpoint_id!r} must set exactly one of: url, path")
+
+    if path_raw is None:
+        return url, None
+
+    p = Path(path_raw)
+    if base_dir is not None and not p.is_absolute():
+        p = base_dir / p
+    return None, str(p.resolve())
+
+
+def _parse_endpoint_item(
+    item: Any,
+    *,
+    default_kind: Optional[OscalKind] = None,
+    base_dir: Optional[Path] = None,
+) -> OscalEndpoint:
     if not isinstance(item, dict):
         raise ValueError("Each OSCAL endpoint must be a mapping")
 
-    endpoint_id = str(item.get("id", "")).strip()
+    typed = cast(dict[str, Any], item)
+
+    endpoint_id = str(typed.get("id", "")).strip()
     if not endpoint_id:
         raise ValueError("OSCAL endpoint is missing required field 'id'")
 
-    description = str(item.get("description", "")).strip()
+    description = str(typed.get("description", "")).strip()
     if not description:
         raise ValueError(f"OSCAL endpoint {endpoint_id!r} is missing required field 'description'")
 
-    url = str(item.get("url", "")).strip()
-    if not url:
-        raise ValueError(f"OSCAL endpoint {endpoint_id!r} is missing required field 'url'")
-
-    kind_raw = str(item.get("kind", "catalog")).strip() or "catalog"
-    if kind_raw not in ("catalog", "assets", "mapping"):
-        raise ValueError(f"Unsupported OSCAL endpoint kind: {kind_raw!r}")
-    kind = cast(OscalKind, kind_raw)
-
-    timeout_seconds = _parse_timeout_seconds(endpoint_id, item.get("timeout_seconds", 30.0))
+    url, path = _parse_source(typed, endpoint_id=endpoint_id, base_dir=base_dir)
+    kind = _parse_kind(typed, default_kind=default_kind)
+    timeout_seconds = _parse_timeout_seconds(endpoint_id, typed.get("timeout_seconds", 30.0))
 
     portfolio_meta_name: Optional[str] = None
     default_cardinality = 1
     mapping_type: Optional[OscalMappingType] = None
 
-    namespace_override = str(item.get("namespace", "")).strip() or None
-    framework_override = str(item.get("framework", "")).strip() or None
-    catalog_id = str(item.get("catalog_id", "")).strip() or None
-    meta_name = str(item.get("meta_name", "")).strip() or None
+    namespace_override = _optional_str(typed, "namespace")
+    framework_override = _optional_str(typed, "framework")
+    catalog_id = _optional_str(typed, "catalog_id")
+    meta_name = _optional_str(typed, "meta_name")
+
+    if kind == "catalog" and not catalog_id:
+        raise ValueError(
+            f"OSCAL catalog endpoint {endpoint_id!r} is missing required field 'catalog_id'"
+        )
 
     if kind == "assets":
-        portfolio_meta_name, default_cardinality = _parse_assets_fields(item, endpoint_id)
+        portfolio_meta_name, default_cardinality = _parse_assets_fields(typed, endpoint_id)
     elif kind == "mapping":
-        mapping_type = _parse_mapping_type(item, endpoint_id)
+        mapping_type = _parse_mapping_type(typed, endpoint_id)
 
     return OscalEndpoint(
         id=endpoint_id,
         description=description,
-        url=url,
         kind=kind,
+        url=url,
+        path=path,
         portfolio_meta_name=portfolio_meta_name,
         default_cardinality=default_cardinality,
         mapping_type=mapping_type,
@@ -160,28 +214,78 @@ def _parse_endpoint_item(item: Any) -> OscalEndpoint:
 def load_endpoints() -> list[OscalEndpoint]:
     """Load OSCAL endpoints.
 
-    Sources (later sources override earlier by endpoint id):
-    - built-in package data file `api-endpoints.yaml`
-    - optional external endpoint files provided via `CRML_OSCAL_ENDPOINTS_PATH`
-      (pathsep-separated)
+        Sources (later sources override earlier by endpoint id):
+        - built-in package data file `api-endpoints.yaml`
+        - optional external endpoint files provided via `CRML_OSCAL_ENDPOINTS_PATH`
+            (pathsep-separated)
+
+        Schema:
+        - catalogs: []
+        - assets: []
+        - assessments: []
+        - mappings: []
+    """
+
+    return load_endpoints_from_file(None)
+
+
+def load_endpoints_from_file(
+    path: Optional[str],
+    *,
+    include_builtin: bool = True,
+    include_env: bool = True,
+) -> list[OscalEndpoint]:
+    """Load OSCAL endpoints.
+
+    Merge order (later sources override earlier by endpoint id):
+    - built-in package data file `api-endpoints.yaml` (if include_builtin)
+    - `path` (if provided)
+    - optional external endpoint files provided via `CRML_OSCAL_ENDPOINTS_PATH` (if include_env)
+
+    Schema:
+    - catalogs: []
+    - assets: []
+    - assessments: []
+    - mappings: []
     """
 
     merged: dict[str, OscalEndpoint] = {}
 
-    def merge_text(text: str) -> None:
-        raw = load_yaml_mapping_from_str(text)
-        endpoints = raw.get("endpoints")
-        if endpoints is None:
-            return
-        if not isinstance(endpoints, list):
-            raise ValueError("OSCAL endpoints config must contain a top-level 'endpoints' list")
-        for item in endpoints:
-            e = _parse_endpoint_item(item)
+    def _merge_endpoint_list(
+        raw: dict[str, Any],
+        *,
+        key: str,
+        default_kind: Optional[OscalKind],
+        base_dir: Optional[Path],
+    ) -> bool:
+        items = raw.get(key)
+        if items is None:
+            return False
+        if not isinstance(items, list):
+            raise ValueError(f"OSCAL endpoints config field {key!r} must be a list")
+        for item in items:
+            e = _parse_endpoint_item(item, default_kind=default_kind, base_dir=base_dir)
             merged[e.id] = e
+        return True
 
-    merge_text(_read_endpoints_yaml_text())
+    def merge_text(text: str, *, base_dir: Optional[Path]) -> None:
+        raw = load_yaml_mapping_from_str(text)
 
-    for p in _iter_external_endpoint_paths():
-        merge_text(Path(p).read_text(encoding="utf-8"))
+        _merge_endpoint_list(raw, key="catalogs", default_kind="catalog", base_dir=base_dir)
+        _merge_endpoint_list(raw, key="assets", default_kind="assets", base_dir=base_dir)
+        _merge_endpoint_list(raw, key="assessments", default_kind="assessment", base_dir=base_dir)
+        _merge_endpoint_list(raw, key="mappings", default_kind="mapping", base_dir=base_dir)
+
+    if include_builtin:
+        merge_text(_read_endpoints_yaml_text(), base_dir=None)
+
+    if path:
+        pp = Path(path)
+        merge_text(pp.read_text(encoding="utf-8"), base_dir=pp.parent)
+
+    if include_env:
+        for p in _iter_external_endpoint_paths():
+            pp = Path(p)
+            merge_text(pp.read_text(encoding="utf-8"), base_dir=pp.parent)
 
     return list(merged.values())

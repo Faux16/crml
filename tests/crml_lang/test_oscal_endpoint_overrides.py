@@ -15,7 +15,7 @@ def test_get_endpoint_not_found() -> None:
 def test_load_endpoints_allows_external_override(tmp_path, monkeypatch) -> None:
     p = tmp_path / "endpoints.yaml"
     p.write_text(
-        """endpoints:\n  - id: bsi-kompendium-grundschutz-plusplus\n    description: Overridden\n    url: https://example.invalid/oscal.json\n    kind: catalog\n    timeout_seconds: 1\n""",
+        """catalogs:\n  - id: bsi-kompendium-grundschutz-plusplus\n    description: Overridden\n    url: https://example.invalid/oscal.json\n    timeout_seconds: 1\n    catalog_id: bsi_gspp_2023\n\nassets: []\nassessments: []\nmappings: []\n""",
         encoding="utf-8",
     )
 

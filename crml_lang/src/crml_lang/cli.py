@@ -15,6 +15,17 @@ import json
 import sys
 
 
+def _safe_filename_stem(text: str) -> str:
+    out = []
+    for ch in text.strip():
+        if ch.isalnum() or ch in ("-", "_"):
+            out.append(ch)
+        else:
+            out.append("_")
+    stem = "".join(out).strip("_-")
+    return stem or "output"
+
+
 def bundle_portfolio_to_yaml(
     in_portfolio: str,
     out_bundle: str,
@@ -96,7 +107,10 @@ def oscal_list_endpoints(
 
         # text
         for e in sorted(items, key=lambda x: str(x.get("id", ""))):
-            print(f"{e.get('id')}\t{e.get('kind')}\t{e.get('description')}\t{e.get('url')}", file=stdout)
+            print(
+                f"{e.get('id')}\t{e.get('kind')}\t{e.get('description')}\t{e.get('source')}",
+                file=stdout,
+            )
         return 0
     except Exception as e:
         print(str(e), file=stderr)
@@ -176,6 +190,53 @@ def oscal_import_assessment_template(
         print(f"Wrote CRML YAML {out}", file=stdout)
         print(f"Source: {path}", file=stdout)
         return 0
+    except Exception as e:
+        print(str(e), file=stderr)
+        return 1
+
+
+def oscal_generate_catalogs(
+    *,
+    config: str,
+    out_dir: str,
+    sort_keys: bool = False,
+    stdout: Optional[TextIO] = None,
+    stderr: Optional[TextIO] = None,
+) -> int:
+    """Generate CRML control catalog YAML files for all catalog endpoints in a config."""
+
+    stdout = stdout or sys.stdout
+    stderr = stderr or sys.stderr
+
+    try:
+        from pathlib import Path
+
+        from crml_lang.oscal import load_endpoints_from_file
+        from crml_lang.oscal.helpers import control_catalog_from_endpoint_obj
+
+        out_base = Path(out_dir)
+        out_base.mkdir(parents=True, exist_ok=True)
+
+        endpoints = load_endpoints_from_file(config, include_builtin=False, include_env=False)
+        catalogs = [e for e in endpoints if e.kind == "catalog"]
+        if not catalogs:
+            print("No catalog endpoints found in config", file=stderr)
+            return 1
+
+        ok = True
+        for e in catalogs:
+            try:
+                catalog, prov = control_catalog_from_endpoint_obj(e)
+                stem = _safe_filename_stem(e.catalog_id or e.id)
+                out_path = out_base / f"{stem}-control-catalog.yaml"
+                catalog.dump_to_yaml(str(out_path), sort_keys=bool(sort_keys))
+                print(f"Wrote CRML YAML {out_path}", file=stdout)
+                print(f"Source: {prov.source}", file=stdout)
+            except Exception as inner:
+                ok = False
+                print(f"Failed {e.id}: {inner}", file=stderr)
+
+        return 0 if ok else 1
     except Exception as e:
         print(str(e), file=stderr)
         return 1

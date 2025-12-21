@@ -6,6 +6,7 @@ from typing import Optional
 
 from .cli import (
     bundle_portfolio_to_yaml,
+    oscal_generate_catalogs,
     oscal_import_assessment_template,
     oscal_import_catalog,
     oscal_list_endpoints,
@@ -58,6 +59,14 @@ def _build_parser() -> argparse.ArgumentParser:
     ia.add_argument("--out", required=True, help="Output CRML YAML path")
     ia.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
 
+    gc = osub.add_parser(
+        "generate-catalogs",
+        help="Generate CRML control catalogs for all catalog endpoints in a config file",
+    )
+    gc.add_argument("--config", required=True, help="Endpoints config YAML (catalogs/assets/assessments/mappings)")
+    gc.add_argument("--out-dir", required=True, help="Output directory for generated CRML YAML files")
+    gc.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
+
     return p
 
 
@@ -90,6 +99,12 @@ def main(argv: Optional[list[str]] = None) -> int:
                     out=str(args.out),
                     endpoint=args.endpoint,
                     path=args.path,
+                    sort_keys=bool(args.sort_keys),
+                )
+            if args.oscal_cmd == "generate-catalogs":
+                return oscal_generate_catalogs(
+                    config=str(args.config),
+                    out_dir=str(args.out_dir),
                     sort_keys=bool(args.sort_keys),
                 )
             raise AssertionError(f"Unhandled oscal_cmd: {args.oscal_cmd}")

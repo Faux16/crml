@@ -199,9 +199,11 @@ npm run dev
 Open http://localhost:3000
 
 ## Screenshots
-
+In this example we simulate a phishing scenario on an organisation without MFA:
+![SimulationNoMFA](images/simulationNoMFA.png)
+Now we can turn MFA on and see, how our risk is being reduced by this control:
 ![Simulation](images/simulation.png)
-
+The validator is mostly for developers:
 ![Validator](images/validator.png)
 
 ## Documentation

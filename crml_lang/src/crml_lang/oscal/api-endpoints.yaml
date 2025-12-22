@@ -1,5 +1,5 @@
 catalogs:
-  - id: bsi-kompendium-grundschutz-plusplus
+  - catalog_id: bsi_gspp_2023
     description: BSI Kompendium Grundschutz++
     # Optional CRML-shaped metadata copied into generated CRML artifacts under `meta`.
     # This is the preferred form because it matches CRML exactly.
@@ -17,12 +17,11 @@ catalogs:
     # company_sizes: [micro, small]
     # Provide exactly one of: url, path
     url: https://raw.githubusercontent.com/BSI-Bund/Stand-der-Technik-Bibliothek/refs/heads/main/Kompendien/Grundschutz%2B%2B-Kompendium/Grundschutz%2B%2B-Kompendium.json
-    # Stable identifier for this dataset (required).
+    # Stable identifier for this dataset / endpoint (required).
     # In CRML ingestion, this is also used as the default control-id namespace
     # unless `namespace` is explicitly set.
-    catalog_id: bsi_gspp_2023
 
-  - id: cis-controls-v8-1
+  - catalog_id: cisv8_1
     description: CIS Controls v8.1
     meta:
       locale:
@@ -30,7 +29,6 @@ catalogs:
       industries: [all]
       company_sizes: [all]
     url: https://bitbucket.org/cis-it-workspace/cis-controls-v8.1_oscal/raw/75ec5f4f79f103a74420e2b93553ce429160a92c/src/catalogs/json/cis-controls-v8.1_catalog.json
-    catalog_id: cisv8_1
 
 assets: []
 

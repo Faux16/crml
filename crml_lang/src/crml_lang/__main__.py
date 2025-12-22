@@ -44,7 +44,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
     ic = osub.add_parser("import-catalog", help="Convert OSCAL catalog into CRML control catalog YAML")
     src = ic.add_mutually_exclusive_group(required=True)
-    src.add_argument("--endpoint", default=None, help="Endpoint id (see: crml-lang oscal list-endpoints)")
+    src.add_argument(
+        "--endpoint",
+        default=None,
+        help="Endpoint catalog_id (see: crml-lang oscal list-endpoints)",
+    )
     src.add_argument("--path", default=None, help="Local OSCAL file path (JSON or YAML)")
     ic.add_argument("--out", required=True, help="Output CRML YAML path")
     ic.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)
@@ -54,7 +58,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Convert OSCAL catalog into CRML assessment template YAML",
     )
     src2 = ia.add_mutually_exclusive_group(required=True)
-    src2.add_argument("--endpoint", default=None, help="Endpoint id (see: crml-lang oscal list-endpoints)")
+    src2.add_argument(
+        "--endpoint",
+        default=None,
+        help="Endpoint catalog_id (see: crml-lang oscal list-endpoints)",
+    )
     src2.add_argument("--path", default=None, help="Local OSCAL file path (JSON or YAML)")
     ia.add_argument("--out", required=True, help="Output CRML YAML path")
     ia.add_argument("--sort-keys", action="store_true", help=_SORT_KEYS_HELP)

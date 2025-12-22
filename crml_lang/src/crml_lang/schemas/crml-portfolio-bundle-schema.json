@@ -1109,6 +1109,19 @@
           "title": "Id",
           "type": "string"
         },
+        "oscal_uuid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional OSCAL UUID for this group (interoperability metadata). CRML tooling should continue to reference groups by their in-document 'id'.",
+          "title": "Oscal Uuid"
+        },
         "title": {
           "anyOf": [
             {
@@ -1121,6 +1134,19 @@
           "default": null,
           "description": "Optional human-readable group title.",
           "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional free-form description text for this group. If sourced from OSCAL, this typically maps from group prose/parts. Only include copyrighted standard text if you have rights to distribute it.",
+          "title": "Description"
         },
         "control_ids": {
           "anyOf": [

@@ -20,7 +20,10 @@ OscalMappingType = Literal["control_relationships", "attack_control_relationship
 
 @dataclass(frozen=True, slots=True)
 class OscalEndpoint:
-    id: str
+    # Stable identifier for this endpoint / dataset.
+    # Used for endpoint lookup/override merging and (for catalog ingestion) as the
+    # default control-id namespace unless `namespace_override` is set.
+    catalog_id: str
     description: str
     kind: OscalKind
 
@@ -61,7 +64,6 @@ class OscalEndpoint:
     # --- kind: catalog (optional overrides) ---
     namespace_override: Optional[str] = None
     framework_override: Optional[str] = None
-    catalog_id: Optional[str] = None
     meta_name: Optional[str] = None
 
     @property
@@ -235,9 +237,9 @@ def _parse_endpoint_item(
 
     typed = cast(dict[str, Any], item)
 
-    endpoint_id = str(typed.get("id", "")).strip()
+    endpoint_id = str(typed.get("catalog_id", "")).strip()
     if not endpoint_id:
-        raise ValueError("OSCAL endpoint is missing required field 'id'")
+        raise ValueError("OSCAL endpoint is missing required field 'catalog_id'")
 
     description = str(typed.get("description", "")).strip()
     if not description:
@@ -253,7 +255,6 @@ def _parse_endpoint_item(
 
     namespace_override = _optional_str(typed, "namespace")
     framework_override = _optional_str(typed, "framework")
-    catalog_id = _optional_str(typed, "catalog_id")
     meta_name = _optional_str(typed, "meta_name")
 
     regions = _optional_str_list(typed, endpoint_id=endpoint_id, key="regions")
@@ -346,18 +347,13 @@ def _parse_endpoint_item(
 
     meta_overrides_or_none: Optional[dict[str, Any]] = meta_overrides or None
 
-    if kind == "catalog" and not catalog_id:
-        raise ValueError(
-            f"OSCAL catalog endpoint {endpoint_id!r} is missing required field 'catalog_id'"
-        )
-
     if kind == "assets":
         portfolio_meta_name, default_cardinality = _parse_assets_fields(typed, endpoint_id)
     elif kind == "mapping":
         mapping_type = _parse_mapping_type(typed, endpoint_id)
 
     return OscalEndpoint(
-        id=endpoint_id,
+        catalog_id=endpoint_id,
         description=description,
         kind=kind,
         url=url,
@@ -374,7 +370,6 @@ def _parse_endpoint_item(
         meta_overrides=meta_overrides_or_none,
         namespace_override=namespace_override,
         framework_override=framework_override,
-        catalog_id=catalog_id,
         meta_name=meta_name,
     )
 
@@ -382,7 +377,7 @@ def _parse_endpoint_item(
 def load_endpoints() -> list[OscalEndpoint]:
     """Load OSCAL endpoints.
 
-        Sources (later sources override earlier by endpoint id):
+        Sources (later sources override earlier by catalog_id):
         - built-in package data file `api-endpoints.yaml`
         - optional external endpoint files provided via `CRML_OSCAL_ENDPOINTS_PATH`
             (pathsep-separated)
@@ -405,7 +400,7 @@ def load_endpoints_from_file(
 ) -> list[OscalEndpoint]:
     """Load OSCAL endpoints.
 
-    Merge order (later sources override earlier by endpoint id):
+    Merge order (later sources override earlier by catalog_id):
     - built-in package data file `api-endpoints.yaml` (if include_builtin)
     - `path` (if provided)
     - optional external endpoint files provided via `CRML_OSCAL_ENDPOINTS_PATH` (if include_env)
@@ -433,7 +428,7 @@ def load_endpoints_from_file(
             raise ValueError(f"OSCAL endpoints config field {key!r} must be a list")
         for item in items:
             e = _parse_endpoint_item(item, default_kind=default_kind, base_dir=base_dir)
-            merged[e.id] = e
+            merged[e.catalog_id] = e
         return True
 
     def merge_text(text: str, *, base_dir: Optional[Path]) -> None:

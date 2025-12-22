@@ -20,7 +20,7 @@ from .provenance import OscalProvenance
 def get_endpoint(endpoint_id: str) -> OscalEndpoint:
     endpoints = load_endpoints()
     for e in endpoints:
-        if e.id == endpoint_id:
+        if e.catalog_id == endpoint_id:
             return e
     raise OscalEndpointNotFoundError(endpoint_id)
 
@@ -31,13 +31,12 @@ def list_endpoints() -> list[dict[str, Any]]:
     for e in load_endpoints():
         out.append(
             {
-                "id": e.id,
+                "catalog_id": e.catalog_id,
                 "description": e.description,
                 "url": e.url,
                 "path": e.path,
                 "source": e.source,
                 "kind": e.kind,
-                "catalog_id": e.catalog_id,
                 "regions": e.regions,
                 "countries": e.countries,
                 "locale": e.locale.model_dump(exclude_none=True) if e.locale is not None else None,
@@ -61,10 +60,11 @@ def _effective_namespace(*, inferred: str, endpoint: OscalEndpoint) -> str:
 
     # Prefer catalog_id as a stable namespace if provided.
     # This makes control ids stable even if upstream OSCAL metadata.title changes.
-    if endpoint.catalog_id:
-        return endpoint.catalog_id if is_valid_namespace(endpoint.catalog_id) else slug_namespace(endpoint.catalog_id)
-
-    return inferred
+    return (
+        endpoint.catalog_id
+        if is_valid_namespace(endpoint.catalog_id)
+        else slug_namespace(endpoint.catalog_id)
+    )
 
 
 def load_oscal_from_endpoint(
@@ -88,13 +88,13 @@ def load_oscal_from_endpoint_obj(
         path=endpoint.path,
         timeout_seconds=endpoint.timeout_seconds,
         user_agent=user_agent,
-        source_label=f"endpoint:{endpoint_id or endpoint.id}",
+        source_label=f"endpoint:{endpoint_id or endpoint.catalog_id}",
     )
 
     prov = OscalProvenance(
         source_kind="endpoint",
         source=endpoint.source,
-        endpoint_id=endpoint_id or endpoint.id,
+        endpoint_id=endpoint_id or endpoint.catalog_id,
         fetched_at_utc=OscalProvenance.now_utc_iso(),
     )
     return doc, prov
@@ -124,7 +124,7 @@ def control_catalog_from_endpoint_obj(
         doc,
         namespace=namespace,
         framework=framework,
-        catalog_id=endpoint.catalog_id or None,
+        catalog_id=endpoint.catalog_id,
         meta_name=endpoint.meta_name or None,
         source_url=endpoint.url,
     )

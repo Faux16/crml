@@ -14,10 +14,9 @@ def test_endpoints_support_relative_path(tmp_path) -> None:
         textwrap.dedent(
             """
             catalogs:
-              - id: local
+              - catalog_id: local_catalog
                 description: Local test
                 path: ./oscal.json
-                catalog_id: local_catalog
 
             assets: []
             assessments: []
@@ -30,7 +29,7 @@ def test_endpoints_support_relative_path(tmp_path) -> None:
     eps = load_endpoints_from_file(str(cfg), include_builtin=False, include_env=False)
     assert len(eps) == 1
     e = eps[0]
-    assert e.id == "local"
+    assert e.catalog_id == "local_catalog"
     assert e.url is None
     assert e.path == str(oscal_path.resolve())
     assert e.source == str(oscal_path.resolve())

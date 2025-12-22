@@ -163,7 +163,7 @@ CLI (endpoint):
 
 ```bash
 crml-lang oscal list-endpoints
-crml-lang oscal import-catalog --endpoint bsi-kompendium-grundschutz-plusplus --out out-crml-control-catalog.yaml
+crml-lang oscal import-catalog --endpoint bsi_gspp_2023 --out out-crml-control-catalog.yaml
 ```
 
 When using `--endpoint`, CRML uses the endpoint’s `catalog_id` as the stable catalog identifier and as the default control-id namespace (so ids remain stable even if upstream OSCAL metadata like `title` changes).
@@ -204,10 +204,9 @@ Example:
 
 ```yaml
 catalogs:
-  - id: my-local-catalog
+  - catalog_id: my_catalog_v1
     description: My local OSCAL catalog
     path: ./oscal/catalog.json
-    catalog_id: my_catalog_v1
     regions: [europe]
     countries: [DE]
 
@@ -220,7 +219,7 @@ mappings: []
 
 This project ships with a built-in (and intentionally expanding) endpoint list in `crml_lang/src/crml_lang/oscal/api-endpoints.yaml`.
 
-You can extend or override endpoints in your environment by providing additional endpoint YAML files via the `CRML_OSCAL_ENDPOINTS_PATH` environment variable (path-separated). Endpoints are merged by `id` and later files override earlier ones.
+You can extend or override endpoints in your environment by providing additional endpoint YAML files via the `CRML_OSCAL_ENDPOINTS_PATH` environment variable (path-separated). Endpoints are merged by `catalog_id` and later files override earlier ones.
 
 This is the supported way to:
 
@@ -243,13 +242,15 @@ crml-lang oscal list-endpoints
 2) Import a shipped catalog endpoint into a CRML control catalog YAML:
 
 ```bash
-crml-lang oscal import-catalog --endpoint bsi-kompendium-grundschutz-plusplus --out examples/control_catalogs/bsi-gspp-control-catalog.yaml
+crml-lang oscal import-catalog --endpoint bsi_gspp_2023 --out examples/control_catalogs/bsi-gspp-control-catalog.yaml
+crml-lang oscal import-catalog --endpoint bsi_gspp_2023 --out examples/control_catalogs/bsi-gspp-control-catalog.yaml
 ```
 
 3) (Optional) Generate a CRML assessment template for the same framework (still sourced from the OSCAL catalog, so it has no measured posture values):
 
 ```bash
-crml-lang oscal import-assessment-template --endpoint bsi-kompendium-grundschutz-plusplus --out examples/control_assessments/bsi-gspp-assessment-template.yaml
+crml-lang oscal import-assessment-template --endpoint bsi_gspp_2023 --out examples/control_assessments/bsi-gspp-assessment-template.yaml
+crml-lang oscal import-assessment-template --endpoint bsi_gspp_2023 --out examples/control_assessments/bsi-gspp-assessment-template.yaml
 ```
 
 ### Batch generation (catalogs only)

@@ -106,9 +106,9 @@ def oscal_list_endpoints(
             return 0
 
         # text
-        for e in sorted(items, key=lambda x: str(x.get("id", ""))):
+        for e in sorted(items, key=lambda x: str(x.get("catalog_id", ""))):
             print(
-                f"{e.get('id')}\t{e.get('kind')}\t{e.get('description')}\t{e.get('source')}",
+                f"{e.get('catalog_id')}\t{e.get('kind')}\t{e.get('description')}\t{e.get('source')}",
                 file=stdout,
             )
         return 0
@@ -227,14 +227,14 @@ def oscal_generate_catalogs(
         for e in catalogs:
             try:
                 catalog, prov = control_catalog_from_endpoint_obj(e)
-                stem = _safe_filename_stem(e.catalog_id or e.id)
+                stem = _safe_filename_stem(e.catalog_id)
                 out_path = out_base / f"{stem}-control-catalog.yaml"
                 catalog.dump_to_yaml(str(out_path), sort_keys=bool(sort_keys))
                 print(f"Wrote CRML YAML {out_path}", file=stdout)
                 print(f"Source: {prov.source}", file=stdout)
             except Exception as inner:
                 ok = False
-                print(f"Failed {e.id}: {inner}", file=stderr)
+                print(f"Failed {e.catalog_id}: {inner}", file=stderr)
 
         return 0 if ok else 1
     except Exception as e:

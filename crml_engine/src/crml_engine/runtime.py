@@ -12,6 +12,7 @@ Portfolio planning/binding resolution lives in `crml_engine.pipeline`.
 """
 
 import json
+import math
 from typing import Union, Optional, Tuple, Any
 
 import hashlib
@@ -1110,7 +1111,46 @@ def run_simulation_envelope(
 
     # Persist portfolio risk tolerance into the envelope for downstream reporting.
     if risk_tolerance is not None:
-        envelope.result.inputs.risk_tolerance = risk_tolerance
+        rt = risk_tolerance
+
+        # If a risk tolerance currency is specified, convert the threshold into the
+        # simulation output currency so pass/fail does not depend on display currency.
+        try:
+            output_currency = currency_code or (fx_config_norm.output_currency if fx_config_norm is not None else None)
+            rt_currency = getattr(rt, "currency", None)
+            threshold = getattr(rt, "threshold", None)
+            if (
+                output_currency
+                and rt_currency
+                and isinstance(rt_currency, str)
+                and rt_currency.strip()
+                and threshold is not None
+                and rt_currency.upper() != str(output_currency).upper()
+            ):
+                threshold_f = float(threshold)
+                converted = convert_currency(threshold_f, rt_currency, str(output_currency), fx_config_norm)
+
+                # Prefer non-mutating updates when this is a Pydantic model.
+                if hasattr(rt, "model_copy"):
+                    rt = rt.model_copy(update={"threshold": converted, "currency": str(output_currency)})
+                elif isinstance(rt, dict):
+                    rt = {**rt, "threshold": converted, "currency": str(output_currency)}
+                else:
+                    try:
+                        setattr(rt, "threshold", converted)
+                        setattr(rt, "currency", str(output_currency))
+                    except Exception:
+                        pass
+
+                envelope.result.warnings.append(
+                    f"Converted risk_tolerance.threshold from {rt_currency} to {output_currency} to match output currency."
+                )
+        except Exception:
+            envelope.result.warnings.append(
+                "Failed to convert risk_tolerance.threshold currency to match output currency; leaving risk tolerance as-is."
+            )
+
+        envelope.result.inputs.risk_tolerance = rt
 
     _populate_envelope_summaries(envelope=envelope, result=result, currency_unit=currency_unit, runs=runs)
     envelope.result.trace = _build_traceability(
@@ -1128,6 +1168,59 @@ def run_simulation_envelope(
                 sr.Measure(id="loss.max", label="Maximum Loss", value=metrics.max, unit=currency_unit),
                 sr.Measure(id="loss.median", label="Median Loss", value=metrics.median, unit=currency_unit),
                 sr.Measure(id="loss.std_dev", label="Standard Deviation", value=metrics.std_dev, unit=currency_unit),
+            ]
+        )
+
+        # Gordon–Loeb (single-source-of-truth) investment guidance.
+        #
+        # We model residual expected loss with diminishing returns:
+        #   residual_eal(z) = eal * exp(-g * z / eal)
+        # and minimize total expected cost:
+        #   total(z) = z + residual_eal(z)
+        # where `g` is a dimensionless "security productivity" factor.
+        # For g>1, the optimum is:
+        #   z* = (eal / g) * ln(g)
+        # which satisfies Gordon–Loeb's classic bound z* <= eal/e.
+        g = 2.0
+        eal = float(metrics.eal) if metrics.eal is not None else 0.0
+        if eal > 0.0 and g > 1.0:
+            z_star = (eal / g) * math.log(g)
+            residual_eal = eal / g
+            total_cost_min = z_star + residual_eal
+        else:
+            z_star = 0.0
+            residual_eal = eal
+            total_cost_min = eal
+
+        envelope.result.results.measures.extend(
+            [
+                sr.Measure(
+                    id="investment.gordon_loeb.productivity",
+                    label="Gordon–Loeb security productivity (g)",
+                    value=g,
+                    parameters={"model": "gordon_loeb"},
+                ),
+                sr.Measure(
+                    id="investment.gordon_loeb.optimal",
+                    label="Optimal security investment (Gordon–Loeb)",
+                    value=z_star,
+                    unit=currency_unit,
+                    parameters={"model": "gordon_loeb", "basis": "loss.eal"},
+                ),
+                sr.Measure(
+                    id="investment.gordon_loeb.residual_eal",
+                    label="Residual expected annual loss after optimal investment",
+                    value=residual_eal,
+                    unit=currency_unit,
+                    parameters={"model": "gordon_loeb", "basis": "loss.eal"},
+                ),
+                sr.Measure(
+                    id="investment.gordon_loeb.total_cost_min",
+                    label="Minimum total expected cost (investment + residual loss)",
+                    value=total_cost_min,
+                    unit=currency_unit,
+                    parameters={"model": "gordon_loeb", "basis": "loss.eal"},
+                ),
             ]
         )
 

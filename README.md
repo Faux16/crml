@@ -203,6 +203,8 @@ In this example we simulate a phishing scenario on an organisation without MFA:
 ![SimulationNoMFA](images/simulationNoMFA.png)
 Now we can turn MFA on and see, how our risk is being reduced by this control:
 ![Simulation](images/simulation.png)
+But CRML Studio can show way more detailed information:
+![advancedInsights](images/advancedInsight.png)
 The validator is mostly for developers:
 ![Validator](images/validator.png)
 

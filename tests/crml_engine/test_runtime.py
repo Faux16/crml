@@ -75,6 +75,61 @@ def test_run_simulation_envelope_valid(valid_bundle_content):
     assert dumped["result"]["success"] is True
 
 
+def test_risk_tolerance_threshold_converted_to_output_currency():
+    bundle = """
+crml_portfolio_bundle: "1.0"
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "rt-test"
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+      risk_tolerance:
+        metric: max_var_95
+        threshold: 500000
+        currency: USD
+      assets: []
+      scenarios:
+        - id: s1
+          path: scenario.yaml
+  scenarios:
+    - id: s1
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "s1"
+        scenario:
+          frequency:
+            basis: per_organization_per_year
+            model: poisson
+            parameters: {lambda: 0.5}
+          severity:
+            model: lognormal
+            parameters: {mu: 10.0, sigma: 1.0}
+""".lstrip()
+
+    fx_config = {
+        "base_currency": "USD",
+        "output_currency": "EUR",
+        "rates": DEFAULT_FX_RATES,
+    }
+
+    env = run_simulation_envelope(bundle, n_runs=200, seed=123, fx_config=fx_config)
+    rt = env.result.inputs.risk_tolerance
+    assert rt is not None
+    assert rt.currency == "EUR"
+
+    # DEFAULT_FX_RATES: EUR rate is 1.16 USD per 1 EUR.
+    # 500,000 USD -> 500,000 / 1.16 EUR
+    assert rt.threshold is not None
+    assert abs(float(rt.threshold) - (500000.0 / 1.16)) < 1e-6
+
+
 def test_lognormal_mu_currency_matches_single_losses_with_output_currency_conversion():
     """Regression: providing mu/sigma with a severity currency should match single_losses.
 

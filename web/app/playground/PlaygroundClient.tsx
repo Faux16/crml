@@ -1171,7 +1171,7 @@ export default function PlaygroundClient() {
                                 <CardDescription>Edit your CRML model or upload a YAML file</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-1">
-                                <div className="h-[600px]">
+                                <div className="h-[800px]">
                                     <CodeEditor value={yamlContent} onChange={setYamlContent} />
                                 </div>
                             </CardContent>

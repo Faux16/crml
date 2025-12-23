@@ -26,7 +26,7 @@ Notes:
 
 <!-- BEGIN: GENERATED FIELD REFERENCE -->
 
-Generated on 2025-12-22 by `scripts/generate_schema_field_reference.py`.
+Generated on 2025-12-23 by `scripts/generate_schema_field_reference.py`.
 
 This section is auto-generated. Do not hand-edit.
 
@@ -275,6 +275,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-portfolio-bundle-schema.json`
 | portfolio_bundle.portfolio.portfolio.semantics.constraints.validate_relevance | boolean |  | If true, perform additional relevance checks between the portfolio organization context (meta.locale/meta.industries/meta.company_sizes/meta.regulatory_frameworks) and the referenced scenarios. Also validates that portfolio control id namespaces align with declared regulatory frameworks. | default=False |
 | portfolio_bundle.portfolio.portfolio.relationships | anyOf |  | Optional relationships between scenarios (correlation/conditional). | default=None |
 | portfolio_bundle.portfolio.portfolio.dependency | anyOf |  | Optional dependency specification for runtime models (e.g. copulas). | default=None |
+| portfolio_bundle.portfolio.portfolio.risk_tolerance | anyOf |  | Optional risk-tolerance threshold for this portfolio. Engines may use this for reporting (and optionally for gating/alerts), but it does not change the portfolio semantics by itself. | default=None |
 | portfolio_bundle.portfolio.portfolio.context | object |  | Free-form context object for tools/runtimes (engine-defined). | additionalProperties=true |
 | portfolio_bundle.scenarios | array |  | Scenario documents referenced by the portfolio, inlined. |  |
 | portfolio_bundle.scenarios[] | object |  |  |  |
@@ -473,6 +474,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-portfolio-schema.json`
 | portfolio.semantics.constraints.validate_relevance | boolean |  | If true, perform additional relevance checks between the portfolio organization context (meta.locale/meta.industries/meta.company_sizes/meta.regulatory_frameworks) and the referenced scenarios. Also validates that portfolio control id namespaces align with declared regulatory frameworks. | default=False |
 | portfolio.relationships | anyOf |  | Optional relationships between scenarios (correlation/conditional). | default=None |
 | portfolio.dependency | anyOf |  | Optional dependency specification for runtime models (e.g. copulas). | default=None |
+| portfolio.risk_tolerance | anyOf |  | Optional risk-tolerance threshold for this portfolio. Engines may use this for reporting (and optionally for gating/alerts), but it does not change the portfolio semantics by itself. | default=None |
 | portfolio.context | object |  | Free-form context object for tools/runtimes (engine-defined). | additionalProperties=true |
 
 ### CRScenario
@@ -549,6 +551,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-simulation-result-schema.json`
 | result.inputs.model_name | anyOf |  | Optional input model name (from scenario/portfolio meta). | default=None |
 | result.inputs.model_version | anyOf |  | Optional input model version (from scenario/portfolio meta). | default=None |
 | result.inputs.description | anyOf |  | Optional input model description (from meta). | default=None |
+| result.inputs.risk_tolerance | anyOf |  | Optional risk-tolerance threshold captured from the input portfolio/bundle. Provided for reporting and downstream tooling. | default=None |
 | result.units | anyOf |  | Optional unit metadata for values in this result. | default=None |
 | result.summaries | array |  | Optional summary-statistics blocks for one or more target distributions. This provides a stable place for common analyst-facing statistics like P5/P50/P90/P95/P99, mean, std dev, and tail expectations. |  |
 | result.summaries[] | object |  |  |  |

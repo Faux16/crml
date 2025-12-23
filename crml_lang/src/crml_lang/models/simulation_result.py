@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
+from .risk_tolerance import RiskTolerance
+
 from ..yamlio import (
     dump_yaml_to_path,
     dump_yaml_to_str,
@@ -43,6 +45,14 @@ class InputInfo(BaseModel):
     model_name: Optional[str] = Field(None, description="Optional input model name (from scenario/portfolio meta).")
     model_version: Optional[str] = Field(None, description="Optional input model version (from scenario/portfolio meta).")
     description: Optional[str] = Field(None, description="Optional input model description (from meta).")
+
+    risk_tolerance: Optional[RiskTolerance] = Field(
+        None,
+        description=(
+            "Optional risk-tolerance threshold captured from the input portfolio/bundle. "
+            "Provided for reporting and downstream tooling."
+        ),
+    )
 
 
 class Measure(BaseModel):

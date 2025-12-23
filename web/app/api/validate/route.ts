@@ -28,6 +28,17 @@ function asStringArray(value: unknown): string[] {
     return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
 
+function asNumber(value: unknown): number | undefined {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (!trimmed) return undefined;
+        const n = Number(trimmed.replaceAll(",", ""));
+        return Number.isFinite(n) ? n : undefined;
+    }
+    return undefined;
+}
+
 function getYamlContentFromBody(body: unknown): Result<string> {
     const yamlContent = isRecord(body) && typeof body["yaml"] === "string" ? body["yaml"] : undefined;
     if (!yamlContent) {
@@ -125,10 +136,46 @@ function extractMeta(parsedYaml: unknown): {
     return { meta, locale, documentVersion };
 }
 
+function extractRiskTolerance(parsedYaml: unknown): { metric?: string; threshold?: number; currency?: string } | undefined {
+    const parsedObj = isRecord(parsedYaml) ? parsedYaml : undefined;
+    if (!parsedObj) return undefined;
+
+    // Portfolio Bundle: portfolio_bundle.portfolio.portfolio.risk_tolerance
+    const bundleVersion = asString(parsedObj["crml_portfolio_bundle"]);
+    if (bundleVersion) {
+        const bundle = isRecord(parsedObj["portfolio_bundle"]) ? parsedObj["portfolio_bundle"] : undefined;
+        const portfolioDoc = bundle && isRecord(bundle["portfolio"]) ? bundle["portfolio"] : undefined;
+        const portfolioBody = portfolioDoc && isRecord(portfolioDoc["portfolio"]) ? portfolioDoc["portfolio"] : undefined;
+        const rt = portfolioBody && isRecord(portfolioBody["risk_tolerance"]) ? portfolioBody["risk_tolerance"] : undefined;
+        if (!rt) return undefined;
+        const metric = asString(rt["metric"]);
+        const threshold = asNumber(rt["threshold"]);
+        const currency = asString(rt["currency"]);
+        if (!metric && threshold == null && !currency) return undefined;
+        return { metric, threshold, currency };
+    }
+
+    // Portfolio: portfolio.risk_tolerance
+    const portfolioVersion = asString(parsedObj["crml_portfolio"]);
+    if (portfolioVersion) {
+        const portfolioBody = isRecord(parsedObj["portfolio"]) ? parsedObj["portfolio"] : undefined;
+        const rt = portfolioBody && isRecord(portfolioBody["risk_tolerance"]) ? portfolioBody["risk_tolerance"] : undefined;
+        if (!rt) return undefined;
+        const metric = asString(rt["metric"]);
+        const threshold = asNumber(rt["threshold"]);
+        const currency = asString(rt["currency"]);
+        if (!metric && threshold == null && !currency) return undefined;
+        return { metric, threshold, currency };
+    }
+
+    return undefined;
+}
+
 function buildInfo(
     meta: Record<string, unknown> | undefined,
     locale: Record<string, unknown> | undefined,
-    documentVersion: string | undefined
+    documentVersion: string | undefined,
+    riskTolerance: { metric?: string; threshold?: number } | undefined
 ) {
     return {
         name: typeof meta?.["name"] === "string" ? meta["name"] : undefined,
@@ -144,6 +191,7 @@ function buildInfo(
         tags: asStringArray(meta?.["tags"]),
         regions: asStringArray(locale?.["regions"]),
         countries: asStringArray(locale?.["countries"]),
+        risk_tolerance: riskTolerance,
     };
 }
 
@@ -342,7 +390,8 @@ export async function POST(request: NextRequest) {
         if (!parsedYamlResult.ok) return parsedYamlResult.response;
 
         const { meta, locale, documentVersion } = extractMeta(parsedYamlResult.value);
-        const info = buildInfo(meta, locale, documentVersion);
+        const riskTolerance = extractRiskTolerance(parsedYamlResult.value);
+        const info = buildInfo(meta, locale, documentVersion, riskTolerance);
 
         return await withTempYamlFile(yamlContentResult.value, async (tmpFile) => {
             const { stdout, stderr, ok, message } = await execCrmlValidate(tmpFile);

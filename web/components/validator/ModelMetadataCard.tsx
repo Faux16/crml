@@ -71,6 +71,16 @@ export function ModelMetadataCard({ info }: ModelMetadataCardProps) {
                         <span className="font-medium">Tags:</span> {Array.isArray(info.tags) ? info.tags.join(", ") : info.tags}
                     </p>
                 )}
+
+                {info.risk_tolerance && (info.risk_tolerance.metric || info.risk_tolerance.threshold != null) && (
+                    <p>
+                        <span className="font-medium">Risk Tolerance:</span>{" "}
+                        {info.risk_tolerance.metric ?? "(unspecified metric)"}
+                        {info.risk_tolerance.threshold != null
+                            ? ` <= ${(info.risk_tolerance.currency ? info.risk_tolerance.currency + " " : "")}${info.risk_tolerance.threshold.toLocaleString()}`
+                            : ""}
+                    </p>
+                )}
             </div>
         </div>
     );

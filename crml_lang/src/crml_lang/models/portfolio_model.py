@@ -9,6 +9,7 @@ from .meta_tokens import CompanySizeToken
 from .control_ref import ControlId
 from .coverage_model import Coverage
 from .numberish import parse_intish
+from .risk_tolerance import RiskTolerance
 
 
 class CriticalityIndex(BaseModel):
@@ -253,6 +254,14 @@ class Portfolio(BaseModel):
     )
     dependency: Optional[PortfolioDependency] = Field(
         None, description="Optional dependency specification for runtime models (e.g. copulas)."
+    )
+
+    risk_tolerance: Optional[RiskTolerance] = Field(
+        None,
+        description=(
+            "Optional risk-tolerance threshold for this portfolio. "
+            "Engines may use this for reporting (and optionally for gating/alerts), but it does not change the portfolio semantics by itself."
+        ),
     )
     context: Dict[str, Any] = Field(
         default_factory=dict,

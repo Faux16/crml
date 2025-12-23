@@ -47,6 +47,14 @@ portfolio_bundle:
           require_paths_exist: false
           validate_scenarios: false
 
+      # Optional risk tolerance (threshold) for reporting / gating
+      # The engine will echo this into the simulation result envelope at:
+      #   result.inputs.risk_tolerance
+      risk_tolerance:
+        metric: max_var_95
+        threshold: 500000
+        currency: USD
+
       # Assets / exposure surface
       assets:
         - name: "employees"

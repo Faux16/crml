@@ -506,6 +506,18 @@
           "default": null,
           "description": "Optional dependency specification for runtime models (e.g. copulas)."
         },
+        "risk_tolerance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RiskTolerance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional risk-tolerance threshold for this portfolio. Engines may use this for reporting (and optionally for gating/alerts), but it does not change the portfolio semantics by itself."
+        },
         "context": {
           "additionalProperties": true,
           "description": "Free-form context object for tools/runtimes (engine-defined).",
@@ -895,6 +907,54 @@
       ],
       "title": "PortfolioSemantics",
       "type": "object"
+    },
+    "RiskTolerance": {
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/RiskToleranceMetric",
+          "description": "Risk-tolerance metric identifier. Example: 'max_var_95' expresses a maximum allowed VaR at 95%."
+        },
+        "threshold": {
+          "description": "Numeric threshold for the selected metric. Typically expressed in the result currency unit.",
+          "minimum": 0.0,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "maxLength": 3,
+              "minLength": 3,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional ISO 4217 currency code for the threshold (e.g. 'USD', 'EUR'). If omitted, consumers may assume the simulation output currency.",
+          "title": "Currency"
+        }
+      },
+      "required": [
+        "metric",
+        "threshold"
+      ],
+      "title": "RiskTolerance",
+      "type": "object"
+    },
+    "RiskToleranceMetric": {
+      "description": "Metric identifier used by `RiskTolerance`.\n\nValues are chosen to match common CRML measure ids/parameters.",
+      "enum": [
+        "max_eal",
+        "max_var_95",
+        "max_var_99",
+        "max_var_999",
+        "max_cvar_95",
+        "max_cvar_99"
+      ],
+      "title": "RiskToleranceMetric",
+      "type": "string"
     },
     "ScenarioBinding": {
       "properties": {

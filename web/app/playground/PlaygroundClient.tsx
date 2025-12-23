@@ -526,7 +526,7 @@ export default function PlaygroundClient() {
 
     const [simulationResult, setSimulationResult] = useState<CRSimulationResult | null>(null);
     const [isSimulating, setIsSimulating] = useState(false);
-    const [runs, setRuns] = useState("10000");
+    const [runs, setRuns] = useState("50000");
     const [seed, setSeed] = useState("");
     const [outputCurrency, setOutputCurrency] = useState<keyof typeof OUTPUT_CURRENCIES>("USD");
 
@@ -671,7 +671,7 @@ export default function PlaygroundClient() {
                 },
                 body: JSON.stringify({
                     yaml: yamlForSimulation,
-                    runs: Number.parseInt(runs, 10) || 10000,
+                    runs: Number.parseInt(runs, 10) || 50000,
                     seed: seed ? Number.parseInt(seed, 10) : undefined,
                     outputCurrency,
                 }),
@@ -687,7 +687,7 @@ export default function PlaygroundClient() {
                     errors: ["Failed to run simulation: " + (error as Error).message],
                     warnings: [],
                     engine: { name: "web", version: undefined },
-                    run: { runs: Number.parseInt(runs, 10) || 10000, seed: seed ? Number.parseInt(seed, 10) : undefined },
+                    run: { runs: Number.parseInt(runs, 10) || 50000, seed: seed ? Number.parseInt(seed, 10) : undefined },
                     inputs: {},
                     results: { measures: [], artifacts: [] },
                 },

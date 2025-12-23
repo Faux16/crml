@@ -22,6 +22,12 @@ export interface ValidationResult {
         countries?: string[];
         regulatory_frameworks?: string[];
         tags?: string[];
+
+        risk_tolerance?: {
+            metric?: string;
+            threshold?: number;
+            currency?: string;
+        };
     };
 }
 

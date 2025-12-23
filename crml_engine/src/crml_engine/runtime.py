@@ -1034,6 +1034,27 @@ def run_simulation_envelope(
     fx_config_norm = normalize_fx_config(fx_config)
     result = run_simulation(yaml_content, n_runs=n_runs, seed=seed, fx_config=fx_config_norm)
 
+    # Best-effort extraction of portfolio-level risk tolerance from bundle inputs.
+    # This is intentionally non-fatal; the simulation should still run even if parsing fails.
+    risk_tolerance = None
+    try:
+        root = _load_yaml_root_for_routing(yaml_content)
+        if isinstance(root, dict) and "crml_portfolio_bundle" in root:
+            lang = _crml_lang_module()
+            kind = _infer_source_kind(yaml_content)
+            if kind == "path":
+                assert isinstance(yaml_content, str)
+                bundle = lang.CRPortfolioBundle.load_from_yaml(yaml_content)
+            elif kind == "yaml":
+                assert isinstance(yaml_content, str)
+                bundle = lang.CRPortfolioBundle.load_from_yaml_str(yaml_content)
+            else:
+                bundle = lang.CRPortfolioBundle.model_validate(yaml_content)
+
+            risk_tolerance = getattr(bundle.portfolio_bundle.portfolio.portfolio, "risk_tolerance", None)
+    except Exception:
+        risk_tolerance = None
+
     # Best-effort parsing for traceability extraction.
     parsed_scenario = _try_parse_scenario(yaml_content)
 
@@ -1086,6 +1107,10 @@ def run_simulation_envelope(
             trace=None,
         )
     )
+
+    # Persist portfolio risk tolerance into the envelope for downstream reporting.
+    if risk_tolerance is not None:
+        envelope.result.inputs.risk_tolerance = risk_tolerance
 
     _populate_envelope_summaries(envelope=envelope, result=result, currency_unit=currency_unit, runs=runs)
     envelope.result.trace = _build_traceability(
@@ -1158,6 +1183,74 @@ def run_simulation_envelope(
 
     return envelope
 
+
+def _measure_value(envelope: Any, *, measure_id: str, level: Optional[float] = None) -> Optional[float]:
+    measures = getattr(getattr(getattr(envelope, "result", None), "results", None), "measures", None)
+    if not isinstance(measures, list):
+        return None
+    for m in measures:
+        if getattr(m, "id", None) != measure_id:
+            continue
+        if level is None:
+            return getattr(m, "value", None)
+        params = getattr(m, "parameters", None) or {}
+        if isinstance(params, dict) and params.get("level") == level:
+            return getattr(m, "value", None)
+    return None
+
+
+def _print_simulation_envelope(envelope: Any) -> None:
+    # Lightweight, stable text output sourced from the envelope.
+    result = getattr(envelope, "result", None)
+    if result is None:
+        print("No result payload.")
+        return
+
+    if not getattr(result, "success", False):
+        print("❌ Simulation failed:")
+        for e in list(getattr(result, "errors", None) or []):
+            print(f"  • {e}")
+        return
+
+    currency_symbol = None
+    units = getattr(result, "units", None)
+    if units is not None and getattr(units, "currency", None) is not None:
+        currency_symbol = getattr(units.currency, "symbol", None) or ""
+
+    rt = getattr(getattr(result, "inputs", None), "risk_tolerance", None)
+    if rt is not None:
+        metric = getattr(rt, "metric", None)
+        threshold = getattr(rt, "threshold", None)
+
+        # Prefer an explicitly provided tolerance currency code.
+        rt_currency = getattr(rt, "currency", None)
+        rt_prefix = currency_symbol
+        if isinstance(rt_currency, str) and rt_currency.strip():
+            rt_prefix = rt_currency.strip() + " "
+
+        if threshold is not None:
+            try:
+                threshold_f = float(threshold)
+                print(f"Risk tolerance: {metric} <= {rt_prefix}{threshold_f:,.2f}")
+            except Exception:
+                print(f"Risk tolerance: {metric} <= {rt_prefix}{threshold}")
+        else:
+            print(f"Risk tolerance: {metric}")
+
+    eal = _measure_value(envelope, measure_id="loss.eal")
+    var95 = _measure_value(envelope, measure_id="loss.var", level=0.95)
+    var99 = _measure_value(envelope, measure_id="loss.var", level=0.99)
+    var999 = _measure_value(envelope, measure_id="loss.var", level=0.999)
+
+    if eal is not None:
+        print(f"EAL (Expected Annual Loss):  {currency_symbol}{eal:,.2f}")
+    if var95 is not None:
+        print(f"VaR 95%:                      {currency_symbol}{var95:,.2f}")
+    if var99 is not None:
+        print(f"VaR 99%:                      {currency_symbol}{var99:,.2f}")
+    if var999 is not None:
+        print(f"VaR 99.9%:                    {currency_symbol}{var999:,.2f}")
+
 def calibrate_lognormal_from_single_losses(
     single_losses: list,
     currency: Optional[str],
@@ -1205,17 +1298,7 @@ def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str =
     fx_config = load_fx_config(fx_config_path)
 
     root = _load_yaml_root_for_routing(file_path)
-    result: Optional[EngineSimulationResult] = None
-    if isinstance(root, dict):
-        result = _route_simulation_document(
-            root=root,
-            source=file_path,
-            n_runs=n_runs,
-            seed=None,
-            fx_config=fx_config,
-        )
-
-    if result is None:
+    if not (isinstance(root, dict) and "crml_portfolio_bundle" in root):
         import sys
 
         print(
@@ -1224,11 +1307,18 @@ def run_simulation_cli(file_path: str, n_runs: int = 10000, output_format: str =
         )
         return False
 
+    envelope = run_simulation_envelope(
+        file_path,
+        n_runs=n_runs,
+        seed=None,
+        fx_config=fx_config,
+    )
+
     if output_format == 'json':
         # Use model_dump for pretty JSON output
-        print(json.dumps(result.model_dump(), indent=2))
-        return result.success
+        print(json.dumps(envelope.model_dump(), indent=2))
+        return bool(getattr(envelope.result, "success", False))
 
     # Text output
-    print_result(result)
-    return result.success
+    _print_simulation_envelope(envelope)
+    return bool(getattr(envelope.result, "success", False))

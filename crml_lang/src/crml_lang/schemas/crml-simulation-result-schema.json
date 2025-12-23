@@ -190,6 +190,18 @@
           "default": null,
           "description": "Optional input model description (from meta).",
           "title": "Description"
+        },
+        "risk_tolerance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RiskTolerance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional risk-tolerance threshold captured from the input portfolio/bundle. Provided for reporting and downstream tooling."
         }
       },
       "title": "InputInfo",
@@ -466,6 +478,54 @@
       },
       "title": "ResultPayload",
       "type": "object"
+    },
+    "RiskTolerance": {
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/RiskToleranceMetric",
+          "description": "Risk-tolerance metric identifier. Example: 'max_var_95' expresses a maximum allowed VaR at 95%."
+        },
+        "threshold": {
+          "description": "Numeric threshold for the selected metric. Typically expressed in the result currency unit.",
+          "minimum": 0.0,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "maxLength": 3,
+              "minLength": 3,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional ISO 4217 currency code for the threshold (e.g. 'USD', 'EUR'). If omitted, consumers may assume the simulation output currency.",
+          "title": "Currency"
+        }
+      },
+      "required": [
+        "metric",
+        "threshold"
+      ],
+      "title": "RiskTolerance",
+      "type": "object"
+    },
+    "RiskToleranceMetric": {
+      "description": "Metric identifier used by `RiskTolerance`.\n\nValues are chosen to match common CRML measure ids/parameters.",
+      "enum": [
+        "max_eal",
+        "max_var_95",
+        "max_var_99",
+        "max_var_999",
+        "max_cvar_95",
+        "max_cvar_99"
+      ],
+      "title": "RiskToleranceMetric",
+      "type": "string"
     },
     "RunInfo": {
       "properties": {

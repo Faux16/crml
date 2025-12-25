@@ -26,7 +26,7 @@ Notes:
 
 <!-- BEGIN: GENERATED FIELD REFERENCE -->
 
-Generated on 2025-12-23 by `scripts/generate_schema_field_reference.py`.
+Generated on 2025-12-25 by `scripts/generate_schema_field_reference.py`.
 
 This section is auto-generated. Do not hand-edit.
 

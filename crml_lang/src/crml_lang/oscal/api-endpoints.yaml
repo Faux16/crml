@@ -30,6 +30,15 @@ catalogs:
       company_sizes: [all]
     url: https://bitbucket.org/cis-it-workspace/cis-controls-v8.1_oscal/raw/75ec5f4f79f103a74420e2b93553ce429160a92c/src/catalogs/json/cis-controls-v8.1_catalog.json
 
+  - catalog_id: scf2025
+    description: SCF 2025.3
+    meta:
+      locale:
+        regions: [all]
+      industries: [all]
+      company_sizes: [all]
+    url: https://ilbjkmeaqkfrzdszagsb.supabase.co/storage/v1/object/public/published-files/oscal-catalog-2025.3.1.json
+
 assets: []
 
 assessments: []

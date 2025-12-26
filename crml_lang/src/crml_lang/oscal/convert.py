@@ -5,6 +5,8 @@ from typing import Any, Iterable, Optional
 
 from crml_lang.models.control_catalog_model import ControlCatalogEntry
 
+from .standards.base import OscalControlTextOptions
+
 
 def infer_namespace_and_framework(oscal_doc: dict[str, Any]) -> tuple[str, str]:
     """Infer CRML `namespace` and `framework` defaults from an OSCAL document.
@@ -105,22 +107,84 @@ def _iter_oscal_parts(node: Any) -> Iterable[dict[str, Any]]:
                 yield from _iter_oscal_parts(p)
 
 
-def _extract_control_prose(control: dict[str, Any]) -> Optional[str]:
+def _extract_control_prose(
+    control: dict[str, Any],
+    *,
+    options: Optional[OscalControlTextOptions] = None,
+) -> Optional[str]:
     """Extract human prose text from an OSCAL control.
 
-    Prefer `parts[].prose` (and nested parts). Be tolerant to variants.
+    Default (legacy) behavior: include control.prose and all parts[].prose
+    recursively.
+
+    When `options.include_part_names` is provided, only include parts whose
+    `name` is in that allowlist. This supports standard-specific behavior
+    (e.g., SCF: statement + objectives, excluding maturity rubrics).
     """
 
     prose_parts: list[str] = []
 
-    direct = _coerce_prose(control.get("prose"))
-    if direct:
-        prose_parts.append(direct)
+    if options is None or options.include_part_names is None:
+        direct = _coerce_prose(control.get("prose"))
+        if direct:
+            prose_parts.append(direct)
+
+        for part in _iter_oscal_parts(control):
+            s = _coerce_prose(part.get("prose"))
+            if s:
+                prose_parts.append(s)
+
+        return _join_paragraphs(prose_parts)
+
+    if options.include_control_prose:
+        direct = _coerce_prose(control.get("prose"))
+        if direct:
+            prose_parts.append(direct)
+
+    statement_parts: list[str] = []
+    other_parts: list[str] = []
+    objective_lines: list[str] = []
+
+    allow = {str(n) for n in options.include_part_names}
 
     for part in _iter_oscal_parts(control):
+        name = part.get("name")
+        name_str = str(name).strip() if isinstance(name, str) and name.strip() else None
+        if not name_str or name_str not in allow:
+            continue
+
         s = _coerce_prose(part.get("prose"))
-        if s:
-            prose_parts.append(s)
+        if not s:
+            continue
+
+        if name_str == "objective":
+            oid = _coerce_text(part.get("id"))
+            if options.include_objective_ids and oid:
+                objective_lines.append(f"{oid}: {s}")
+            else:
+                objective_lines.append(s)
+            continue
+
+        if name_str == "statement":
+            statement_parts.append(s)
+        else:
+            other_parts.append(s)
+
+    prose_parts.extend(statement_parts)
+
+    if objective_lines:
+        if options.bullet_objectives:
+            block = "\n".join(f"- {ln.strip()}" for ln in objective_lines if ln.strip())
+        else:
+            block = "\n".join(ln.strip() for ln in objective_lines if ln.strip())
+
+        if options.objective_heading:
+            block = f"{options.objective_heading}:\n{block}" if block else options.objective_heading
+
+        if block:
+            prose_parts.append(block)
+
+    prose_parts.extend(other_parts)
 
     return _join_paragraphs(prose_parts)
 
@@ -358,6 +422,7 @@ def oscal_catalog_to_crml_control_catalog(
     source_url: Optional[str] = None,
     license_terms: Optional[str] = None,
     include_prose: bool = True,
+    control_text_options: Optional[OscalControlTextOptions] = None,
 ) -> dict[str, Any]:
     """Convert an OSCAL Catalog document into a CRML skeleton control catalog.
 
@@ -388,7 +453,7 @@ def oscal_catalog_to_crml_control_catalog(
         title = c.get("title")
         title_str = str(title).strip() if isinstance(title, str) and title.strip() else None
 
-        prose = _extract_control_prose(c) if include_prose else None
+        prose = _extract_control_prose(c, options=control_text_options) if include_prose else None
 
         url = _first_link_href(c)
 

@@ -418,6 +418,62 @@ def test_oscal_control_prose_maps_to_crml_control_description() -> None:
     assert "Document scope and review cadence" in controls[0].get("description", "")
 
 
+def test_scf_standard_mapping_uses_statement_and_objectives_only() -> None:
+    from crml_lang.oscal.convert import oscal_catalog_to_crml_control_catalog
+    from crml_lang.oscal.standards import get_control_text_options
+
+    oscal = {
+        "catalog": {
+            "metadata": {"title": "SCF 2025.3"},
+            "controls": [
+                {
+                    "id": "GOV-01",
+                    "title": "Cybersecurity Governance",
+                    "parts": [
+                        {"name": "statement", "prose": "Mechanisms exist to do the thing."},
+                        {
+                            "name": "maturity",
+                            "id": "CMM-1",
+                            "class": "C|P-CMM",
+                            "prose": "Very long maturity rubric text that should not be in the catalog description.",
+                        },
+                        {"name": "objective", "id": "GOV-01_A01", "prose": "an organization-wide program is developed."},
+                        {"name": "objective", "id": "GOV-01_A02", "prose": "management commitment is addressed."},
+                    ],
+                }
+            ],
+        }
+    }
+
+    opts = get_control_text_options("scf")
+    assert opts is not None
+
+    payload = oscal_catalog_to_crml_control_catalog(
+        oscal,
+        namespace="scf2025",
+        framework="SCF 2025.3",
+        control_text_options=opts,
+    )
+
+    controls = (payload.get("catalog") or {}).get("controls") or []
+    assert len(controls) == 1
+    desc = controls[0].get("description") or ""
+
+    assert "Mechanisms exist" in desc
+    assert "Objectives:" in desc
+    assert "GOV-01_A01" in desc
+    assert "organization-wide program" in desc
+    assert "maturity rubric" not in desc
+
+
+def test_oscal_standard_detection_uses_prefix_matching() -> None:
+    from crml_lang.oscal.standards import detect_standard_id
+
+    assert detect_standard_id(endpoint_id="scf2025") == "scf"
+    assert detect_standard_id(endpoint_id="SCF-foo") == "scf"
+    assert detect_standard_id(endpoint_id="bsi_gspp_2023") is None
+
+
 def test_oscal_catalog_uuid_and_control_alt_identifier_map_to_crml_oscal_uuid() -> None:
     from crml_lang.oscal.convert import oscal_catalog_to_crml_control_catalog
 

@@ -120,6 +120,14 @@ def control_catalog_from_endpoint_obj(
     namespace, framework = infer_namespace_and_framework(doc)
     namespace = _effective_namespace(inferred=namespace, endpoint=endpoint)
 
+    from .standards import detect_standard_id, get_control_text_options
+
+    standard_id = detect_standard_id(
+        endpoint_id=endpoint_id or endpoint.catalog_id,
+        catalog_id=endpoint.catalog_id,
+    )
+    control_text_options = get_control_text_options(standard_id)
+
     payload = oscal_catalog_to_crml_control_catalog(
         doc,
         namespace=namespace,
@@ -127,6 +135,7 @@ def control_catalog_from_endpoint_obj(
         catalog_id=endpoint.catalog_id,
         meta_name=endpoint.meta_name or None,
         source_url=endpoint.url,
+        control_text_options=control_text_options,
     )
 
     meta = payload.get("meta")

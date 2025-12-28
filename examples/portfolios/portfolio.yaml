@@ -1,5 +1,6 @@
 crml_portfolio: "1.0"
 meta:
+  description: "Example portfolio template defining assets and risk tolerance."
   name: "Example portfolio"
   industries: [professional-services]
   company_sizes: [medium]

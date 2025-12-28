@@ -10,7 +10,7 @@
           "not": {
             "pattern": "^attck:"
           },
-          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$",
           "title": "Id",
           "type": "string"
         },

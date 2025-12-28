@@ -1,5 +1,6 @@
 crml_scenario: "1.0"
 meta:
+  description: "Demonstration of correlated risk scenarios."
   name: "Correlation Test"
   industries:
     - all

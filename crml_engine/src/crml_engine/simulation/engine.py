@@ -23,6 +23,7 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 from .frequency import FrequencyEngine
 from .severity import SeverityEngine
+from .attack_chain import AttackChainEngine
 from .utils import format_pydantic_error
 
 
@@ -323,6 +324,7 @@ def run_monte_carlo(
     frequency_rate_multiplier: Optional[object] = None,
     severity_loss_multiplier: Optional[object] = None,
     raw_data_limit: Optional[int] = DEFAULT_RAW_DATA_LIMIT,
+    control_effectiveness_map: Optional[Dict[str, float]] = None,
 ) -> SimulationResult:
     """Run the reference Monte Carlo simulation for a CRML scenario.
 
@@ -349,6 +351,8 @@ def run_monte_carlo(
             per-run annual loss.
         raw_data_limit: Maximum number of raw samples included in the returned
             `Distribution.raw_data`. Use None to include all.
+        control_effectiveness_map: Optional map of control IDs to effectiveness
+            values (0.0-1.0), used by Attack Chain modeling.
 
     Returns:
         A `SimulationResult`. On failure, `success=False` and errors are
@@ -401,6 +405,16 @@ def run_monte_carlo(
     freq = scenario.frequency
     sev = scenario.severity
 
+    # Attack Chain Logic
+    chain_prob_modifier = 1.0
+    if scenario.attack_chain:
+        engine = AttackChainEngine()
+        chain_prob_modifier = engine.calculate_effective_probability(
+            scenario.attack_chain,
+            control_effectiveness_map or {}
+        )
+        # Record this in metadata if possible, but currently no field for it.
+
     severity_components_any = getattr(sev, "components", None)
     severity_components: Union[List[Dict[str, Any]], None] = None
     if isinstance(severity_components_any, list) and all(isinstance(x, dict) for x in severity_components_any):
@@ -416,6 +430,13 @@ def run_monte_carlo(
     )
     if result.errors:
         return result
+
+    # Apply chain modifier to frequency multiplier
+    if chain_prob_modifier != 1.0:
+        if freq_mult is None:
+            freq_mult = chain_prob_modifier
+        else:
+            freq_mult = freq_mult * chain_prob_modifier
 
     sev_mult = _coerce_multiplier(
         severity_loss_multiplier,

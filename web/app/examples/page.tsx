@@ -18,6 +18,7 @@ type CrmlExampleDocKind =
     | "attack_control_relationships"
     | "assessment"
     | "fx_config"
+    | "kill_chain"
     | "unknown";
 
 interface Example {
@@ -39,6 +40,12 @@ const SECTION_ORDER: Array<{ kind: CrmlExampleDocKind; title: string; subtitle?:
         title: "Portfolio Bundles",
         subtitle:
             "Runnable end-to-end inputs. A bundle is a single, self-contained artifact that embeds a Portfolio and inlines the Scenarios it references. To create one you typically need: (1) a Portfolio (assets + aggregation semantics + scenario references), (2) the referenced Scenario documents inlined under the bundle, and optionally (3) Control/Attack catalogs, Assessments, and relationship packs for mapping and posture.",
+    },
+    {
+        kind: "kill_chain",
+        title: "Kill Chain Catalog",
+        subtitle:
+            "Models defining sequential attack stages, probabilities, and mitigating controls. These are specialized Scenarios that use the 'attack_chain' model for dynamic frequency calculation.",
     },
     {
         kind: "scenario",

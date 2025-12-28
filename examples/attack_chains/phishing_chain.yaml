@@ -1,0 +1,64 @@
+crml_portfolio_bundle: "1.0"
+
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "Corporate Phishing Campaign Portfolio"
+      description: "Portfolio context for the phishing attack chain."
+      tags: ["phishing", "attack-chain", "social-engineering"]
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+
+      assets:
+        - name: "Corporate Workstations"
+          cardinality: 5000
+
+      scenarios:
+        - id: "phishing_scenario"
+          path: "bundled/phishing_scenario.yaml"
+          binding:
+            applies_to_assets: ["Corporate Workstations"]
+
+  scenarios:
+    - id: "phishing_scenario"
+      source_path: "bundled/phishing_scenario.yaml"
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "Corporate Phishing Campaign"
+          description: "Models a multi-stage phishing attack targeting corporate credentials."
+          tags: ["phishing", "attack-chain"]
+        scenario:
+          frequency:
+            model: "poisson"
+            parameters:
+              lambda: 1.0 # Base attempts per asset per year
+          severity:
+            model: "lognormal"
+            parameters:
+              median: 150 # Incident response cost per simplified event
+              sigma: 2.5
+          attack_chain:
+            stages:
+              - name: "Delivery (Email)"
+                description: "Adversary sends phishing emails to employees."
+                probability: 1.0
+                controls:
+                  - "nist.sp.800-53:si-8"   # Spam Protection
+                  - "nist.sp.800-53:at-2"   # Security Awareness Training
+              - name: "User Execution"
+                description: "User clicks link or opens attachment."
+                probability: 0.15          # 15% click rate
+                controls:
+                  - "nist.sp.800-53:at-2"   # Awareness Training (Mitigates click rate)
+              - name: "C2 Establishment"
+                description: "Malware establishes connection to C2 server."
+                probability: 0.8
+                controls:
+                  - "nist.sp.800-53:sc-7"   # Boundary Protection / Firewall
+                  - "nist.sp.800-53:si-4"   # Information System Monitoring

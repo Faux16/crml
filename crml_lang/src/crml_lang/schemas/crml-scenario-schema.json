@@ -1,5 +1,83 @@
 {
   "$defs": {
+    "AttackChain": {
+      "description": "A sequential chain of attack stages (e.g. Kill Chain).",
+      "properties": {
+        "stages": {
+          "description": "Ordered list of attack stages. The chain is traversed sequentially.",
+          "items": {
+            "$ref": "#/$defs/AttackStage"
+          },
+          "minItems": 1,
+          "title": "Stages",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stages"
+      ],
+      "title": "AttackChain",
+      "type": "object"
+    },
+    "AttackStage": {
+      "description": "A single stage in an attack chain (e.g. 'Initial Access').",
+      "properties": {
+        "name": {
+          "description": "Name of the attack stage (e.g. 'Initial Access').",
+          "title": "Name",
+          "type": "string"
+        },
+        "probability": {
+          "description": "Baseline probability of successful progression through this stage (0.0 - 1.0).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability",
+          "type": "number"
+        },
+        "controls": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1, nist.sp.800-53:ac-1",
+                "maxLength": 256,
+                "minLength": 1,
+                "not": {
+                  "pattern": "^attck:"
+                },
+                "pattern": "^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "List of controls relevant to mitigating this specific stage. Identifiers must be OSCAL-aligned (e.g. 'nist.sp.800-53:ac-1').",
+          "title": "Controls"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description of the stage.",
+          "title": "Description"
+        }
+      },
+      "required": [
+        "name",
+        "probability"
+      ],
+      "title": "AttackStage",
+      "type": "object"
+    },
     "CompanySizeToken": {
       "description": "Canonical CRML company size tokens.\n\nValues are strict and must match exactly.",
       "enum": [
@@ -722,13 +800,13 @@
               "items": {
                 "anyOf": [
                   {
-                    "description": "Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1",
+                    "description": "Canonical unique control id in the form 'namespace:key' (no whitespace). Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1, nist.sp.800-53:ac-1",
                     "maxLength": 256,
                     "minLength": 1,
                     "not": {
                       "pattern": "^attck:"
                     },
-                    "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+                    "pattern": "^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$",
                     "type": "string"
                   },
                   {
@@ -745,6 +823,18 @@
           "default": null,
           "description": "Optional threat-centric declaration of relevant controls. Semantics: the threat can be mitigated by these controls if present in the portfolio.",
           "title": "Controls"
+        },
+        "attack_chain": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttackChain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional attack chain definition. If present, this models the threat frequency as a sequence of stages, overriding the static frequency lambda."
         }
       },
       "required": [
@@ -764,7 +854,7 @@
           "not": {
             "pattern": "^attck:"
           },
-          "pattern": "^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$",
           "title": "Id",
           "type": "string"
         },

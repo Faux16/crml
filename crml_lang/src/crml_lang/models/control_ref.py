@@ -30,10 +30,12 @@ ControlId = Annotated[
     Field(
         min_length=1,
         max_length=256,
-        pattern=r"^[a-z][a-z0-9_-]{0,31}:[^\s]{1,223}$",
+        # Updated to allow dots in namespace (e.g. 'nist.sp.800-53')
+        # Pattern: start with letter, allow alphanumeric/unused/dash/dot in namespace part.
+        pattern=r"^[a-z][a-z0-9_.-]{0,63}:[^\s]{1,223}$",
         description=(
             "Canonical unique control id in the form 'namespace:key' (no whitespace). "
-            "Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1"
+            "Examples: cap:edr, cisv8:4.2, iso27001:2022:A.5.1, nist.sp.800-53:ac-1"
         ),
         json_schema_extra={
             # NOTE: Attack-pattern ids (e.g. ATT&CK) must use the dedicated AttckId/attack models.

@@ -13,6 +13,7 @@ type CrmlExampleDocKind =
     | "attack_control_relationships"
     | "assessment"
     | "fx_config"
+    | "kill_chain"
     | "unknown";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -31,8 +32,44 @@ function asStringArrayOrSingleton(value: unknown): string[] {
 
 function detectDocKind(parsedObj: Record<string, unknown> | undefined): CrmlExampleDocKind {
     if (!parsedObj) return "unknown";
-    if (typeof parsedObj["crml_portfolio_bundle"] === "string") return "portfolio_bundle";
-    if (typeof parsedObj["crml_scenario"] === "string") return "scenario";
+    if (typeof parsedObj["crml_portfolio_bundle"] === "string") {
+        // Dig deeper to see if it's a kill chain bundle
+        const bundle = isRecord(parsedObj["portfolio_bundle"]) ? parsedObj["portfolio_bundle"] : undefined;
+        if (bundle && Array.isArray(bundle["scenarios"])) {
+            for (const item of bundle["scenarios"]) {
+                if (isRecord(item)) {
+                    // Scenario content can be inline (under 'scenario' key) or at top level if structure varies,
+                    // but usually in bundles: scenarios[i].scenario or scenarios[i] is the scenario dict.
+                    // Let's check typical patterns.
+                    // Pattern 1: { scenario: { attack_chain: ... } }
+                    // Pattern 2: { attack_chain: ... }
+                    const innerScenario = isRecord(item["scenario"]) ? item["scenario"] : item;
+
+                    // innerScenario might be "crml_scenario" wrapper or the raw scenario dict depending on how it was bundled.
+                    // CRML 1.0 bundles inline the full "crml_scenario" document.
+                    const scenarioPayload = isRecord(innerScenario["scenario"])
+                        ? innerScenario["scenario"]
+                        : (innerScenario["crml_scenario"] ? undefined : innerScenario);
+                    // If it has crml_scenario, the payload is in 'scenario' key. 
+                    // If it doesn't, maybe it's just the payload? Better to be safe.
+
+                    const target = scenarioPayload || innerScenario;
+
+                    if (target["attack_chain"]) {
+                        return "kill_chain";
+                    }
+                }
+            }
+        }
+        return "portfolio_bundle";
+    }
+    if (typeof parsedObj["crml_scenario"] === "string") {
+        const scenario = isRecord(parsedObj["scenario"]) ? parsedObj["scenario"] : undefined;
+        if (scenario && scenario["attack_chain"]) {
+            return "kill_chain";
+        }
+        return "scenario";
+    }
     if (typeof parsedObj["crml_portfolio"] === "string") return "portfolio";
     if (typeof parsedObj["crml_attack_catalog"] === "string") return "attack_catalog";
     if (typeof parsedObj["crml_control_catalog"] === "string") return "control_catalog";
@@ -86,7 +123,19 @@ export async function GET() {
                 try {
                     const parsed = yaml.load(content);
                     const parsedObj = isRecord(parsed) ? parsed : undefined;
-                    const meta = parsedObj && isRecord(parsedObj["meta"]) ? parsedObj["meta"] : undefined;
+                    let meta = parsedObj && isRecord(parsedObj["meta"]) ? parsedObj["meta"] : undefined;
+
+                    // If not at root, check for portfolio bundle structure
+                    if (!meta && parsedObj && isRecord(parsedObj["portfolio_bundle"])) {
+                        const pb = parsedObj["portfolio_bundle"];
+                        if (isRecord(pb["portfolio"])) {
+                            const p = pb["portfolio"];
+                            if (isRecord(p["meta"])) {
+                                meta = p["meta"];
+                            }
+                        }
+                    }
+
                     const docKind = detectDocKind(parsedObj);
 
                     // According to schema, regions and countries are in meta.locale

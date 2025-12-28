@@ -1,5 +1,6 @@
 crml_scenario: "1.0"
 meta:
+  description: "Test scenario for validating mixture model behavior."
   name: "Mixture Bug Repro String"
   industries:
     - all

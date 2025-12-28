@@ -1,0 +1,70 @@
+crml_portfolio_bundle: "1.0"
+
+portfolio_bundle:
+  portfolio:
+    crml_portfolio: "1.0"
+    meta:
+      name: "Ransomware Operations Portfolio"
+      description: "Portfolio context for the ransomware attack chain."
+      tags: ["ransomware", "attack-chain", "criminal"]
+    portfolio:
+      semantics:
+        method: sum
+        constraints:
+          require_paths_exist: false
+          validate_scenarios: false
+
+      assets:
+        - name: "Data Center Servers"
+          cardinality: 100
+
+      scenarios:
+        - id: "ransomware_scenario"
+          path: "bundled/ransomware_scenario.yaml"
+          binding:
+            applies_to_assets: ["Data Center Servers"]
+
+  scenarios:
+    - id: "ransomware_scenario"
+      source_path: "bundled/ransomware_scenario.yaml"
+      scenario:
+        crml_scenario: "1.0"
+        meta:
+          name: "Ransomware Operations"
+          description: "Simulates a post-compromise ransomware sequence."
+          tags: ["ransomware", "attack-chain"]
+        scenario:
+          frequency:
+            model: "poisson"
+            parameters:
+              # per asset
+              lambda: 0.12 
+          severity:
+            model: "mixture"
+            components:
+              - weight: 0.8
+                model: "lognormal"
+                parameters: { median: 500000, sigma: 1.5 } # Operational disruption
+              - weight: 0.2
+                model: "lognormal"
+                parameters: { median: 5000000, sigma: 2.0 } # Major double-extortion event
+          attack_chain:
+            stages:
+              - name: "Lateral Movement"
+                description: "Adversary pivots to high-value servers."
+                probability: 0.6
+                controls:
+                  - "nist.sp.800-53:ac-6"   # Least Privilege
+                  - "nist.sp.800-53:ia-2"   # Multi-Factor Authentication
+              - name: "Data Staging & Exfiltration"
+                description: "Stealing data for double extortion."
+                probability: 0.8
+                controls:
+                  - "nist.sp.800-53:sc-28"  # Data at Rest Protection
+                  - "nist.sp.800-53:sc-7"   # Egress Filtering
+              - name: "Encryption & Impact"
+                description: "Deploying ransomware payload."
+                probability: 0.95
+                controls:
+                  - "nist.sp.800-53:si-3"   # Malicious Code Protection
+                  - "nist.sp.800-53:cp-9"   # System Backup

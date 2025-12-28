@@ -318,66 +318,78 @@ async function runExecFile(cmd: string, args: string[], env?: NodeJS.ProcessEnv)
 }
 
 async function execCrmlValidate(tmpFile: string): Promise<ExecResult> {
-    // First try the local .venv CLI (best for this setup).
+    // 1. If we are in the repo, prefer running from source (dev mode).
+    // This ensures that changes to crml_lang/crml_engine source are picked up immediately,
+    // bypassing any stale "crml" binary in the path.
+    const repoRoot = findRepoRoot(process.cwd());
+    if (repoRoot) {
+        const pythonPathParts = [
+            path.join(repoRoot, "crml_lang", "src"),
+            path.join(repoRoot, "crml_engine", "src"),
+        ];
+
+        const delimiter = process.platform === "win32" ? ";" : ":";
+        const pythonpath = [process.env.PYTHONPATH, ...pythonPathParts].filter(Boolean).join(delimiter);
+        const env = { ...process.env, PYTHONPATH: pythonpath };
+
+        // Try common Python launchers, prioritizing local .venv if it exists.
+        const venvPython =
+            process.platform === "win32"
+                ? path.join(repoRoot, ".venv", "Scripts", "python.exe")
+                : path.join(repoRoot, ".venv", "bin", "python3");
+
+        const candidates: Array<{ cmd: string; argsPrefix: string[] }> = [
+            { cmd: venvPython, argsPrefix: [] },
+            ...(process.platform === "win32"
+                ? [
+                    { cmd: "py", argsPrefix: ["-3"] },
+                    { cmd: "python", argsPrefix: [] },
+                ]
+                : [
+                    { cmd: "python3", argsPrefix: [] },
+                    { cmd: "python", argsPrefix: [] },
+                ]),
+        ];
+
+        for (const candidate of candidates) {
+            // Check if candidate exists or is executable (simple check by trying to run it)
+            // But runExecFile handles failures gracefully.
+            const attempt = await runExecFile(
+                candidate.cmd,
+                [...candidate.argsPrefix, "-m", "crml_engine.cli", "validate", tmpFile],
+                env
+            );
+
+            // If it ran successfully (ok=true), return it. 
+            // If it failed because of "module not found" or "command not found", we continue.
+            // But if it ran and returned exit code 1 (validation error), we should probably return it
+            // unless we suspect environment issues. 
+            // For now, if it executed (ok=true) OR if it failed with a validation error (code 1),
+            // runExecFile catches non-zero exit codes.
+            // Wait, runExecFile implementation in this file catches error and returns { ok: false, ... }.
+            // We need to differentiate "execution failed (no python)" from "validation failed".
+            // If message includes/implies 'module not found', continue.
+
+            if (attempt.ok) return attempt;
+
+            const output = `${attempt.stdout}\n${attempt.stderr}`;
+            if (!shouldFallbackToPython(attempt.message || "", output)) {
+                // It ran but failed validation (or other runtime error), so trust this result.
+                return attempt;
+            }
+            // Otherwise (missing python, missing module), try next candidate.
+        }
+    }
+
+    // 2. Try the local .venv CLI (legacy check).
     const venvBin = process.platform === 'win32' ? 'Scripts' : 'bin';
     const venvCrml = path.join(process.cwd(), "..", ".venv", venvBin, "crml");
     const venvAttempt = await runExecFile(venvCrml, ["validate", tmpFile], process.env);
     if (venvAttempt.ok) return venvAttempt;
 
-    // Fallback to globally installed 'crml' (original behavior)
+    // 3. Fallback to globally installed 'crml'
     const direct = await runExecFile("crml", ["validate", tmpFile], process.env);
-    if (direct.ok) return direct;
-
-    const combined = `${direct.stdout}\n${direct.stderr}`;
-    const message = direct.message || "";
-    if (!shouldFallbackToPython(message, combined)) {
-        return direct;
-    }
-
-    // Fallback: run the CLI module directly from the repo sources.
-    // This avoids brittle Windows entrypoints like crml.exe importing a missing module.
-    const repoRoot = findRepoRoot(process.cwd()) ?? path.resolve(process.cwd(), "..");
-    const pythonPathParts = [
-        path.join(repoRoot, "crml_lang", "src"),
-        path.join(repoRoot, "crml_engine", "src"),
-    ];
-
-    const delimiter = process.platform === "win32" ? ";" : ":";
-    const pythonpath = [process.env.PYTHONPATH, ...pythonPathParts].filter(Boolean).join(delimiter);
-    const env = { ...process.env, PYTHONPATH: pythonpath };
-
-    // Try common Python launchers, prioritizing local .venv.
-    const venvPython =
-        process.platform === "win32"
-            ? path.join(repoRoot, ".venv", "Scripts", "python.exe")
-            : path.join(repoRoot, ".venv", "bin", "python3");
-
-    const candidates: Array<{ cmd: string; argsPrefix: string[] }> = [
-        { cmd: venvPython, argsPrefix: [] },
-        ...(process.platform === "win32"
-            ? [
-                { cmd: "py", argsPrefix: ["-3"] },
-                { cmd: "python", argsPrefix: [] },
-            ]
-            : [
-                { cmd: "python3", argsPrefix: [] },
-                { cmd: "python", argsPrefix: [] },
-            ]),
-    ];
-
-    let last: ExecResult | undefined;
-    for (const candidate of candidates) {
-        const attempt = await runExecFile(
-            candidate.cmd,
-            [...candidate.argsPrefix, "-m", "crml_engine.cli", "validate", tmpFile],
-            env
-        );
-        if (attempt.ok) return attempt;
-        last = attempt;
-    }
-
-    // If fallback fails too, return the original error (it typically has the best hint).
-    return last ?? direct;
+    return direct;
 }
 
 export async function POST(request: NextRequest) {

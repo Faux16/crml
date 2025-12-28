@@ -1,5 +1,6 @@
 crml_scenario: "1.0"
 meta:
+  description: "Standard phishing risk scenario."
   name: "Phishing -> account takeover"
   industries:
     - all

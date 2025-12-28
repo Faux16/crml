@@ -1,5 +1,6 @@
 crml_control_catalog: "1.0"
 meta:
+  description: "General purpose control catalog template."
   name: "Example control catalog"
 catalog:
   id: "org"

@@ -1,5 +1,6 @@
 crml_assessment: "1.0"
 meta:
+  description: "Template for recording control assessments."
   name: "Example control assessment"
 assessment:
   framework: "Org"

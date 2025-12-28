@@ -19,6 +19,11 @@ from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.json_schema import WithJsonSchema
+from .attack_chain_model import AttackChain
+
+# ... (previous imports)
+
+# ... (inside Scenario class)
 
 from .numberish import parse_floatish, parse_float_list
 from .control_ref import ControlId
@@ -393,6 +398,8 @@ class ScenarioControl(BaseModel):
     notes: Optional[str] = Field(None, description="Free-form notes about this scenario control reference.")
 
 
+
+
 class Scenario(BaseModel):
     frequency: Frequency = Field(..., description="Frequency model definition.")
     severity: Severity = Field(..., description="Severity model definition.")
@@ -405,7 +412,13 @@ class Scenario(BaseModel):
             "Semantics: the threat can be mitigated by these controls if present in the portfolio."
         ),
     )
-
+    attack_chain: Optional[AttackChain] = Field(
+        None,
+        description=(
+            "Optional attack chain definition. If present, this models the threat frequency "
+            "as a sequence of stages, overriding the static frequency lambda."
+        ),
+    )
 
 # --- Root CRML Scenario document ---
 class CRScenario(BaseModel):

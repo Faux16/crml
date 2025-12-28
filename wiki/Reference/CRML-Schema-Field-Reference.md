@@ -26,7 +26,7 @@ Notes:
 
 <!-- BEGIN: GENERATED FIELD REFERENCE -->
 
-Generated on 2025-12-26 by `scripts/generate_schema_field_reference.py`.
+Generated on 2025-12-28 by `scripts/generate_schema_field_reference.py`.
 
 This section is auto-generated. Do not hand-edit.
 
@@ -58,7 +58,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-assessment-schema.json`
 | assessment.assessed_at | anyOf |  | When this assessment catalog was performed/recorded (ISO 8601 date-time). Example: '2025-12-17T10:15:30Z'. | default=None |
 | assessment.assessments | array | yes | List of per-control assessment entries. |  |
 | assessment.assessments[] | object |  |  | additionalProperties=false |
-| assessment.assessments[].id | string | yes | Canonical unique control id in the form 'namespace:key' (no whitespace). | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| assessment.assessments[].id | string | yes | Canonical unique control id in the form 'namespace:key' (no whitespace). | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | assessment.assessments[].oscal_uuid | anyOf |  | Optional OSCAL UUID for this control assessment target. This is interoperability metadata only; referencing/joining within CRML should use the canonical 'id'. | default=None |
 | assessment.assessments[].ref | anyOf |  | Optional structured locator for mapping to an external standard (e.g. CIS/ISO). This is metadata only; referencing should use the canonical 'id'. | default=None |
 | assessment.assessments[].implementation_effectiveness | anyOf |  | Organization-specific implementation strength for this control. Semantics: 0.0 = not implemented / no coverage, 1.0 = fully implemented. This represents vulnerability likelihood (susceptibility) posture used to mitigate a scenario's baseline threat frequency. | default=None |
@@ -134,7 +134,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-attack-control-relationships-schem
 | relationships.relationships[].attack | string | yes | Source attack-pattern id (recommended namespace: 'attck'). | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | relationships.relationships[].targets | array | yes | List of mapped controls for this attack pattern. | minItems=1 |
 | relationships.relationships[].targets[] | object |  | One target control mapped from an attack pattern. |  |
-| relationships.relationships[].targets[].control | string | yes | Target control id. | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| relationships.relationships[].targets[].control | string | yes | Target control id. | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | relationships.relationships[].targets[].relationship_type | string | yes | Relationship type between the attack pattern and the control. | enum='mitigated_by', 'detectable_by', 'respondable_by' |
 | relationships.relationships[].targets[].strength | anyOf |  | Optional quantitative strength in [0, 1] indicating how strongly this control mitigates/detects/responds to the attack pattern (tool/community-defined semantics). | default=None |
 | relationships.relationships[].targets[].confidence | anyOf |  | Optional confidence score in [0, 1] for this mapping (tool/community-defined). | default=None |
@@ -171,7 +171,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-control-catalog-schema.json`
 | catalog.framework | string | yes | Free-form framework label for humans/tools. |  |
 | catalog.controls | array | yes | List of catalog entries. |  |
 | catalog.controls[] | object |  | Portable metadata about a control id.  Important: do not embed copyrighted standard text here. Keep this to identifiers and tool-friendly metadata. |  |
-| catalog.controls[].id | string | yes | Canonical unique control id present in this catalog. | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| catalog.controls[].id | string | yes | Canonical unique control id present in this catalog. | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | catalog.controls[].oscal_uuid | anyOf |  | Optional OSCAL UUID for this control. This is interoperability metadata only; CRML tools should continue to reference this control via the canonical 'id'. | default=None |
 | catalog.controls[].ref | anyOf |  | Optional structured locator to map the id to an external standard. | default=None |
 | catalog.controls[].title | anyOf |  | Optional short human-readable title for the control. | default=None |
@@ -207,10 +207,10 @@ Source: `crml_lang/src/crml_lang/schemas/crml-control-relationships-schema.json`
 | relationships.id | anyOf |  | Optional identifier for this relationships pack (organization/community-owned). | default=None |
 | relationships.relationships | array | yes | List of grouped source-to-target relationship mappings. |  |
 | relationships.relationships[] | object |  | Grouped relationship mapping for a single source control id.  Intended use: - A scenario references a (source) control A. - A portfolio implements one or more (target) controls B1..Bn. - This mapping expresses how each target relates to the source, including quantitative overlap metadata. |  |
-| relationships.relationships[].source | string | yes | Source control id (often scenario/threat-centric). | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| relationships.relationships[].source | string | yes | Source control id (often scenario/threat-centric). | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | relationships.relationships[].targets | array | yes | List of target relationship mappings for this source control id. | minItems=1 |
 | relationships.relationships[].targets[] | object |  | Target-specific relationship metadata for a given relationship source.  This keeps per-target quantitative metadata (e.g., overlap weights) while allowing relationship packs to be authored in a grouped 1:N form. |  |
-| relationships.relationships[].targets[].target | string | yes | Target control id (often portfolio/implementation-centric). | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| relationships.relationships[].targets[].target | string | yes | Target control id (often portfolio/implementation-centric). | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | relationships.relationships[].targets[].relationship_type | anyOf |  | Optional relationship type. Values: 'overlaps_with', 'mitigates', 'supports', 'equivalent_to', 'parent_of', 'child_of', 'backstops'. | default=None |
 | relationships.relationships[].targets[].overlap | object | yes | Quantitative overlap metadata used for downstream math.  Semantics (recommended): - weight: fraction of source coverage provided by the target in [0, 1] |  |
 | relationships.relationships[].targets[].overlap.weight | number | yes | Quantitative overlap/coverage weight in [0, 1]. Recommended semantics: the fraction of the source control's mitigation objective that is covered by the target control. | minimum=0.0; maximum=1.0 |
@@ -325,6 +325,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-portfolio-bundle-schema.json`
 | portfolio_bundle.scenarios[].scenario.scenario.severity.parameters.single_losses | anyOf |  | Optional list of explicit sample losses (used by some empirical severity models). | default=None |
 | portfolio_bundle.scenarios[].scenario.scenario.severity.components | anyOf |  | Optional component breakdown (engine/tool-defined structure). | default=None |
 | portfolio_bundle.scenarios[].scenario.scenario.controls | anyOf |  | Optional threat-centric declaration of relevant controls. Semantics: the threat can be mitigated by these controls if present in the portfolio. | default=None |
+| portfolio_bundle.scenarios[].scenario.scenario.attack_chain | anyOf |  | Optional attack chain definition. If present, this models the threat frequency as a sequence of stages, overriding the static frequency lambda. | default=None |
 | portfolio_bundle.control_catalogs | array |  | Optional inlined control catalog packs referenced by the portfolio. |  |
 | portfolio_bundle.control_catalogs[] | object |  |  |  |
 | portfolio_bundle.control_catalogs[].crml_control_catalog | const | yes | Control catalog document version identifier. | const='1.0' |
@@ -334,7 +335,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-portfolio-bundle-schema.json`
 | portfolio_bundle.control_catalogs[].catalog.framework | string | yes | Free-form framework label for humans/tools. |  |
 | portfolio_bundle.control_catalogs[].catalog.controls | array | yes | List of catalog entries. |  |
 | portfolio_bundle.control_catalogs[].catalog.controls[] | object |  | Portable metadata about a control id.  Important: do not embed copyrighted standard text here. Keep this to identifiers and tool-friendly metadata. |  |
-| portfolio_bundle.control_catalogs[].catalog.controls[].id | string | yes | Canonical unique control id present in this catalog. | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| portfolio_bundle.control_catalogs[].catalog.controls[].id | string | yes | Canonical unique control id present in this catalog. | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | portfolio_bundle.control_catalogs[].catalog.controls[].oscal_uuid | anyOf |  | Optional OSCAL UUID for this control. This is interoperability metadata only; CRML tools should continue to reference this control via the canonical 'id'. | default=None |
 | portfolio_bundle.control_catalogs[].catalog.controls[].ref | anyOf |  | Optional structured locator to map the id to an external standard. | default=None |
 | portfolio_bundle.control_catalogs[].catalog.controls[].title | anyOf |  | Optional short human-readable title for the control. | default=None |
@@ -352,7 +353,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-portfolio-bundle-schema.json`
 | portfolio_bundle.assessments[].assessment.assessed_at | anyOf |  | When this assessment catalog was performed/recorded (ISO 8601 date-time). Example: '2025-12-17T10:15:30Z'. | default=None |
 | portfolio_bundle.assessments[].assessment.assessments | array | yes | List of per-control assessment entries. |  |
 | portfolio_bundle.assessments[].assessment.assessments[] | object |  |  | additionalProperties=false |
-| portfolio_bundle.assessments[].assessment.assessments[].id | string | yes | Canonical unique control id in the form 'namespace:key' (no whitespace). | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| portfolio_bundle.assessments[].assessment.assessments[].id | string | yes | Canonical unique control id in the form 'namespace:key' (no whitespace). | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | portfolio_bundle.assessments[].assessment.assessments[].oscal_uuid | anyOf |  | Optional OSCAL UUID for this control assessment target. This is interoperability metadata only; referencing/joining within CRML should use the canonical 'id'. | default=None |
 | portfolio_bundle.assessments[].assessment.assessments[].ref | anyOf |  | Optional structured locator for mapping to an external standard (e.g. CIS/ISO). This is metadata only; referencing should use the canonical 'id'. | default=None |
 | portfolio_bundle.assessments[].assessment.assessments[].implementation_effectiveness | anyOf |  | Organization-specific implementation strength for this control. Semantics: 0.0 = not implemented / no coverage, 1.0 = fully implemented. This represents vulnerability likelihood (susceptibility) posture used to mitigate a scenario's baseline threat frequency. | default=None |
@@ -370,10 +371,10 @@ Source: `crml_lang/src/crml_lang/schemas/crml-portfolio-bundle-schema.json`
 | portfolio_bundle.control_relationships[].relationships.id | anyOf |  | Optional identifier for this relationships pack (organization/community-owned). | default=None |
 | portfolio_bundle.control_relationships[].relationships.relationships | array | yes | List of grouped source-to-target relationship mappings. |  |
 | portfolio_bundle.control_relationships[].relationships.relationships[] | object |  | Grouped relationship mapping for a single source control id.  Intended use: - A scenario references a (source) control A. - A portfolio implements one or more (target) controls B1..Bn. - This mapping expresses how each target relates to the source, including quantitative overlap metadata. |  |
-| portfolio_bundle.control_relationships[].relationships.relationships[].source | string | yes | Source control id (often scenario/threat-centric). | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| portfolio_bundle.control_relationships[].relationships.relationships[].source | string | yes | Source control id (often scenario/threat-centric). | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | portfolio_bundle.control_relationships[].relationships.relationships[].targets | array | yes | List of target relationship mappings for this source control id. | minItems=1 |
 | portfolio_bundle.control_relationships[].relationships.relationships[].targets[] | object |  | Target-specific relationship metadata for a given relationship source.  This keeps per-target quantitative metadata (e.g., overlap weights) while allowing relationship packs to be authored in a grouped 1:N form. |  |
-| portfolio_bundle.control_relationships[].relationships.relationships[].targets[].target | string | yes | Target control id (often portfolio/implementation-centric). | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| portfolio_bundle.control_relationships[].relationships.relationships[].targets[].target | string | yes | Target control id (often portfolio/implementation-centric). | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | portfolio_bundle.control_relationships[].relationships.relationships[].targets[].relationship_type | anyOf |  | Optional relationship type. Values: 'overlaps_with', 'mitigates', 'supports', 'equivalent_to', 'parent_of', 'child_of', 'backstops'. | default=None |
 | portfolio_bundle.control_relationships[].relationships.relationships[].targets[].overlap | object | yes | Quantitative overlap metadata used for downstream math.  Semantics (recommended): - weight: fraction of source coverage provided by the target in [0, 1] |  |
 | portfolio_bundle.control_relationships[].relationships.relationships[].targets[].overlap.weight | number | yes | Quantitative overlap/coverage weight in [0, 1]. Recommended semantics: the fraction of the source control's mitigation objective that is covered by the target control. | minimum=0.0; maximum=1.0 |
@@ -408,7 +409,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-portfolio-bundle-schema.json`
 | portfolio_bundle.attack_control_relationships[].relationships.relationships[].attack | string | yes | Source attack-pattern id (recommended namespace: 'attck'). | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | portfolio_bundle.attack_control_relationships[].relationships.relationships[].targets | array | yes | List of mapped controls for this attack pattern. | minItems=1 |
 | portfolio_bundle.attack_control_relationships[].relationships.relationships[].targets[] | object |  | One target control mapped from an attack pattern. |  |
-| portfolio_bundle.attack_control_relationships[].relationships.relationships[].targets[].control | string | yes | Target control id. | pattern='^[a-z][a-z0-9_-]{0,31}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
+| portfolio_bundle.attack_control_relationships[].relationships.relationships[].targets[].control | string | yes | Target control id. | pattern='^[a-z][a-z0-9_.-]{0,63}:[^\\s]{1,223}$'; minLength=1; maxLength=256 |
 | portfolio_bundle.attack_control_relationships[].relationships.relationships[].targets[].relationship_type | string | yes | Relationship type between the attack pattern and the control. | enum='mitigated_by', 'detectable_by', 'respondable_by' |
 | portfolio_bundle.attack_control_relationships[].relationships.relationships[].targets[].strength | anyOf |  | Optional quantitative strength in [0, 1] indicating how strongly this control mitigates/detects/responds to the attack pattern (tool/community-defined semantics). | default=None |
 | portfolio_bundle.attack_control_relationships[].relationships.relationships[].targets[].confidence | anyOf |  | Optional confidence score in [0, 1] for this mapping (tool/community-defined). | default=None |
@@ -525,6 +526,7 @@ Source: `crml_lang/src/crml_lang/schemas/crml-scenario-schema.json`
 | scenario.severity.parameters.single_losses | anyOf |  | Optional list of explicit sample losses (used by some empirical severity models). | default=None |
 | scenario.severity.components | anyOf |  | Optional component breakdown (engine/tool-defined structure). | default=None |
 | scenario.controls | anyOf |  | Optional threat-centric declaration of relevant controls. Semantics: the threat can be mitigated by these controls if present in the portfolio. | default=None |
+| scenario.attack_chain | anyOf |  | Optional attack chain definition. If present, this models the threat frequency as a sequence of stages, overriding the static frequency lambda. | default=None |
 
 ### CRSimulationResult
 

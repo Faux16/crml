@@ -288,6 +288,11 @@ function shouldFallbackToPython(message: string, combinedOutput: string): boolea
     return (
         text.includes("enoent") ||
         text.includes("is not recognized as an internal or external command") ||
+        // Common symptom of a broken venv launcher on Windows (base interpreter moved/removed).
+        text.includes("did not find executable at") ||
+        text.includes("the system cannot find the path specified") ||
+        text.includes("fatal error in launcher") ||
+        text.includes("unable to create process") ||
         text.includes("modulenotfounderror") ||
         text.includes("no module named") ||
         text.includes("importerror")
@@ -338,8 +343,18 @@ async function execCrmlValidate(tmpFile: string): Promise<ExecResult> {
                 ? path.join(repoRoot, ".venv", "Scripts", "python.exe")
                 : path.join(repoRoot, ".venv", "bin", "python3");
 
-        const candidates: Array<{ cmd: string; argsPrefix: string[] }> = [
-            { cmd: venvPython, argsPrefix: [] },
+        const candidates: Array<{ cmd: string; argsPrefix: string[] }> = [];
+
+        const envPython = process.env.CRML_PYTHON;
+        if (typeof envPython === "string" && envPython.trim().length > 0) {
+            candidates.push({ cmd: envPython, argsPrefix: [] });
+        }
+
+        if (existsSync(venvPython)) {
+            candidates.push({ cmd: venvPython, argsPrefix: [] });
+        }
+
+        candidates.push(
             ...(process.platform === "win32"
                 ? [
                     { cmd: "py", argsPrefix: ["-3"] },
@@ -348,10 +363,19 @@ async function execCrmlValidate(tmpFile: string): Promise<ExecResult> {
                 : [
                     { cmd: "python3", argsPrefix: [] },
                     { cmd: "python", argsPrefix: [] },
-                ]),
-        ];
+                ])
+        );
 
-        for (const candidate of candidates) {
+        // Remove duplicates while preserving order.
+        const seen = new Set<string>();
+        const uniqueCandidates = candidates.filter((c) => {
+            const key = `${c.cmd}::${c.argsPrefix.join(" ")}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+
+        for (const candidate of uniqueCandidates) {
             // Check if candidate exists or is executable (simple check by trying to run it)
             // But runExecFile handles failures gracefully.
             const attempt = await runExecFile(

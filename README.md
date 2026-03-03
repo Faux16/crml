@@ -4,9 +4,44 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Powered by GPT-4o](https://img.shields.io/badge/powered%20by-GPT--4o-green.svg)](https://openai.com/)
 
-> An interactive terminal tool for end-to-end cyber risk modeling — no YAML, no spreadsheets, no proprietary tools.
+---
 
-**CRML Code** turns a company name or a vulnerability scan report into a full quantitative risk assessment. It uses OpenAI GPT-4o to discover risk scenarios, run Monte Carlo simulations, benchmark against industry peers, and generate executive-ready reports — all in your terminal.
+## What is CRML?
+
+**CRML (Cyber Risk Modeling Language)** is an open, declarative standard for describing cyber risk models — frequency distributions, severity parameters, control effectiveness, and simulation pipelines — in a portable, version-controlled format.
+
+The idea is simple: risk models shouldn't live in spreadsheets or proprietary tools. They should be code — reviewable, auditable, and reproducible across teams and engines. CRML is the format that makes that possible.
+
+A CRML scenario looks like this:
+
+```yaml
+crml_scenario: "1.0"
+meta:
+  name: "ransomware-baseline"
+
+scenario:
+  frequency:
+    model: poisson
+    parameters:
+      lambda: 0.15          # expected events per year
+
+  severity:
+    model: lognormal
+    parameters:
+      median: 250000
+      currency: USD
+      sigma: 1.2
+```
+
+From there, any compliant engine can simulate it, validate it, and produce consistent outputs — whether that's a FAIR Monte Carlo run, an actuarial model, or a Bayesian estimator.
+
+---
+
+## What is CRML Code?
+
+**CRML Code** is the AI-powered CLI that brings CRML to practitioners who don't want to write YAML. You give it a company name or a vulnerability scan report — it does the rest.
+
+It uses OpenAI GPT-4o to research the organization, discover risk scenarios from your findings, calibrate CRML model parameters against an industry knowledge base, run Monte Carlo simulations, and generate an executive-ready underwriting report. Every output is a valid CRML file, so it fits directly into the broader CRML ecosystem.
 
 ![CRML Code CLI demo](images/crml-cli-demo.png)
 

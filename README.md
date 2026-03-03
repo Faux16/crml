@@ -111,11 +111,86 @@ scenario:
       effectiveness_against_threat: 0.35
 ```
 
-This repository ships two Python packages and a web UI:
+This repository ships two Python packages, a web UI, and an AI-powered terminal CLI:
 
 - `crml-lang`: language/spec models + schema validation + YAML IO
 - `crml-engine`: reference runtime + `crml` CLI (depends on `crml-lang`)
 - `web/`: **CRML Studio** — browser UI for validation and simulation (Next.js)
+- `crml-cli`: **CRML Code** — AI-powered terminal interface for interactive cyber risk modeling
+
+---
+
+## CRML Code — AI-Powered CLI
+
+**CRML Code** is an interactive terminal tool that lets you model, simulate, and report on cyber risk end-to-end — with no YAML required. It uses OpenAI GPT-4o to discover risk scenarios, run Monte Carlo simulations, benchmark against industry peers, and generate executive reports.
+
+![CRML Code CLI demo](images/crml-cli-demo.png)
+
+### Quick setup
+
+```bash
+# 1. Clone the repo and create the virtual environment
+git clone https://github.com/your-org/crml.git && cd crml
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt   # or: pip install -e ./crml_lang -e ./crml_engine
+
+# 2. Make the CLI executable
+chmod +x crml-cli
+
+# 3. Run — you will be prompted for your API key on first launch
+./crml-cli
+```
+
+### Bring Your Own Key (BYOK)
+
+CRML Code does **not** require a shared `.env` file. You provide your own OpenAI API key using any of the following methods (highest priority first):
+
+| Method | How |
+|--------|-----|
+| CLI flag | `./crml-cli --api-key sk-...` |
+| Environment variable | `export OPENAI_API_KEY=sk-...` |
+| Saved config | Run `./crml-cli --configure` once |
+| Interactive prompt | Just run `./crml-cli` — it will ask |
+
+Keys saved via `--configure` are stored in `~/.crml/config.json` (outside the project, never committed to git).
+
+```bash
+# Save your key once, then forget about it
+./crml-cli --configure
+
+# One-time override
+./crml-cli --api-key sk-your-key-here
+
+# Load a Zeron/generic scan report instead of manual input
+./crml-cli --scan /path/to/report.json
+```
+
+### What CRML Code does
+
+```
+Step 1  Org Context     → Auto-discovers company info (revenue, industry, compliance) via web search
+Step 2  Risk Discovery  → Groups your findings into 3–5 modeled risk scenarios using GPT-4o
+Step 3  Simulation      → Runs 10,000 Monte Carlo trials across 3 distribution variants per scenario
+Step 3b Control ROI     → Maps controls to scenarios and calculates net savings and ROI %
+Step 4  Report          → Generates a Markdown + HTML executive underwriting report
+        What-If Mode    → Interactively tweak lambda/median/sigma and see EAL change instantly
+```
+
+All outputs are saved to `output/<org_slug>/`:
+
+| File | Contents |
+|------|----------|
+| `portfolio.yaml` | All scenario models in CRML format |
+| `CRML_RISK_REPORT.md` | Underwriter report (Markdown) |
+| `CRML_RISK_REPORT.html` | Underwriter report (styled HTML) |
+| `benchmark.json` | Peer comparison data |
+| `control_roi.json` | Control ROI analysis |
+| `session_history.json` | Risk trend tracking across runs |
+| `session_log.txt` | Full session event log |
+
+See the full guide: [wiki/Guides/CLI.md](wiki/Guides/CLI.md)
+
+---
 
 ## Installation
 

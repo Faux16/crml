@@ -1,0 +1,3 @@
+#!/bin/bash
+source "/Users/sanketsarkar/Desktop/RND/quants/crml/.venv/bin/activate"
+python3 "/Users/sanketsarkar/Desktop/RND/quants/crml/scripts/crml_cli.py" "$@"

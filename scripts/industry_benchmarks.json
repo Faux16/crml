@@ -1,0 +1,126 @@
+{
+    "scenarios": [
+        {
+            "id": "ransomware",
+            "keywords": [
+                "ransomware",
+                "encryption",
+                "locker"
+            ],
+            "baseline_lambda": 0.15,
+            "typical_median": 1200000,
+            "sigma": 1.4,
+            "rationale": "Based on 2024 industry averages for mid-market firms. Severity includes ransom payment, recovery, and business interruption."
+        },
+        {
+            "id": "phishing",
+            "keywords": [
+                "phishing",
+                "email",
+                "credential theft"
+            ],
+            "baseline_lambda": 0.45,
+            "typical_median": 250000,
+            "sigma": 1.2,
+            "rationale": "High frequency, moderate severity. Primarily reflects business email compromise (BEC) and data theft impact."
+        },
+        {
+            "id": "insider_theft",
+            "keywords": [
+                "insider",
+                "offboarding",
+                "access",
+                "stealing"
+            ],
+            "baseline_lambda": 0.08,
+            "typical_median": 500000,
+            "sigma": 1.8,
+            "rationale": "Lower frequency but high 'tail risk' (Sigma 1.8) due to the range of data sensitivity an insider can access."
+        },
+        {
+            "id": "supply_chain",
+            "keywords": [
+                "supply chain",
+                "vendor",
+                "third party",
+                "software update"
+            ],
+            "baseline_lambda": 0.02,
+            "typical_median": 5000000,
+            "sigma": 2.0,
+            "rationale": "Extremely low frequency but catastrophic severity. Reflects systemic risk from a compromised upstream provider."
+        },
+        {
+            "id": "cloud_misconfig",
+            "keywords": [
+                "cloud",
+                "s3",
+                "bucket",
+                "misconfiguration",
+                "exposure"
+            ],
+            "baseline_lambda": 0.30,
+            "typical_median": 150000,
+            "sigma": 1.5,
+            "rationale": "High frequency due to human error. Severity depends on the sensitivity of the exposed data."
+        }
+    ],
+    "controls": [
+        {
+            "id": "mfa",
+            "name": "Multi-Factor Authentication",
+            "effectiveness": 0.85,
+            "affects": "frequency",
+            "annual_cost": 25000,
+            "rationale": "Reduces frequency of phishing and credential theft by ~85% based on CISA and industry studies."
+        },
+        {
+            "id": "zta",
+            "name": "Zero Trust Architecture",
+            "effectiveness": 0.70,
+            "affects": "both",
+            "annual_cost": 150000,
+            "rationale": "Reduces frequency of lateral movement and severity of data theft through micro-segmentation and continuous verification."
+        },
+        {
+            "id": "dlp",
+            "name": "Data Loss Prevention (DLP)",
+            "effectiveness": 0.50,
+            "affects": "severity",
+            "annual_cost": 60000,
+            "rationale": "Directly reduces the severity of data theft by detecting and blocking sensitive data exfiltration."
+        },
+        {
+            "id": "patch_management",
+            "name": "Automated Patch Management",
+            "effectiveness": 0.60,
+            "affects": "frequency",
+            "annual_cost": 35000,
+            "rationale": "Reduces frequency of exploit-based scenarios (e.g., zero-days or known vulnerabilities)."
+        },
+        {
+            "id": "edr",
+            "name": "Endpoint Detection & Response",
+            "effectiveness": 0.65,
+            "affects": "severity",
+            "annual_cost": 45000,
+            "rationale": "Reduces severity of ransomware by detecting and stopping encryption in progress."
+        },
+        {
+            "id": "awareness_training",
+            "name": "Security Awareness Training",
+            "effectiveness": 0.30,
+            "affects": "frequency",
+            "annual_cost": 10000,
+            "rationale": "Reduces frequency of social engineering by improving employee detection capabilities."
+        },
+        {
+            "id": "immutable_backups",
+            "name": "Immutable Backups",
+            "effectiveness": 0.90,
+            "affects": "severity",
+            "annual_cost": 30000,
+            "rationale": "Reduces severity of ransomware-induced business interruption by ensuring fast recovery."
+        }
+    ]
+}

@@ -1,0 +1,36 @@
+name: crml-code
+description: >
+  AI-powered cyber risk modeling for Claude. Turn a company name or vulnerability
+  scan into a full quantitative risk assessment — Monte Carlo simulation, MITRE
+  ATT&CK tagging, control ROI analysis, and executive underwriting reports.
+  Built on the CRML (Cyber Risk Modeling Language) open standard.
+version: 0.1.0
+homepage: https://github.com/Faux16/crml
+license: MIT
+
+startCommand:
+  type: stdio
+
+  # User-configurable inputs shown in Smithery UI
+  configSchema:
+    type: object
+    properties:
+      openaiApiKey:
+        type: string
+        title: OpenAI API Key
+        description: >
+          Your OpenAI API key (starts with sk-). Used for AI-powered risk
+          scenario discovery, Monte Carlo parameter calibration, and executive
+          report generation via GPT-4o.
+        x-secret: true
+    required: []
+
+  # Command Smithery runs to start the MCP server
+  commandFunction: |-
+    (config) => ({
+      command: "python3",
+      args: ["-m", "crml_mcp.server"],
+      env: {
+        ...(config.openaiApiKey ? { OPENAI_API_KEY: config.openaiApiKey } : {})
+      }
+    })

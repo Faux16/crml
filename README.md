@@ -135,6 +135,42 @@ Unpatched OpenSSL,High,api-server-02
 
 ---
 
+## Claude Plugin (MCP Server)
+
+CRML Code is also available as a **Claude plugin** via the [Model Context Protocol](https://modelcontextprotocol.io). Once installed, you can run full risk assessments directly inside Claude Desktop or Claude Code — no terminal needed.
+
+```bash
+# Install
+pip install -e ./crml_lang -e ./crml_engine
+pip install -e ./crml_mcp
+```
+
+Add to Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "crml": {
+      "command": "crml-mcp"
+    }
+  }
+}
+```
+
+Or for Claude Code:
+
+```bash
+claude mcp add crml -- crml-mcp
+```
+
+Then just ask Claude:
+> *"Run a full cyber risk assessment for Stripe"*
+> *"Simulate ransomware risk for a fintech with $500M revenue"*
+
+See [crml_mcp/README_MCP.md](crml_mcp/README_MCP.md) for the full plugin guide, all tool parameters, and API key configuration.
+
+---
+
 ## Output files
 
 All outputs are saved to `output/<org_slug>/`:

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "crml-mcp"
+version = "0.1.0"
+description = "CRML Code MCP Server — AI-powered cyber risk modeling as a Claude plugin"
+readme = "README_MCP.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["mcp", "claude", "cyber-risk", "crml", "ai", "security", "risk-modeling", "monte-carlo"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "openai>=1.0.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+crml-mcp = "crml_mcp.server:main"
+
+[project.urls]
+Homepage    = "https://github.com/Faux16/crml"
+Repository  = "https://github.com/Faux16/crml"
+Issues      = "https://github.com/Faux16/crml/issues"
+
+[tool.setuptools.packages.find]
+where   = [".."]
+include = ["crml_mcp*"]

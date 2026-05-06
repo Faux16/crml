@@ -9,11 +9,11 @@ This repository is split into two Python packages:
 
 ## Quick links
 
-- Language overview: [Language/Overview](Language/Overview)
-- Engine overview: [Engine/Overview](Engine/Overview)
-- Getting Started (CLI): [Getting Started](Getting-Started)
-- Examples: [Examples](Examples)
-- Scenario schema + docs: [Language/Overview](Language/Overview)
+- Language overview: [Language/Overview](Language/Overview.md)
+- Engine overview: [Engine/Overview](Engine/Overview.md)
+- Getting Started (CLI): [Getting Started](Getting-Started.md)
+- Examples: [Examples](Examples.md)
+- Scenario schema + docs: [Language/Overview](Language/Overview.md)
 
 ## Install
 
@@ -46,4 +46,4 @@ scenario:
 
 ## Contributing
 
-See [Contributing](Contributing).
+See [Contributing](Contributing.md).

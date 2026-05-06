@@ -12,8 +12,8 @@ In addition to these layers, most real deployments also use **calibration toolin
 
 For the detailed architecture, see:
 
-- [Architecture-Language](Architecture-Language)
-- [Architecture-Engine](Architecture-Engine)
+- [Architecture-Language](Architecture-Language.md)
+- [Architecture-Engine](Architecture-Engine.md)
 
 ## Document types
 

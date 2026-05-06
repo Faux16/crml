@@ -8,7 +8,7 @@ In this repository:
 - Portfolio documents use `crml_portfolio: "1.0"`.
 - FX config is an execution-time config document (`crml_fx_config: "1.0"`).
 
-For full, runnable examples, see [Full Examples](Full-Examples).
+For full, runnable examples, see [Full Examples](Full-Examples.md).
 
 ## Scenario document header
 

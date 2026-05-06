@@ -2,9 +2,9 @@
 
 This page is the entry point for the CRML language contracts (schemas + minimal semantics) and how they relate to execution engines.
 
-- Language overview: [Architecture-Language](../Concepts/Architecture-Language)
-- Engine overview: [Architecture-Engine](../Concepts/Architecture-Engine)
-- JSON Schemas: [CRML-Schema](CRML-Schema)
+- Language overview: [Architecture-Language](../Concepts/Architecture-Language.md)
+- Engine overview: [Architecture-Engine](../Concepts/Architecture-Engine.md)
+- JSON Schemas: [CRML-Schema](CRML-Schema.md)
 - Practical workflow: [Getting Started](../Getting-Started.md)
 
 CRML is designed so that:

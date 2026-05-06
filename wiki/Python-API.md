@@ -7,5 +7,5 @@ CRML is split into two Python packages:
 
 Use these pages:
 
-- [Language Python API (crml_lang)](Language/Python-API)
-- [Engine Python API (crml_engine)](Engine/Python-API)
+- [Language Python API (crml_lang)](Language/Python-API.md)
+- [Engine Python API (crml_engine)](Engine/Python-API.md)

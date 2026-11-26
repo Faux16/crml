@@ -16,7 +16,7 @@
 
 **Version:** 1.2
 
-**Maintained by:** Zeron Research Labs and CyberSec Consulting LLC
+**Maintained by:** Zeron Research Labs and Auseklis Cyber Defense EOOD
 
 
 **Supported by:**
